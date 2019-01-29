@@ -1,0 +1,8 @@
+Tags:
+    Ans
+    Type
+    Topic
+    Sub
+    File
+
+(Topic, Sub, File) is unique
