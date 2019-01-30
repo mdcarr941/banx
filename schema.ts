@@ -4,13 +4,20 @@ export interface KeyValPair {
 }
 
 export class Problem {
-    constructor(public tags: KeyValPair[], public content: string) { }
+    public tags: KeyValPair[];
+    public content: string;
 
-    values(tag: string): string[] {
+    constructor(obj?: any) {
+        if (!obj) return;
+        this.tags = obj.tags;
+        this.content = obj.content;
+    }
+
+    public values(tag: string): string[] {
         return this.tags.filter(kv => kv.key == tag).map(kv => kv.value);
     }
 
-    value(tag: string): string {
+    public value(tag: string): string {
         const values = this.values(tag);
         if (values.length == 1) {
             return values[0];
@@ -19,5 +26,13 @@ export class Problem {
         } else {
             throw new Error("Multiple values found for: " + tag);
         }
+    }
+
+    public toString(): string {
+        return `{
+  tags: [ ${this.tags.map(kv => `${kv.key}@${kv.value}`).join(', ')} ],
+  content:
+'${this.content}'
+}`
     }
 }

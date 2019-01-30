@@ -1,0 +1,403 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%
+%%\tagged{Ans@ShortAns, Type@Compute, Topic@Volume, Sub@Solid, File@0001}{
+\begin{sagesilent}
+# Define variables and constants/exponents
+a=RandInt(1,10)
+b=RandInt(1,10)
+
+#Define the volume
+Ans=1/3*a^2*b
+\end{sagesilent}
+
+\latexProblemContent{
+\ifVerboseLocation This is Volume Compute Question 0001. \\ \fi
+\begin{problem}
+Find the volume of the pyramid whose base is a square with sides of length $\sage{a}$ and whose height is $\sage{b}$.
+
+\input{Volume-Compute-0001.HELP.tex}
+
+\[\answer{\sage{Ans}}\; \mbox{units}^3\]
+
+\end{problem}}%}
+%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%
+%%\tagged{Ans@ShortAns, Type@Compute, Topic@Volume, Sub@Solid, File@0002}{
+\begin{sagesilent}
+# Define variables and constants/exponents
+a=RandInt(1,10)
+
+#Define the volume
+Ans=2*sqrt(3)/3*a^3
+\end{sagesilent}
+
+\latexProblemContent{
+\ifVerboseLocation This is Volume Compute Question 0002. \\ \fi
+\begin{problem}
+Find the volume of the solid whose base is a disk of radius $\sage{a}$ and whose cross-sections are equilateral triangles.
+
+\input{Volume-Compute-0002.HELP.tex}
+
+\[\answer{\sage{Ans}}\; \mbox{units}^3\]
+
+\end{problem}}%}
+%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%
+%%\tagged{Ans@ShortAns, Type@Compute, Topic@Volume, Sub@Solid, File@0003}{
+\begin{sagesilent}
+# Define variables and constants/exponents
+a=RandInt(1,10)
+
+#Define the volume
+Ans=2*pi/3*a^3
+\end{sagesilent}
+
+\latexProblemContent{
+\ifVerboseLocation This is Volume Compute Question 0003. \\ \fi
+\begin{problem}
+Find the volume of the solid whose base is a disk of radius $\sage{a}$ and whose cross-sections are semi-circles.
+
+\input{Volume-Compute-0003.HELP.tex}
+
+\[\answer{\sage{Ans}}\; \mbox{units}^3\]
+
+\end{problem}}%}
+%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%
+%%\tagged{Ans@ShortAns, Type@Compute, Topic@Volume, Sub@Solid, File@0004}{
+\begin{sagesilent}
+# Define variables and constants/exponents
+a=RandInt(1,10)
+
+#Define the volume
+Ans=16/3*a^3
+\end{sagesilent}
+
+\latexProblemContent{
+\ifVerboseLocation This is Volume Compute Question 0004. \\ \fi
+\begin{problem}
+Find the volume of the solid whose base is a disk of radius $\sage{a}$ and whose cross-sections are squares.
+
+\input{Volume-Compute-0004.HELP.tex}
+
+\[\answer{\sage{Ans}}\; \mbox{units}^3\]
+
+\end{problem}}%}
+%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%
+%%\tagged{Ans@ShortAns, Type@Compute, Topic@Volume, Sub@Disk, Sub@Washer, File@0005}{
+\begin{sagesilent}
+# Define variables and constants/exponents
+a=RandInt(1,10)
+b=RandInt(1,10)
+c=RandInt(1,10)
+
+# Define the function
+F=a*sqrt(b*x)
+
+#Define the volume
+Ans=pi*a^2*b*c^2/2
+\end{sagesilent}
+
+\latexProblemContent{
+\ifVerboseLocation This is Volume Compute Question 0005. \\ \fi
+\begin{problem}
+Find the volume of the solid generated when the are bounded by the curve $y=\sage{F}$, the $x-$axis, and the line $x=\sage{c}$ is revolved about the $x-$axis.
+
+\input{Volume-Compute-0005.HELP.tex}
+
+\[\answer{\sage{Ans}}\; \mbox{units}^3\]
+
+\end{problem}}%}
+%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%
+%%\tagged{Ans@ShortAns, Type@Compute, Topic@Volume, Sub@Disk, Sub@Washer, File@0006}{
+\begin{sagesilent}
+# Define variables and constants/exponents
+a=RandInt(1,10)
+c=RandInt(1,10)
+
+# Define the function
+F=a*x^(1/3)
+
+#Define the volume
+Ans=3*pi*a^2*c^(5/3)/5
+\end{sagesilent}
+
+\latexProblemContent{
+\ifVerboseLocation This is Volume Compute Question 0006. \\ \fi
+\begin{problem}
+Find the volume of the solid generated when the are bounded by the curve $y=\sage{F}$, the $x-$axis, and the line $x=\sage{c}$ is revolved about the $x-$axis.
+
+\input{Volume-Compute-0006.HELP.tex}
+
+\[\answer{\sage{Ans}}\; \mbox{units}^3\]
+
+\end{problem}}%}
+%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%
+%%\tagged{Ans@ShortAns, Type@Compute, Topic@Volume, Sub@Disk, Sub@Washer, File@0007}{
+\begin{sagesilent}
+# Define variables and constants/exponents
+a=RandInt(1,10)
+b=RandInt(1,10)
+c=RandInt(1,10)
+
+# Define the function
+F=a*x^2+b
+
+#Define the volume
+Ans=pi*(a^2*c^5/5+2*a*b*c^3/3+b^2*c)
+\end{sagesilent}
+
+\latexProblemContent{
+\ifVerboseLocation This is Volume Compute Question 0007. \\ \fi
+\begin{problem}
+Find the volume of the solid generated when the are bounded by the curve $y=\sage{F}$, the $x-$axis, and the line $x=\sage{c}$ is revolved about the $x-$axis.
+
+\input{Volume-Compute-0007.HELP.tex}
+
+\[\answer{\sage{Ans}}\; \mbox{units}^3\]
+
+\end{problem}}%}
+%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%
+%%\tagged{Ans@ShortAns, Type@Compute, Topic@Volume, Sub@Disk, Sub@Washer, File@0008}{
+\begin{sagesilent}
+# Define variables and constants/exponents
+a=RandInt(1,10)
+b=RandInt(1,10)
+c=RandInt(1,10)
+
+# Define the function
+F=a*(b*x)^(1/2)
+
+#Define the volume
+Ans=pi*(a*c^2*(b*c)^(1/2)-(a*b^(5/2)*c^(5/2))/(5*b^2))
+\end{sagesilent}
+
+\latexProblemContent{
+\ifVerboseLocation This is Volume Compute Question 0008. \\ \fi
+\begin{problem}
+Find the volume of the solid generated when the are bounded by the curve $y=\sage{F}$, the $x-$axis, and the line $x=\sage{c}$ is revolved about the $y-$axis.
+
+\input{Volume-Compute-0008.HELP.tex}
+
+\[\answer{\sage{Ans}}\; \mbox{units}^3\]
+
+\end{problem}}%}
+%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%
+%%\tagged{Ans@ShortAns, Type@Compute, Topic@Volume, Sub@Disk, Sub@Washer, File@0009}{
+\begin{sagesilent}
+# Define variables and constants/exponents
+a=RandInt(1,10)
+c=RandInt(1,10)
+
+# Define the function
+F=a*x^(1/3)
+
+#Define the volume
+Ans=pi*6*a*c^(7/3)/7
+\end{sagesilent}
+
+\latexProblemContent{
+\ifVerboseLocation This is Volume Compute Question 0009. \\ \fi
+\begin{problem}
+Find the volume of the solid generated when the are bounded by the curve $y=\sage{F}$, the $x-$axis, and the line $x=\sage{c}$ is revolved about the $y-$axis.
+
+\input{Volume-Compute-0009.HELP.tex}
+
+\[\answer{\sage{Ans}}\; \mbox{units}^3\]
+
+\end{problem}}%}
+%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%
+%%\tagged{Ans@ShortAns, Type@Compute, Topic@Volume, Sub@Disk, Sub@Washer, File@0010}{
+\begin{sagesilent}
+# Define variables and constants/exponents
+a=RandInt(1,10)
+c=RandInt(1,10)
+
+# Define the function
+F=a*x^2
+
+#Define the volume
+Ans=pi*a*c^4/2
+\end{sagesilent}
+
+\latexProblemContent{
+\ifVerboseLocation This is Volume Compute Question 0010. \\ \fi
+\begin{problem}
+Find the volume of the solid generated when the are bounded by the curve $y=\sage{F}$, the $x-$axis, and the line $x=\sage{c}$ is revolved about the $y-$axis.
+
+\input{Volume-Compute-0010.HELP.tex}
+
+\[\answer{\sage{Ans}}\; \mbox{units}^3\]
+
+\end{problem}}%}
+%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%
+%%\tagged{Ans@ShortAns, Type@Compute, Topic@Volume, Sub@Washer, Sub@Shells, File@0011}{
+\begin{sagesilent}
+# Define variables and constants/exponents
+a=RandInt(1,10)
+p=RandInt(0,2)
+q=NonZeroInt(0,2,[p])
+
+#Defining function choices
+v=[a*x^3, a*x^2, a*x]
+Rout=v[max(p,q)]
+Rin=v[min(p,q)]
+
+#Define the volume
+Ans=pi*integral((Rout)^2-(Rin)^2, x,0,1)
+\end{sagesilent}
+
+\latexProblemContent{
+\ifVerboseLocation This is Volume Compute Question 0011. \\ \fi
+\begin{problem}
+Find the volume of the solid generated when the are bounded by the curve $y=\sage{Rout}$ and $y=\sage{Rin}$ is revolved about the $x-$axis. (Use either washers or shells)
+
+\input{Volume-Compute-0011.HELP.tex}
+
+\[\answer{\sage{Ans}}\; \mbox{units}^3\]
+
+\end{problem}}%}
+%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%
+%%\tagged{Ans@ShortAns, Type@Compute, Topic@Volume, Sub@Washer, Sub@Shells, File@0012}{
+\begin{sagesilent}
+var('x,y')
+# Define variables and constants/exponents
+a=RandInt(1,10)
+p=RandInt(0,2)
+q=NonZeroInt(0,2,[p])
+
+#Defining function choices
+v=[a*x^3, a*x^2, a*x]
+vflip=[(y/a)^(1/3), (y/a)^(1/2), y/a]
+Rout=vflip[min(p,q)]
+Rin=vflip[max(p,q)]
+rout=v[min(p,q)]
+rin=v[max(p,q)]
+
+#Define the volume
+Ans=pi*integral((Rout)^2-(Rin)^2, y,0,1)
+\end{sagesilent}
+
+\latexProblemContent{
+\ifVerboseLocation This is Volume Compute Question 0012. \\ \fi
+\begin{problem}
+Find the volume of the solid generated when the are bounded by the curve $y=\sage{rout}$ and $y=\sage{rin}$ is revolved about the $x-$axis. (Use either washers or shells)
+
+\input{Volume-Compute-0012.HELP.tex}
+
+\[\answer{\sage{Ans}}\; \mbox{units}^3\]
+
+\end{problem}}%}
+%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%
+%%\tagged{Ans@ShortAns, Type@Compute, Topic@Volume, Sub@Washer, Sub@Shells, File@0013}{
+\begin{sagesilent}
+var('x,y')
+# Define variables and constants/exponents
+c=NonZeroInt(-5,5,[0,1])
+p=RandInt(0,2)
+q=NonZeroInt(0,2,[p])
+
+#Defining function choices
+v=[x^3, x^2, x]
+vmin=v[min(p,q)]
+vmax=v[max(p,q)]
+
+#Define the volume
+if c>1:
+   Ans=pi*integral((c-vmin)^2-(c-vmax)^2, x,0,1)
+if c<0:
+   Ans=pi*integral((vmax-c)^2-(vmin-c)^2, x,0,1)
+\end{sagesilent}
+
+\latexProblemContent{
+\ifVerboseLocation This is Volume Compute Question 0013. \\ \fi
+\begin{problem}
+Find the volume of the solid generated when the are bounded by the curve $y=\sage{vmin}$ and $y=\sage{vmax}$ is revolved about the line $y=\sage{c}$. (Use either washers or shells)
+
+\input{Volume-Compute-0013.HELP.tex}
+
+\[\answer{\sage{Ans}}\; \mbox{units}^3\]
+
+\end{problem}}%}
+%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%
+%%\tagged{Ans@ShortAns, Type@Compute, Topic@Volume, Sub@Washer, Sub@Shells, File@0014}{
+\begin{sagesilent}
+var('x,y')
+# Define variables and constants/exponents
+c=NonZeroInt(-5,5,[0,1])
+p=RandInt(0,2)
+q=NonZeroInt(0,2,[p])
+
+#Defining function choices
+v=[x^3, x^2, x]
+vflip=[(y)^(1/3), (y)^(1/2), y]
+vmin=v[min(p,q)]
+vmax=v[max(p,q)]
+Vmin=vflip[min(p,q)]
+Vmax=vflip[max(p,q)]
+
+#Define the volume
+if c>1:
+   Ans=pi*integral((c-Vmax)^2-(c-Vmin)^2, y,0,1)
+if c<0:
+   Ans=pi*integral((Vmin-c)^2-(Vmax-c)^2, y,0,1)
+\end{sagesilent}
+
+\latexProblemContent{
+\ifVerboseLocation This is Volume Compute Question 0014. \\ \fi
+\begin{problem}
+Find the volume of the solid generated when the are bounded by the curve $y=\sage{vmin}$ and $y=\sage{vmax}$ is revolved about the line $x=\sage{c}$. (Use either washers or shells)
+
+\input{Volume-Compute-0014.HELP.tex}
+
+\[\answer{\sage{Ans}}\; \mbox{units}^3\]
+
+\end{problem}}%}
+%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
