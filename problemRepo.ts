@@ -1,5 +1,6 @@
 import { Collection, Cursor, InsertOneWriteOpResult,
-         InsertWriteOpResult, DeleteWriteOpResultObject } from 'mongodb';
+         InsertWriteOpResult, DeleteWriteOpResultObject,
+         FilterQuery } from 'mongodb';
 
 import { Problem, KeyValPair } from './schema';
 
@@ -14,19 +15,22 @@ export class ProblemRepo {
         return this.collection.insertMany(problems);
     }
 
-    public find(pairs: KeyValPair[]): Cursor<Problem> {
-        let query: any = {};
+    private makeQuery(pairs: KeyValPair[]): FilterQuery<Problem> {
         if (pairs.length > 0) {
-            query = {
+            return {
                 '$and': pairs.map(pair => {
                     return {'tags.key': pair.key, 'tags.value': pair.value};
                 })
             };
         }
-        return this.collection.find(query).map(p => new Problem(p));
+        return {};
+    }
+
+    public find(pairs: KeyValPair[]): Cursor<Problem> {
+        return this.collection.find(this.makeQuery(pairs)).map(p => new Problem(p));
     }
 
     public deleteMany(pairs: KeyValPair[]): Promise<DeleteWriteOpResultObject> {
-        return this.collection.deleteMany({});
+        return this.collection.deleteMany(this.makeQuery(pairs));
     }
 }
