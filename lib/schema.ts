@@ -29,10 +29,10 @@ export class Problem {
     }
 
     public toString(): string {
-        return `{
-  tags: [ ${this.tags.map(kv => `${kv.key}@${kv.value}`).join(', ')} ],
-  content:
-'${this.content}'
-}`
+        return `%%%%%%%%%%%%%%%%%%%%%%%
+%%\\taged{${this.tags.map(kv => `${kv.key}@${kv.value}`).join(', ')}}{
+${this.content}
+%}
+%%%%%%%%%%%%%%%%%%%%%%%`
     }
 }

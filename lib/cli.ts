@@ -6,7 +6,8 @@ import * as readline from 'readline';
 import client from './dbClient';
 import { ProblemRepo } from './problemRepo';
 import { ProblemParser } from './problemParser';
-import { Problem, KeyValPair } from './schema';
+import { Problem } from './schema';
+import { makePairs } from './common';
 
 const bufferLimit = 1000;
 
@@ -28,12 +29,6 @@ async function insert(repo: ProblemRepo, files: string[]): Promise<void> {
         }
         await repo.insertMany(buffer);
     }
-}
-
-function makePairs(tags: string[]): KeyValPair[] {
-    return tags.map(s => s.split('@')).map(p => {
-        return { key: p[0], value: p[1] };
-    });
 }
 
 function find(repo: ProblemRepo, tags: string[]) {

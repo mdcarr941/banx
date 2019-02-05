@@ -1,3 +1,5 @@
+import { KeyValPair } from './schema';
+
 // This is just to get around TypeScript's prohibition of implicity any.
 interface IIndexable {
     [key: string]: any;
@@ -19,4 +21,10 @@ export class Utility {
             target[key] = val;
         })
     }
+}
+
+export function makePairs(tags: string[]): KeyValPair[] {
+    return tags.map(s => s.split('@')).map(p => {
+        return { key: p[0], value: p[1] };
+    });
 }

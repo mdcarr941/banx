@@ -6,6 +6,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node ./bin/www",
+    "dev": "nodemon ./bin/www",
     "prod": "npm run build && npm run start",
     "test": "node ./bin/tests.js",
     "cli": "node ./bin/cli.js"
