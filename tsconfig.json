@@ -6,13 +6,11 @@
         "removeComments": true,
         "preserveConstEnums": true,
         "sourceMap": true,
-        "outDir": "./bin"
+        "outDir": "./bin",
+        "baseUrl": "./lib"
     },
     "include": [
-        "./*.ts"
+        "lib/**/*.ts"
     ],
-    "exclude": [
-        "node_modules/*",
-        "built/*"
-    ]
+    "exclude": [ ]
 }

@@ -4,7 +4,9 @@
   "description": "A web application for managing problems hosted by ximera.",
   "main": "main.ts",
   "scripts": {
+    "build": "tsc",
     "start": "node ./bin/www",
+    "prod": "npm run build && npm run start",
     "test": "node ./bin/tests.js",
     "cli": "node ./bin/cli.js"
   },
