@@ -1,4 +1,7 @@
 import { Component } from '@angular/core';
+import { ProblemIndex } from '../../../lib/schema';
+
+declare const problemIndex: ProblemIndex;
 
 @Component({
   selector: 'app-root',

@@ -3,6 +3,7 @@ extends layout
 block content
   h1= title
   app-root
+  script const problemIndex = !{problemIndexStr};
   script(src='/banx-app/runtime.js')
   script(src='/banx-app/es2015-polyfills.js')
   script(src='/banx-app/polyfills.js')

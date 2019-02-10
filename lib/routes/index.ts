@@ -11,7 +11,9 @@ async function init() {
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Banx' });
+  repo.getProblemIndex().then(problemIndex => {
+    res.render('index', { title: 'Banx', problemIndexStr: JSON.stringify(problemIndex) });
+  });
 });
 
 init().catch(err => {
