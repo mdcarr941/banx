@@ -19,25 +19,24 @@ export class ProblemRepo {
         return new ProblemRepo(problemCollection, indexCollection);
     }
 
-    private getIndexId(): ObjectID {
-        const problemIndex: any = this.problemIndex;
-        if (!problemIndex) return undefined;
-        return problemIndex._id;
-    }
+    // private getIndexId(): ObjectID {
+    //     const problemIndex: any = this.problemIndex;
+    //     if (!problemIndex) return undefined;
+    //     return problemIndex._id;
+    // }
 
     public async getProblemIndex(): Promise<ProblemIndex> {
         if (this.problemIndex) return this.problemIndex;
         return this.indexCollection.findOne({}).then(problemIndex => {
-            if (!problemIndex) problemIndex = {};
+            if (!problemIndex) problemIndex = {_id: undefined, index: {}};
             this.problemIndex = problemIndex;
             return problemIndex;
         });
     }
 
     public async updateProblemIndex(problemIndex: ProblemIndex) {
-        const indexId = this.getIndexId();
         const query: any = {};
-        if (indexId) query._id = indexId;
+        if (problemIndex._id) query._id = problemIndex._id;
         return this.indexCollection.findOneAndReplace(query, problemIndex, {upsert: true})
             .then(result => this.problemIndex = result.value);
     }
@@ -48,11 +47,11 @@ export class ProblemRepo {
         
         problems.forEach(problem => {
             problem.tags.filter(tag => tag.key === 'Topic').map(tag => tag.value).forEach(topic => {
-                if (!problemIndex[topic]) problemIndex[topic] = {};
-                const topicIndex = problemIndex[topic];
+                if (!problemIndex.index[topic]) problemIndex.index[topic] = {};
+                const topicIndex = problemIndex.index[topic];
                 
                 problem.tags.filter(tag => tag.key === 'Sub').map(tag => tag.value).forEach(sub => {
-                    if (!topicIndex[sub]) topicIndex[sub] = {tags: {}};
+                    if (!topicIndex[sub]) topicIndex[sub] = {tags: {}, problems: {}};
                     const subIndex = topicIndex[sub];
                     const filteredTags = problem.tags.filter(tag => tag.key !== 'Topic' && tag.key !== 'Sub');
 
@@ -63,11 +62,12 @@ export class ProblemRepo {
                         if (!keyIndex[tag.value]) keyIndex[tag.value] = 1;
                         else keyIndex[tag.value] += 1;
                     });
-                    subIndex[problem.getIdInt()] = filteredTags;
+                    subIndex.problems[problem._id.toHexString()] = filteredTags;
                     madeChanges = true;
                 });
             });
         });
+        
         if (madeChanges) await this.updateProblemIndex(problemIndex);
         return problems;
     }
@@ -78,7 +78,7 @@ export class ProblemRepo {
 
         problems.forEach(problem => {
             problem.tags.filter(tag => tag.key == 'Topic').map(tag => tag.value).forEach(topic => {
-                const topicIndex = problemIndex[topic];
+                const topicIndex = problemIndex.index[topic];
                 problem.tags.filter(tag => tag.key == 'Sub').map(tag => tag.value).forEach(sub => {
                     const subIndex = topicIndex[sub];
                     const filteredTags = problem.tags.filter(tag => tag.key !== 'Topic' && tag.key !== 'Sub');
@@ -90,16 +90,17 @@ export class ProblemRepo {
                         if (0 == keyIndex[tag.value]) delete keyIndex[tag.value];
 
                         // If this keyIndex has no values, then delete it.
-                        if (0 == Object.keys(subIndex.tags[tag.key]).length) delete subIndex.tags[tag.key];
+                        if (0 == Object.keys(subIndex.tags[tag.key]).length)
+                            delete subIndex.tags[tag.key];
                     });
-                    delete subIndex[problem.getIdInt()];
+                    delete subIndex.problems[problem._id.toHexString()];
                     madeChanges = true;
 
                     // If only the key "tags" remains, then delete this subIndex.
                     if (1 === Object.keys(subIndex).length) delete topicIndex[sub];
                 });
                 // If no subIndex remains, delete this topicIndex.
-                if (0 === Object.keys(topicIndex).length) delete problemIndex[topic];
+                if (0 === Object.keys(topicIndex).length) delete problemIndex.index[topic];
             });
         });
         
@@ -108,17 +109,13 @@ export class ProblemRepo {
     }
 
     public async insertOne(problem: Problem): Promise<InsertOneWriteOpResult> {
-        return this.collection.insertOne(problem).then(result => {
-            this.updateIndexOnInsert(result.ops.map(p => new Problem(p)));
-            return result;
-        });
+        return this.collection.insertOne(problem)
+            .then( result => this.updateIndexOnInsert(result.ops.map(p => new Problem(p))).then(() => result) );
     }
 
     public async insertMany(problems: Problem[]): Promise<InsertWriteOpResult> {
-        return this.collection.insertMany(problems).then(result => {
-            this.updateIndexOnInsert(result.ops.map(p => new Problem(p)));
-            return result;
-        });
+        return this.collection.insertMany(problems)
+            .then(result => this.updateIndexOnInsert(result.ops.map(p => new Problem(p))).then(() => result) );
     }
 
     private makeQuery(pairs: KeyValPair[]): FilterQuery<Problem> {
@@ -137,9 +134,8 @@ export class ProblemRepo {
     }
 
     public async deleteOne(id: ObjectID): Promise<Problem> {
-        return this.collection.findOneAndDelete({_id: id}).then(result => {
-            return this.updateIndexOnDelete([new Problem(result.value)]).then(problems => problems[0]);
-        });
+        return this.collection.findOneAndDelete({_id: id})
+            .then(result => this.updateIndexOnDelete([new Problem(result.value)]).then(problems => problems[0]));
     }
 
     public async deleteMany(ids: ObjectID[]): Promise<Problem[]> {

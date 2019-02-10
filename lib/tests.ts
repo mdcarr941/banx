@@ -91,7 +91,7 @@ async function main(command: string, tokens: string[]): Promise<void> {
         });
     } else if ('getIndex' == command) {
         await getProblemIndex(repo).then(index => {
-            console.log(JSON.stringify(index));
+            console.log(JSON.stringify(index, undefined, 2));
         });
     } else {
         throw 'Unrecognized argument: ' + command;

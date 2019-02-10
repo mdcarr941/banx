@@ -1,7 +1,5 @@
 import { ObjectID } from 'mongodb';
 
-import { Utility } from './common';
-
 export interface KeyValPair {
     key: string;
     value: string;
@@ -15,17 +13,14 @@ export interface IProblem {
 
 export class Problem implements IProblem {
     public _id: ObjectID;
-    public tags: KeyValPair[];
+    public tags: KeyValPair[] = [];
     public content: string;
 
     constructor(obj?: any) {
-        Utility.copyFields(this, obj);
-    }
-
-    private idInt: number;
-    public getIdInt(): number {
-        if (!this.idInt) this.idInt = parseInt(this._id.toHexString(), 16);
-        return this.idInt
+        if (!obj) return;
+        this._id = obj._id;
+        this.tags = obj.tags;
+        this.content = obj.content;
     }
 
     public values(tag: string): string[] {
@@ -53,17 +48,22 @@ ${this.content}
 }
 
 export interface ProblemIndex {
-    [topic: string]: {
-        [sub: string]: {
-            tags: {
-                [key: string]: {
-                    // value points to the number of times that value was used.
-                    // This allows for easy updating of this data structure.
-                    [value: string]: number
+    _id: ObjectID,
+    index: {
+        [topic: string]: {
+            [sub: string]: {
+                tags: {
+                    [key: string]: {
+                        // value points to the number of times that value was used.
+                        // This allows for easy updating of this data structure.
+                        [value: string]: number
+                    }
+                },
+                problems: {
+                    // Each problem ID points to the KV pairs of its tags.
+                    [problemId: string]: KeyValPair[]
                 }
-            },
-            // Each problem ID points to the KV pairs of its tags.
-            [problemId: number]: KeyValPair[]
+            }
         }
     }
 }

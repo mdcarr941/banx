@@ -30,32 +30,29 @@ async function insert(repo: ProblemRepo, files: string[]): Promise<void> {
     }
 }
 
-function find(repo: ProblemRepo, tags: string[]) {
+async function find(repo: ProblemRepo, tags: string[]) {
     const pairs = makePairs(tags);
-    return new Promise((resolve, reject) => {
-        repo.find(pairs).toArray((err, problems) => {
-            if (err) reject();
-            console.log(`Found ${problems.length} problem${problems.length == 1 ? '' : 's'}.`);
-            problems.forEach(problem => console.log(problem.toString()));
-            resolve();
-        });
+    let count = 0;
+    await repo.find(pairs).forEach(problem => {
+        count += 1;
+        console.log(problem.toString());
     });
+    console.log(`Found ${count} problem${count == 1 ? '' : 's'}.`);
 }
 
 async function del(repo: ProblemRepo, tags: string[]) {
     const pairs = makePairs(tags);
     const problems = await repo.find(pairs).toArray();
     if (0 === problems.length) {
-        console.log('No problems matching your query were found.');
+        console.log('No problems were found which matched your query.');
         return;
     }
-    problems.forEach(problem => console.log(`_id = ${problem._id}`, problem.toString()));
-    //problems.forEach(problem => console.log(problem));
+    problems.forEach(problem => console.log(problem.toString()));
     const rl = readline.createInterface({
         input: process.stdin, output: process.stdout
     });
     return new Promise((resolve) => {
-        rl.question('Delete all of these problems? ', answer => {
+        rl.question('Delete all of these problems? (y/N) ', answer => {
             if (answer.trim().toLocaleLowerCase().startsWith('y')) {
                 console.log('Proceeding with delete.');
                 repo.deleteMany(problems.map(problem => problem._id)).then(() => {
