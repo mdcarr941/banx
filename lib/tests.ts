@@ -3,7 +3,7 @@
 import * as assert from 'assert';
 import { DeleteWriteOpResultObject, InsertWriteOpResult } from 'mongodb';
 
-import { GlobalRepo, ProblemRepo } from './problemRepo';
+import { GlobalRepoPromise, ProblemRepo } from './problemRepo';
 import { Problem, ProblemIndex } from './schema';
 
 function insertDocuments(repo: ProblemRepo): Promise<InsertWriteOpResult> {
@@ -70,7 +70,7 @@ function getProblemIndex(repo: ProblemRepo): Promise<ProblemIndex> {
 }
 
 async function main(command: string, tokens: string[]): Promise<void> {
-    const repo = await GlobalRepo;
+    const repo = await GlobalRepoPromise;
     if ('insert' == command) {
         await insertDocuments(repo).then(result => {
             console.log(`Inserted ${result.result.n} document${result.result.n == 1 ? '' : 's'} into the collection.`)

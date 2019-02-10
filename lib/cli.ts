@@ -3,7 +3,7 @@
 import * as program from 'commander';
 import * as readline from 'readline';
 
-import { GlobalRepo, ProblemRepo } from './problemRepo';
+import { GlobalRepoPromise, ProblemRepo } from './problemRepo';
 import { ProblemParser } from './problemParser';
 import { Problem } from './schema';
 import { makePairs } from './common';
@@ -76,7 +76,7 @@ interface IAction {
 }
 
 async function main(argv: string[]) {
-    const repo = await GlobalRepo;
+    const repo = await GlobalRepoPromise;
     let action: IAction = { command: 'default', options: {} };
     program.version('0.0.1');
     program.command('find [tags...]')
