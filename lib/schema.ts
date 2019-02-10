@@ -1,16 +1,31 @@
+import { ObjectID } from 'mongodb';
+
+import { Utility } from './common';
+
 export interface KeyValPair {
     key: string;
     value: string;
 }
 
-export class Problem {
+export interface IProblem {
+    _id: ObjectID;
+    tags: KeyValPair[];
+    content: string;
+}
+
+export class Problem implements IProblem {
+    public _id: ObjectID;
     public tags: KeyValPair[];
     public content: string;
 
     constructor(obj?: any) {
-        if (!obj) return;
-        this.tags = obj.tags;
-        this.content = obj.content;
+        Utility.copyFields(this, obj);
+    }
+
+    private idInt: number;
+    public getIdInt(): number {
+        if (!this.idInt) this.idInt = parseInt(this._id.toHexString(), 16);
+        return this.idInt
     }
 
     public values(tag: string): string[] {
@@ -36,3 +51,20 @@ ${this.content}
 %%%%%%%%%%%%%%%%%%%%%%%`
     }
 }
+
+export interface ProblemIndex {
+    [topic: string]: {
+        [sub: string]: {
+            tags: {
+                [key: string]: {
+                    // value points to the number of times that value was used.
+                    // This allows for easy updating of this data structure.
+                    [value: string]: number
+                }
+            },
+            // Each problem ID points to the KV pairs of its tags.
+            [problemId: number]: KeyValPair[]
+        }
+    }
+}
+// Note that a problemId will appear once for each (topic, subtopic) defined on it.

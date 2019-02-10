@@ -1,3 +1,5 @@
 node_modules/
 built/
 bin/
+banx-app/node_modules/
+public/banx-app/

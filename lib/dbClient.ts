@@ -1,5 +1,4 @@
 import { MongoClient, Db, Collection } from "mongodb";
-import { Problem } from "./schema";
 
 const mongoUri = 'mongodb://localhost:27017/banx';
 const globalDefaultCollection = 'problems';
@@ -29,11 +28,10 @@ class DbClient {
         return this.client.db();
     }
 
-    public async collection(collection: string = this.defaultCollection): Promise<Collection<Problem>> {
+    public async collection(collection: string = this.defaultCollection): Promise<Collection<any>> {
         if (!this.client) await this.connect();
-        const db = this.client.db();
         // TODO: write a validator for the default collection.
-        return db.collection(collection);
+        return this.client.db().collection(collection);
     }
 }
 

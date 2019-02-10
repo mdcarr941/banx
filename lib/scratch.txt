@@ -1,0 +1,36 @@
+db.problems.aggregate([
+     { $match: { "tags.key": "Ans" } },
+     { $project: { tags: { $filter: {
+          input: "$tags",
+          as: "tag",
+          cond: { $eq: ["$$tag.key", "Ans"] }
+     }}}},
+     { $project: { values: { $map: {
+          input: "$tags",
+          as: "tag",
+          in: "$$tag.value"
+     }}}},
+     { $group: { _id: null, values: { $addToSet: "$values" }}},
+     { $project: { _id: 0, values: { $reduce: {
+          input: "$values",
+          initialValue: [],
+          in: { $concatArrays: ["$$value", "$$this"] }
+     }}}}
+])
+
+# The "ProblemIndex" data structure.
+{
+    'topic0': {
+        'sub0: {
+            'tags': {
+               'tag0': { 'value0': <number> },
+               'tag1': {...},
+               ...
+            },
+            <problem id>: [{key: <string>, value: <string>}, ...]
+        }
+    },
+    'topic1': {
+        ...
+    }
+}

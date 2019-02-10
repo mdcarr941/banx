@@ -1,13 +1,12 @@
-#!/usr/bin/node
+#!/usr/bin/env node
 
 import * as assert from 'assert';
-import { Collection, DeleteWriteOpResultObject, InsertWriteOpResult } from 'mongodb';
+import { DeleteWriteOpResultObject, InsertWriteOpResult } from 'mongodb';
 
-import client from './dbClient';
-import { ProblemRepo } from './problemRepo';
-import { Problem } from './schema';
+import { GlobalRepo, ProblemRepo } from './problemRepo';
+import { Problem, ProblemIndex } from './schema';
 
-async function insertDocuments(repo: ProblemRepo): Promise<InsertWriteOpResult> {
+function insertDocuments(repo: ProblemRepo): Promise<InsertWriteOpResult> {
     const prob1 = new Problem({
         tags: [
             { key: 'Ans', value: 'ShortAns' },
@@ -45,7 +44,7 @@ async function insertDocuments(repo: ProblemRepo): Promise<InsertWriteOpResult> 
     })
 }
 
-async function findDocuments(repo: ProblemRepo, tokens: string[]): Promise<Problem[]> {
+function findDocuments(repo: ProblemRepo, tokens: string[]): Promise<Problem[]> {
     const query = !tokens ? [] : tokens.map(s => s.split('@')).map(p => {
         return { key: p[0], value: p[1]}
     });
@@ -58,33 +57,47 @@ async function findDocuments(repo: ProblemRepo, tokens: string[]): Promise<Probl
     return rval;
 }
 
-async function deleteAllDocuments(repo: ProblemRepo) {
-    return repo.deleteMany([]);
+function getAllValues(repo: ProblemRepo, key: string): Promise<string[]> {
+    return repo.getAllValues(key);
+}
+
+function deleteAllDocuments(repo: ProblemRepo): Promise<DeleteWriteOpResultObject> {
+    return repo.deleteAll();
+}
+
+function getProblemIndex(repo: ProblemRepo): Promise<ProblemIndex> {
+    return repo.getProblemIndex();
 }
 
 async function main(command: string, tokens: string[]): Promise<void> {
-    const collection = await client.collection();
-    const repo = new ProblemRepo(collection);
+    const repo = await GlobalRepo;
     if ('insert' == command) {
-        await insertDocuments(repo).then(result =>
-            console.log(`Inserted ${result.result.n} document into the documents collection.`)
-        );
+        await insertDocuments(repo).then(result => {
+            console.log(`Inserted ${result.result.n} document${result.result.n == 1 ? '' : 's'} into the collection.`)
+        });
     } else if ('find' == command) {
         await findDocuments(repo, tokens).then(docs => {
             console.log('Found the following documents:');
             docs.forEach(prob => console.log(prob));
         });
+    } else if ('getAllValues' == command) {
+        await getAllValues(repo, tokens[0]).then((values: string[]) => {
+            values.forEach(value => console.log(value));
+            console.log(`Found ${values.length} value${values.length == 1 ? '' : 's'}`);
+        });
     } else if ('deleteAll' == command) {
-        await deleteAllDocuments(repo).then((result: DeleteWriteOpResultObject) => {
-            console.log(result);
+        await deleteAllDocuments(repo).then((result) => {
             console.log('Delete finished.');
+        });
+    } else if ('getIndex' == command) {
+        await getProblemIndex(repo).then(index => {
+            console.log(JSON.stringify(index));
         });
     } else {
         throw 'Unrecognized argument: ' + command;
     }
-    client.disconnect();
 }
 
 main(process.argv[2], process.argv.slice(3))
-    .then(_ => process.exit(0))
-    .catch(_ => process.exit(1));
+    .then(() => process.exit(0))
+    .catch(() => process.exit(1));

@@ -3,8 +3,7 @@
 import * as program from 'commander';
 import * as readline from 'readline';
 
-import client from './dbClient';
-import { ProblemRepo } from './problemRepo';
+import { GlobalRepo, ProblemRepo } from './problemRepo';
 import { ProblemParser } from './problemParser';
 import { Problem } from './schema';
 import { makePairs } from './common';
@@ -46,7 +45,12 @@ function find(repo: ProblemRepo, tags: string[]) {
 async function del(repo: ProblemRepo, tags: string[]) {
     const pairs = makePairs(tags);
     const problems = await repo.find(pairs).toArray();
-    problems.forEach(problem => console.log(problem.toString()));
+    if (0 === problems.length) {
+        console.log('No problems matching your query were found.');
+        return;
+    }
+    problems.forEach(problem => console.log(`_id = ${problem._id}`, problem.toString()));
+    //problems.forEach(problem => console.log(problem));
     const rl = readline.createInterface({
         input: process.stdin, output: process.stdout
     });
@@ -54,12 +58,15 @@ async function del(repo: ProblemRepo, tags: string[]) {
         rl.question('Delete all of these problems? ', answer => {
             if (answer.trim().toLocaleLowerCase().startsWith('y')) {
                 console.log('Proceeding with delete.');
-                repo.deleteMany(pairs);
+                repo.deleteMany(problems.map(problem => problem._id)).then(() => {
+                    rl.close();
+                    resolve()
+                });
             } else {
                 console.log('Aborting delete.');
+                rl.close();
+                resolve();
             }
-            rl.close();
-            resolve();
         })
     });
 }
@@ -72,8 +79,7 @@ interface IAction {
 }
 
 async function main(argv: string[]) {
-    const collection = await client.collection();
-    const repo = new ProblemRepo(collection);
+    const repo = await GlobalRepo;
     let action: IAction = { command: 'default', options: {} };
     program.version('0.0.1');
     program.command('find [tags...]')
