@@ -34,3 +34,7 @@ db.problems.aggregate([
         ...
     }
 }
+
+{"msgId":1, "code":"import time; time.sleep(10); x = 1"}
+{"msgId":2, "code":"y = 2"}
+{"msgId":5, "code":"p = str(next_prime(4))"}
