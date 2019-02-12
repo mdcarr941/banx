@@ -35,6 +35,9 @@ db.problems.aggregate([
     }
 }
 
-{"msgId":1, "code":"import time; time.sleep(10); x = 1"}
+{"msgId":1, "code":"import time\ntime.sleep(1)\nx = 1"}
 {"msgId":2, "code":"y = 2"}
-{"msgId":5, "code":"p = str(next_prime(4))"}
+{"msgId":5, "code":"p = next_prime(4.5)"}
+{"msgId":5, "code":"p = next_prime(4)"}
+{"msgId":1,"code":"x = str(type(2.5))"}
+{"msgId":1,"code":"\n# Define variables and constants/exponents\na=randint(1,10)\nb=randint(1,10)\n\n#Define the volume\nAns=1/3*a^2*b\n"}
