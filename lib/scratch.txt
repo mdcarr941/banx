@@ -35,7 +35,7 @@ db.problems.aggregate([
     }
 }
 
-{"msgId":1, "code":"import time\ntime.sleep(1)\nx = 1"}
+{"msgId":1, "code":"import time\ntime.sleep(5)\nx = 1"}
 {"msgId":2, "code":"y = 2"}
 {"msgId":5, "code":"p = next_prime(4.5)"}
 {"msgId":5, "code":"p = next_prime(4)"}
