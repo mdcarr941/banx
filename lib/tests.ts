@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 
 import * as assert from 'assert';
-import { DeleteWriteOpResultObject, InsertWriteOpResult } from 'mongodb';
+import { DeleteWriteOpResultObject, InsertWriteOpResult, ObjectID } from 'mongodb';
 
 import { GlobalRepoPromise, ProblemRepo } from './problemRepo';
 import { Problem, ProblemIndex } from './schema';
+import { SageServer } from './sageServer';
 
 function insertDocuments(repo: ProblemRepo): Promise<InsertWriteOpResult> {
     const prob1 = new Problem({
@@ -69,6 +70,12 @@ function getProblemIndex(repo: ProblemRepo): Promise<ProblemIndex> {
     return repo.getProblemIndex();
 }
 
+async function getInstance(repo: ProblemRepo, id: string): Promise<any> {
+    const server = new SageServer();
+    return server.execute('x = 5');
+    //await new Promise(resolve => setInterval(() => resolve(), 2000));
+}
+
 async function main(command: string, tokens: string[]): Promise<void> {
     const repo = await GlobalRepoPromise;
     if ('insert' == command) {
@@ -93,6 +100,11 @@ async function main(command: string, tokens: string[]): Promise<void> {
         await getProblemIndex(repo).then(index => {
             console.log(JSON.stringify(index, undefined, 2));
         });
+    } else if ('getInstance' == command) {
+        await getInstance(repo, tokens[0]).then(instanceStr => {
+            console.log('got instance:');
+            console.log(instanceStr);
+        });
     } else {
         throw 'Unrecognized argument: ' + command;
     }
@@ -100,4 +112,7 @@ async function main(command: string, tokens: string[]): Promise<void> {
 
 main(process.argv[2], process.argv.slice(3))
     .then(() => process.exit(0))
-    .catch(() => process.exit(1));
+    .catch(err => {
+        console.log(err);
+        process.exit(1)
+    });

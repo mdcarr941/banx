@@ -41,3 +41,6 @@ db.problems.aggregate([
 {"msgId":5, "code":"p = next_prime(4)"}
 {"msgId":1,"code":"x = str(type(2.5))"}
 {"msgId":1,"code":"\n# Define variables and constants/exponents\na=randint(1,10)\nb=randint(1,10)\n\n#Define the volume\nAns=1/3*a^2*b\n"}
+{"code":"x = 5"}
+{"msgId":1}
+{"code":"x = 1/0","msgId":1}

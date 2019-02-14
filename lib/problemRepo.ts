@@ -13,10 +13,14 @@ export class ProblemRepo {
         private indexCollection: Collection<ProblemIndex>
     ) { }
 
-    static async create(): Promise<ProblemRepo> {
+    public static async create(): Promise<ProblemRepo> {
         const problemCollection: Collection<Problem> = await client.collection('problems');
         const indexCollection: Collection<ProblemIndex> = await client.collection('problemIndex');
         return new ProblemRepo(problemCollection, indexCollection);
+    }
+
+    public async getProblem(id: ObjectID): Promise<Problem> {
+        return this.collection.findOne({_id: id}).then(p => p ? new Problem(p) : null);
     }
 
     public async getProblemIndex(): Promise<ProblemIndex> {

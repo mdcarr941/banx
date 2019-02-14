@@ -16,6 +16,7 @@ import traceback
 import types
 
 Q_SIZE = 4096 # The number of lines in the message queue.
+OUTQ_SIZE = 4096 # The number of lines in the output queue.
 NUM_WORKERS = 8 # The number of worker processes.
 PUT_TIMEOUT_SECS = 1 # Seconds to wait for a free slot in the queue.
 
@@ -119,17 +120,24 @@ def unescape(s):
             index += 1
     return ''.join(chars)
 
-def errorResponse(msgId, result):
+def enqueueResponse(q, line):
+    """Put line into q, and print to stderr if something goes wrong."""
+    try:
+        q.put(line, True, PUT_TIMEOUT_SECS)
+    except Queue.Full:
+        print("Failed to enqueue a response.", file=sys.stderr)
+
+def errorResponse(q, msgId, result):
     """Respond with an object that has error set to true and the given result."""
     result = escape(result)
-    print(Template('{"msgId":"$msgId","error":true,"result":"$result"}')
+    enqueueResponse(q, Template('{"msgId":"$msgId","error":true,"result":"$result"}')
         .substitute(msgId=msgId, result=result))
 
-def exceptionResponse(msgId, message):
+def exceptionResponse(q, msgId, message):
     """Respond with a message concatenated with a stack trace of the last exception."""
-    errorResponse(msgId, message + '\n' + traceback.format_exc())
+    errorResponse(q, msgId, message + '\n' + traceback.format_exc())
 
-def fullQueueResponse(line):
+def fullQueueResponse(q, line):
     """Respond with an error message indicating that the queue is full."""
     try:
         msg = json.loads(line)
@@ -141,9 +149,9 @@ def fullQueueResponse(line):
     except KeyError:
         msgId = None
 
-    errorResponse(msgId, 'The queue is full.')
+    errorResponse(q, msgId, 'The queue is full.')
 
-def workerRoutine(q):
+def workerRoutine(q, outputQ):
     """The loop to be excuted by each worker process."""
     encoder = JSONEncoderSaged()
     while True:
@@ -153,29 +161,36 @@ def workerRoutine(q):
         try:
             msg = json.loads(msgStr)
         except ValueError:
-            errorResponse(msgId, 'Failed to deserilize JSON.')
+            errorResponse(outputQ, msgId, 'Failed to deserilize JSON.')
             continue
 
         try:
             msgId = msg['msgId']
             code = unescape(msg['code'])
         except KeyError:
-            errorResponse(msgId, 'msg is missing required fields.')
+            errorResponse(outputQ, msgId, 'msg is missing required fields.')
             continue
 
         try:
             result = compute(code)
         except Exception:
-            exceptionResponse(msgId, 'An exception occured while executing user code:')
+            exceptionResponse(outputQ, msgId, 'An exception occured while executing user code:')
             continue
 
         try:
             output = encoder.encode({'msgId': msgId, 'error': False, 'result': result})
         except TypeError, ValueError:
-            errorResponse(msgId, 'Failed to serialize result.')
+            errorResponse(outputQ, msgId, 'Failed to serialize result.')
             continue
 
-        print(output)
+        enqueueResponse(outputQ, output)
+
+def outputWorker(outputQ):
+    """This routine simply pulls lines from the output queue and prints them."""
+    while True:
+        line = outputQ.get(True)
+        print(line)
+        sys.stdout.flush()
 
 def main():
     """
@@ -183,17 +198,24 @@ def main():
     when finished.
     """
     q = Queue(Q_SIZE)
+    outputQ = Queue(OUTQ_SIZE)
+
+    # The printer should be the first to start and the last to terminate.
+    printer = Process(target=outputWorker, args=(outputQ, ))
+    printer.start()
+
     workers = []
     for k in range(NUM_WORKERS):
-        worker = Process(target=workerRoutine, args=(q,))
+        worker = Process(target=workerRoutine, args=(q, outputQ))
         worker.start()
         workers.append(worker)
-    
+    workers.append(printer)
+
     for line in fileinput.input():
         try:
-            q.put(line, true, PUT_TIMEOUT_SECS)
+            q.put(line, True, PUT_TIMEOUT_SECS)
         except Queue.Full:
-            fullQueueResponse(line)
+            fullQueueResponse(outputQ, line)
     
     for worker in workers:
         worker.terminate()

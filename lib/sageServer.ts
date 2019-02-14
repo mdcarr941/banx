@@ -1,7 +1,7 @@
 import { ChildProcess, spawn } from 'child_process';
-import btoa from 'btoa';
+const btoa = require('btoa');
 
-const serverPathDefault = './sage_server.py'
+const serverPathDefault = '../lib/sage_server.py';
 
 export interface SageResponse {
     id: string,
@@ -9,7 +9,7 @@ export interface SageResponse {
     result: Object
 }
 
-export type SageCallback = (response: SageResponse) => any; 
+export type SageCallback = (response: Object) => any;
 
 export class SageServer {
     private sub: ChildProcess;
@@ -18,13 +18,14 @@ export class SageServer {
         this.spawnSub();
     }
 
-    private listeners: Map<string, [Date, SageCallback]> = new Map();
+    private listeners: Map<string, [number, SageCallback]> = new Map();
 
     private spawnSub() {
         this.sub = spawn(this.serverPath);
+        this.sub.on('error', err => console.error(err));
         // TODO: Handle errors, pipe closings, etc...
         this.sub.stdout.on('data', (chunk) => {
-            //const line = 
+            console.log('got chunk: ', chunk);
         })
     }
 
@@ -43,8 +44,18 @@ export class SageServer {
         return output;
     }
 
-    public execute(code: string): Object {
-        
-        return {}
+    private addListener(id: string, callback: SageCallback) {
+        this.listeners.set(id, [Date.now(), callback]);
+    }
+
+    public execute(code: string): Promise<Object> {
+        const id = this.getId();
+        const request = JSON.stringify({msgId: id, code: code});
+        const rval: Promise<Object> = new Promise((resolve, reject) => {
+            this.addListener(id, result => resolve(result));
+        });
+        console.log('sending: ', request);
+        this.sub.stdin.write(request);
+        return rval;
     }
 }
