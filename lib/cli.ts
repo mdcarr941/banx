@@ -2,11 +2,13 @@
 
 import * as program from 'commander';
 import * as readline from 'readline';
+const repl = require('repl');
 
 import { GlobalRepoPromise, ProblemRepo } from './problemRepo';
 import { ProblemParser } from './problemParser';
 import { Problem } from './schema';
 import { makePairs } from './common';
+import { GlobalSageServer } from './sageServer';
 
 const bufferLimit = 1000;
 
@@ -68,6 +70,18 @@ async function del(repo: ProblemRepo, tags: string[]) {
     });
 }
 
+function sageShell(): Promise<void> {
+    const server = repl.start({
+        prompt: 'sage : ',
+        eval: function(cmd: string, context: any, filename: string, callback: Function): any {
+            GlobalSageServer.execute(cmd)
+                .then((result: Object) => callback(null, result))
+                .catch((err: Error) => callback(err.message));
+        }
+    });
+    return new Promise(resolve => server.on('exit', () => resolve()));
+}
+
 type IOptions = {[key: string]: any};
 
 interface IAction {
@@ -93,6 +107,11 @@ async function main(argv: string[]) {
         .description('Delete problems with all of the given tags.')
         .action((tags: string[]) => {
             action = { command: 'delete', options: {tags: tags} };
+        });
+    program.command('sageShell')
+        .description('Launch a shell that will interpret sage commands.')
+        .action(() => {
+            action = { command: 'sageShell', options: {} };
         })
     program.parse(argv);
     switch (action.command) {
@@ -104,6 +123,9 @@ async function main(argv: string[]) {
             break;
         case 'delete':
             await del(repo, action.options.tags);
+            break;
+        case 'sageShell':
+            await sageShell();
             break;
         default:
             throw new Error('unknown command');

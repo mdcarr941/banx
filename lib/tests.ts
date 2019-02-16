@@ -5,7 +5,7 @@ import { DeleteWriteOpResultObject, InsertWriteOpResult, ObjectID } from 'mongod
 
 import { GlobalRepoPromise, ProblemRepo } from './problemRepo';
 import { Problem, ProblemIndex } from './schema';
-import { SageServer } from './sageServer';
+import { GlobalSageServer } from './sageServer';
 
 function insertDocuments(repo: ProblemRepo): Promise<InsertWriteOpResult> {
     const prob1 = new Problem({
@@ -71,12 +71,11 @@ function getProblemIndex(repo: ProblemRepo): Promise<ProblemIndex> {
 }
 
 async function getInstance(repo: ProblemRepo, id: string): Promise<void> {
-    const server = new SageServer();
     await Promise.all([
-        server.execute(id)
+        GlobalSageServer.execute(id)
             .then((result: any) => console.log(JSON.stringify(result)))
             .catch((err: Error) => console.error(err.message)),
-        server.execute('n = factorial(20)')
+        GlobalSageServer.execute('n = factorial(20)')
             .then((result: any) => console.log(`n = ${result.n}`))
             .catch((err: Error) => console.error(err))
     ]);

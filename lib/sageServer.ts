@@ -20,19 +20,29 @@ class LineStream extends Stream.Transform {
 
     private getNextLine(): string {
         const index = this.buffer.indexOf('\n');
-        if (index < 0) return '';
+        if (index < 0) return null;
         const rval = this.buffer.slice(0, index);
-        this.buffer = this.buffer.slice(index);
+        this.buffer = this.buffer.slice(index + 1);
         return rval;
+    }
+
+    private pushLines() {
+        let nextLine = this.getNextLine();
+        while (nextLine) {
+            this.push(nextLine);
+            nextLine = this.getNextLine();
+        }
     }
 
     _transform(chunk: string, encoding: string, callback: Function) {
         this.buffer += chunk;
-        let nextLine = this.getNextLine();
-        while (nextLine.length > 0) {
-            this.push(nextLine);
-            nextLine = this.getNextLine();
-        }
+        this.pushLines();
+        callback(null);
+    }
+
+    _flush(callback: Function) {
+        this.pushLines();
+        if (this.buffer.length > 0) this.push(this.buffer);
         callback(null);
     }
 }
@@ -67,9 +77,11 @@ export class SageServer {
 
     private spawnSub() {
         this.sub = spawn(this.serverPath);
+        process.on('exit', () => this.sub.kill());
         this.sub.on('error', err => console.error(`sageServer: error ${err}`));
-        this.sub.on('close', code => {
+        this.sub.on('exit', code => {
             console.log(`sageServer: subprocess exited with code ${code}.`)
+            this.spawnSub();
         });
         this.sub.stderr.pipe(process.stderr);
         this.sub.stdout.pipe(this.lineStream);
@@ -138,3 +150,5 @@ export class SageServer {
         return rval;
     }
 }
+
+export const GlobalSageServer = new SageServer();
