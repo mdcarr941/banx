@@ -70,10 +70,11 @@ function getProblemIndex(repo: ProblemRepo): Promise<ProblemIndex> {
     return repo.getProblemIndex();
 }
 
-async function getInstance(repo: ProblemRepo, id: string): Promise<any> {
+async function getInstance(repo: ProblemRepo, id: string): Promise<void> {
     const server = new SageServer();
-    return server.execute('x = 5');
-    //await new Promise(resolve => setInterval(() => resolve(), 2000));
+    await server.execute(`value = ${id}`)
+        .then((result: any) => console.log(result.value))
+        .catch((err: Error) => console.error(err.message));
 }
 
 async function main(command: string, tokens: string[]): Promise<void> {
@@ -101,10 +102,7 @@ async function main(command: string, tokens: string[]): Promise<void> {
             console.log(JSON.stringify(index, undefined, 2));
         });
     } else if ('getInstance' == command) {
-        await getInstance(repo, tokens[0]).then(instanceStr => {
-            console.log('got instance:');
-            console.log(instanceStr);
-        });
+        await getInstance(repo, tokens[0]);
     } else {
         throw 'Unrecognized argument: ' + command;
     }
