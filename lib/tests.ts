@@ -72,9 +72,14 @@ function getProblemIndex(repo: ProblemRepo): Promise<ProblemIndex> {
 
 async function getInstance(repo: ProblemRepo, id: string): Promise<void> {
     const server = new SageServer();
-    await server.execute(`value = ${id}`)
-        .then((result: any) => console.log(result.value))
-        .catch((err: Error) => console.error(err.message));
+    await Promise.all([
+        server.execute(id)
+            .then((result: any) => console.log(JSON.stringify(result)))
+            .catch((err: Error) => console.error(err.message)),
+        server.execute('n = factorial(20)')
+            .then((result: any) => console.log(`n = ${result.n}`))
+            .catch((err: Error) => console.error(err))
+    ]);
 }
 
 async function main(command: string, tokens: string[]): Promise<void> {

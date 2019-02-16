@@ -14,11 +14,13 @@ import sys
 import fileinput
 import traceback
 import types
+import signal
 
 Q_SIZE = 4096 # The number of lines in the message queue.
 OUTQ_SIZE = 4096 # The number of lines in the output queue.
-NUM_WORKERS = 8 # The number of worker processes.
+NUM_WORKERS = 4 # The number of worker processes.
 PUT_TIMEOUT_SECS = 1 # Seconds to wait for a free slot in the queue.
+USER_CODE_DEADLINE = 2 # Seconds to wait for user code to complete.
 
 class IgnoreField():
     """
@@ -71,6 +73,32 @@ class JSONEncoderSaged(json.JSONEncoder):
                 new_o[key] = value
         return new_o
 
+class TimeoutException(Exception):
+    """Thrown when a function exceeds its deadline."""
+    pass
+
+def deadline(timeout, *args):
+    """Set a deadline for the execution of the decorated function. timeout is in seconds."""
+    def decorate(f):
+        def handler(signum, fram):
+            if signum == signal.SIGALRM:
+                raise TimeoutException()
+
+        def new_f(*args):
+            signal.signal(signal.SIGALRM, handler)
+            signal.alarm(timeout)
+            try:
+                rval = f(*args)
+            finally:
+                signal.alarm(0)
+            return rval
+
+        new_f.__name__ = f.__name__
+        return new_f
+    
+    return decorate
+
+@deadline(USER_CODE_DEADLINE)
 def compute(code):
     """
     Excutes a string of python code and returns the local variables
@@ -151,46 +179,70 @@ def fullQueueResponse(q, line):
 
     errorResponse(q, msgId, 'The queue is full.')
 
-def workerRoutine(q, outputQ):
-    """The loop to be excuted by each worker process."""
-    encoder = JSONEncoderSaged()
-    while True:
-        msgStr = q.get(true) # block until we get something
-        msgId = None
+class WorkerProcess(Process): 
+    def __init__(self, q=None, outputQ=None, *args, **kwargs):
+        super(WorkerProcess, self).__init__(*args, **kwargs)
+        self.q = q
+        self.outputQ = outputQ
 
-        try:
-            msg = json.loads(msgStr)
-        except ValueError:
-            errorResponse(outputQ, msgId, 'Failed to deserilize JSON.')
-            continue
+    def run(self):
+        """The loop to be excuted by each worker process."""
+        q = self.q
+        outputQ = self.outputQ
+        encoder = JSONEncoderSaged()
 
-        try:
-            msgId = msg['msgId']
-            code = unescape(msg['code'])
-        except KeyError:
-            errorResponse(outputQ, msgId, 'msg is missing required fields.')
-            continue
+        while True:
+            msgStr = q.get(true) # block until we get something
+            msgId = None
 
-        try:
-            result = compute(code)
-        except Exception:
-            exceptionResponse(outputQ, msgId, 'An exception occured while executing user code:')
-            continue
+            try:
+                msg = json.loads(msgStr)
+            except:
+                errorResponse(outputQ, msgId, 'Failed to deserilize JSON.')
+                continue
 
-        try:
-            output = encoder.encode({'msgId': msgId, 'error': False, 'result': result})
-        except TypeError, ValueError:
-            errorResponse(outputQ, msgId, 'Failed to serialize result.')
-            continue
+            try:
+                msgId = msg['msgId']
+                code = unescape(msg['code'])
+            except KeyError:
+                errorResponse(outputQ, msgId, 'msg is missing required fields.')
+                continue
 
-        enqueueResponse(outputQ, output)
+            try:
+                result = compute(code)
+            except TimeoutException:
+                errorResponse(outputQ, msgId, 'Computation timed out.')
+                continue
+            except:
+                exceptionResponse(outputQ, msgId, 'An exception occured while executing user code:')
+                continue
 
-def outputWorker(outputQ):
-    """This routine simply pulls lines from the output queue and prints them."""
-    while True:
-        line = outputQ.get(True)
-        print(line)
-        sys.stdout.flush()
+            try:
+                output = encoder.encode({'msgId': msgId, 'error': False, 'result': result})
+            except (TypeError, ValueError):
+                errorResponse(outputQ, msgId, 'Failed to serialize result.')
+                continue
+
+            enqueueResponse(outputQ, output)
+
+class OutputProcess(WorkerProcess):
+    def run(self):
+        """This routine simply pulls lines from the output queue and prints them."""
+        outputQ = self.outputQ
+        while True:
+            line = outputQ.get(True)
+            print(line)
+            sys.stdout.flush()
+
+def checkWorkers(workers):
+    """Check each worker, creating a new one if one was found dead."""
+    for k in range(len(workers)):
+        worker = workers[k]
+        if not worker.is_alive():
+            worker = type(worker)(q=worker.q, outputQ=worker.outputQ)
+            worker.start()
+            workers[k] = worker
+    return workers
 
 def main():
     """
@@ -201,12 +253,12 @@ def main():
     outputQ = Queue(OUTQ_SIZE)
 
     # The printer should be the first to start and the last to terminate.
-    printer = Process(target=outputWorker, args=(outputQ, ))
+    printer = OutputProcess(outputQ=outputQ)
     printer.start()
 
     workers = []
     for k in range(NUM_WORKERS):
-        worker = Process(target=workerRoutine, args=(q, outputQ))
+        worker = WorkerProcess(q=q, outputQ=outputQ)
         worker.start()
         workers.append(worker)
     workers.append(printer)
@@ -216,6 +268,7 @@ def main():
             q.put(line, True, PUT_TIMEOUT_SECS)
         except Queue.Full:
             fullQueueResponse(outputQ, line)
+        workers = checkWorkers(workers)
     
     for worker in workers:
         worker.terminate()

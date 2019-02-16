@@ -5,7 +5,7 @@ const btoa = require('btoa');
 type Timeout = any; // The nodejs Timeout type, which is opaque to me.
 
 export const serverPathDefault = '../lib/sage_server.py';
-export const responseTimeoutMsDefault = 1500;
+export const responseTimeoutMsDefault = 2500;
 
 class LineStream extends Stream.Transform {
     private buffer: string = '';
@@ -76,7 +76,7 @@ export class SageServer {
         this.lineStream.on('data', (line: string) => {
             const response: SageResponse = JSON.parse(line);
             const listener = this.listeners.get(response.msgId);
-            if (!listener) return;
+            if (!listener) return; // Nobody cares about this response.
             clearTimeout(listener.timeout);
             if (response.error) listener.onError(new Error(response.result.toString()));
             else listener.onResponse(response.result);
