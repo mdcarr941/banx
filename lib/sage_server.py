@@ -58,7 +58,10 @@ class JSONEncoderSaged(json.JSONEncoder):
         elif type(o) == sage.rings.rational.Rational:
             return str(o)
         else:
-            return self.ignore
+            try:
+                return str(o)
+            except:
+                return self.ignore
 
     def filter_list(self, o):
         new_o = []
@@ -136,7 +139,8 @@ def compute(code):
     which were in scope when the code exited.
     """
     l = {}
-    exec(sage_preparse_file(code), USER_CODE_GLOBALS, l)
+    code = sage_preparse_file(code)
+    exec(code, USER_CODE_GLOBALS, l)
     return l
 
 def invertMap(map):

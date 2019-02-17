@@ -1,5 +1,6 @@
 import { ChildProcess, spawn } from 'child_process';
 import { Stream } from 'stream';
+import * as path from 'path';
 const btoa = require('btoa');
 
 type Timeout = any; // The nodejs Timeout type, which is opaque to me.
@@ -80,7 +81,7 @@ export class SageServer {
     private listeners: Map<string, SageListener> = new Map();
 
     private spawnSub() {
-        this.sub = spawn('python2', [this.serverPath]);
+        this.sub = spawn('python2', [path.join(__dirname, this.serverPath)]);
         process.on('exit', () => this.sub.kill());
 
         this.sub.on('error', err => console.error(`sageServer: error ${err}`));

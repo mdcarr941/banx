@@ -33,7 +33,8 @@ export class ProblemGenerator {
 
     private static sageVarRgx = /\\sage{([^}]*)}/g
 
-    public async getInstance(id: ObjectID): Promise<Problem> {
+    public async getInstance(problemId: string): Promise<Problem> {
+        const id = ObjectID.createFromHexString(problemId);
         const repo = await this.getRepo();
 
         const problem = await repo.getProblem(id);

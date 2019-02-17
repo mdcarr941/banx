@@ -4,3 +4,4 @@ bin/
 banx-app/node_modules/
 public/banx-app/
 *.pyc
+problem_generator.py

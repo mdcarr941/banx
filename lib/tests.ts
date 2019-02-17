@@ -71,7 +71,7 @@ function getProblemIndex(repo: ProblemRepo): Promise<ProblemIndex> {
 }
 
 async function getInstance(id: string): Promise<void> {
-    return GlobalProblemGenerator.getInstance(ObjectID.createFromHexString(id))
+    return GlobalProblemGenerator.getInstance(id)
         .then(problem => console.log(problem.toString()));
 }
 

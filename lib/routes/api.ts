@@ -2,6 +2,8 @@ import * as express from 'express';
 
 import { GlobalRepoPromise, ProblemRepo } from '../problemRepo';
 import { makePairs } from '../common';
+import { GlobalProblemGenerator } from '../problemGenerator';
+import { RSA_NO_PADDING } from 'constants';
 
 const router = express.Router();
 
@@ -19,6 +21,12 @@ router.get('/problems', (req, res) => {
         else res.send(problems);
     });
 });
+
+router.get('/instance/:problemId', (req, res) => {
+    GlobalProblemGenerator.getInstance(req.params['problemId'])
+        .then(problem => res.send(problem))
+        .catch(err => res.sendStatus(400));
+})
 
 init().catch(err => {
     console.error('Failed to initialize the API.');
