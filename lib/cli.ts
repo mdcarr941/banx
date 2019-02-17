@@ -72,7 +72,7 @@ async function del(repo: ProblemRepo, tags: string[]) {
 
 function sageShell(): Promise<void> {
     const server = repl.start({
-        prompt: 'sage : ',
+        prompt: 'sage: ',
         eval: function(cmd: string, context: any, filename: string, callback: Function): any {
             GlobalSageServer.execute(cmd)
                 .then((result: Object) => callback(null, result))

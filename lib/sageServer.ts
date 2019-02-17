@@ -62,9 +62,13 @@ interface SageListener {
     timeout: Timeout
 }
 
+export interface SageVariables {
+    [name: string]: string;
+}
+
 export class SageServer {
     private sub: ChildProcess;
-    private lineStream: LineStream = new LineStream();
+    private lineStream: LineStream;
 
     constructor(
         private serverPath: string = serverPathDefault,
@@ -76,17 +80,26 @@ export class SageServer {
     private listeners: Map<string, SageListener> = new Map();
 
     private spawnSub() {
-        this.sub = spawn(this.serverPath);
+        this.sub = spawn('python2', [this.serverPath]);
         process.on('exit', () => this.sub.kill());
+
         this.sub.on('error', err => console.error(`sageServer: error ${err}`));
         this.sub.on('exit', code => {
             console.log(`sageServer: subprocess exited with code ${code}.`)
             this.spawnSub();
         });
+
         this.sub.stderr.pipe(process.stderr);
+
+        this.lineStream = new LineStream();
         this.sub.stdout.pipe(this.lineStream);
         this.lineStream.on('data', (line: string) => {
-            const response: SageResponse = JSON.parse(line);
+            let response: SageResponse;
+            try {
+                response = JSON.parse(line);
+            } catch {
+                return;
+            }
             const listener = this.listeners.get(response.msgId);
             if (!listener) return; // Nobody cares about this response.
             clearTimeout(listener.timeout);
@@ -136,13 +149,13 @@ export class SageServer {
         return rval;
     }
 
-    public async execute(code: string): Promise<Object> {
+    public async execute(code: string): Promise<SageVariables> {
         const msgId = this.getId();
         const request = {msgId: msgId, code: code}
-        const rval: Promise<Object> = new Promise((resolve, reject) => {
+        const rval: Promise<SageVariables> = new Promise((resolve, reject) => {
             this.addListener(
                 msgId,
-                result => resolve(result),
+                (result: SageVariables) => resolve(result),
                 err => reject(err)
             );
         });

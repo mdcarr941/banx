@@ -1,4 +1,4 @@
-#!/usr/bin/env sage
+#!/usr/bin/env python2
 """
 This program loops over lines on stdin, parses them as JSON objects,
 then executes the code property of the resulting object.
@@ -7,6 +7,7 @@ in scope when the code terminated, serialized as a JSON object.
 """
 from __future__ import print_function
 from sage.all import *
+from sage.repl.preparse import preparse_file as sage_preparse_file
 from multiprocessing import Process, Queue
 from string import Template
 import json
@@ -53,6 +54,8 @@ class JSONEncoderSaged(json.JSONEncoder):
         elif type(o) == sage.rings.integer.Integer:
             return int(o)
         elif type(o) == sage.rings.real_mpfr.RealLiteral:
+            return float(o)
+        elif type(o) == sage.rings.rational.Rational:
             return float(o)
         else:
             return self.ignore
@@ -105,7 +108,7 @@ def compute(code):
     which were in scope when the code exited.
     """
     l = {}
-    exec(code, None, l)
+    exec(sage_preparse_file(code), None, l)
     return l
 
 def invertMap(map):
@@ -244,6 +247,14 @@ def checkWorkers(workers):
             workers[k] = worker
     return workers
 
+def terminateWorkers(workers):
+    """Terminate the given workers."""
+    for worker in workers:
+        try:
+            worker.terminate()
+        except:
+            continue
+
 def main():
     """
     This function creates workers, loops over lines on stdin, and terminates workers
@@ -263,6 +274,13 @@ def main():
         workers.append(worker)
     workers.append(printer)
 
+    def handler(signum, frame):
+        terminateWorkers(workers)
+        sys.exit(signum)
+
+    signal.signal(signal.SIGTERM, handler)
+    signal.signal(signal.SIGINT, handler)
+
     for line in fileinput.input():
         try:
             q.put(line, True, PUT_TIMEOUT_SECS)
@@ -270,8 +288,7 @@ def main():
             fullQueueResponse(outputQ, line)
         workers = checkWorkers(workers)
     
-    for worker in workers:
-        worker.terminate()
+    terminateWorkers(workers)
 
 if __name__ == '__main__':
     main()

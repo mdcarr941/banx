@@ -7,11 +7,11 @@
 %%\tagged{Ans@ShortAns, Type@Compute, Topic@Volume, Sub@Solid, File@0001}{
 \begin{sagesilent}
 # Define variables and constants/exponents
-a=RandInt(1,10)
-b=RandInt(1,10)
+a=randint(1,10)
+b=randint(1,10)
 
 #Define the volume
-Ans=1/3*a^2*b
+Ans=1/3*a**2*b
 \end{sagesilent}
 
 \latexProblemContent{
@@ -30,7 +30,7 @@ Find the volume of the pyramid whose base is a square with sides of length $\sag
 %%\tagged{Ans@ShortAns, Type@Compute, Topic@Volume, Sub@Solid, File@0002}{
 \begin{sagesilent}
 # Define variables and constants/exponents
-a=RandInt(1,10)
+a=randint(1,10)
 
 #Define the volume
 Ans=2*sqrt(3)/3*a^3
@@ -52,7 +52,7 @@ Find the volume of the solid whose base is a disk of radius $\sage{a}$ and whose
 %%\tagged{Ans@ShortAns, Type@Compute, Topic@Volume, Sub@Solid, File@0003}{
 \begin{sagesilent}
 # Define variables and constants/exponents
-a=RandInt(1,10)
+a=randint(1,10)
 
 #Define the volume
 Ans=2*pi/3*a^3
@@ -74,7 +74,7 @@ Find the volume of the solid whose base is a disk of radius $\sage{a}$ and whose
 %%\tagged{Ans@ShortAns, Type@Compute, Topic@Volume, Sub@Solid, File@0004}{
 \begin{sagesilent}
 # Define variables and constants/exponents
-a=RandInt(1,10)
+a=randint(1,10)
 
 #Define the volume
 Ans=16/3*a^3
@@ -96,9 +96,9 @@ Find the volume of the solid whose base is a disk of radius $\sage{a}$ and whose
 %%\tagged{Ans@ShortAns, Type@Compute, Topic@Volume, Sub@Disk, Sub@Washer, File@0005}{
 \begin{sagesilent}
 # Define variables and constants/exponents
-a=RandInt(1,10)
-b=RandInt(1,10)
-c=RandInt(1,10)
+a=randint(1,10)
+b=randint(1,10)
+c=randint(1,10)
 
 # Define the function
 F=a*sqrt(b*x)
@@ -123,8 +123,8 @@ Find the volume of the solid generated when the are bounded by the curve $y=\sag
 %%\tagged{Ans@ShortAns, Type@Compute, Topic@Volume, Sub@Disk, Sub@Washer, File@0006}{
 \begin{sagesilent}
 # Define variables and constants/exponents
-a=RandInt(1,10)
-c=RandInt(1,10)
+a=randint(1,10)
+c=randint(1,10)
 
 # Define the function
 F=a*x^(1/3)
@@ -149,9 +149,9 @@ Find the volume of the solid generated when the are bounded by the curve $y=\sag
 %%\tagged{Ans@ShortAns, Type@Compute, Topic@Volume, Sub@Disk, Sub@Washer, File@0007}{
 \begin{sagesilent}
 # Define variables and constants/exponents
-a=RandInt(1,10)
-b=RandInt(1,10)
-c=RandInt(1,10)
+a=randint(1,10)
+b=randint(1,10)
+c=randint(1,10)
 
 # Define the function
 F=a*x^2+b
@@ -176,9 +176,9 @@ Find the volume of the solid generated when the are bounded by the curve $y=\sag
 %%\tagged{Ans@ShortAns, Type@Compute, Topic@Volume, Sub@Disk, Sub@Washer, File@0008}{
 \begin{sagesilent}
 # Define variables and constants/exponents
-a=RandInt(1,10)
-b=RandInt(1,10)
-c=RandInt(1,10)
+a=randint(1,10)
+b=randint(1,10)
+c=randint(1,10)
 
 # Define the function
 F=a*(b*x)^(1/2)
@@ -203,8 +203,8 @@ Find the volume of the solid generated when the are bounded by the curve $y=\sag
 %%\tagged{Ans@ShortAns, Type@Compute, Topic@Volume, Sub@Disk, Sub@Washer, File@0009}{
 \begin{sagesilent}
 # Define variables and constants/exponents
-a=RandInt(1,10)
-c=RandInt(1,10)
+a=randint(1,10)
+c=randint(1,10)
 
 # Define the function
 F=a*x^(1/3)
@@ -229,8 +229,8 @@ Find the volume of the solid generated when the are bounded by the curve $y=\sag
 %%\tagged{Ans@ShortAns, Type@Compute, Topic@Volume, Sub@Disk, Sub@Washer, File@0010}{
 \begin{sagesilent}
 # Define variables and constants/exponents
-a=RandInt(1,10)
-c=RandInt(1,10)
+a=randint(1,10)
+c=randint(1,10)
 
 # Define the function
 F=a*x^2
@@ -255,8 +255,8 @@ Find the volume of the solid generated when the are bounded by the curve $y=\sag
 %%\tagged{Ans@ShortAns, Type@Compute, Topic@Volume, Sub@Washer, Sub@Shells, File@0011}{
 \begin{sagesilent}
 # Define variables and constants/exponents
-a=RandInt(1,10)
-p=RandInt(0,2)
+a=randint(1,10)
+p=randint(0,2)
 q=NonZeroInt(0,2,[p])
 
 #Defining function choices
@@ -285,8 +285,8 @@ Find the volume of the solid generated when the are bounded by the curve $y=\sag
 \begin{sagesilent}
 var('x,y')
 # Define variables and constants/exponents
-a=RandInt(1,10)
-p=RandInt(0,2)
+a=randint(1,10)
+p=randint(0,2)
 q=NonZeroInt(0,2,[p])
 
 #Defining function choices
@@ -319,7 +319,7 @@ Find the volume of the solid generated when the are bounded by the curve $y=\sag
 var('x,y')
 # Define variables and constants/exponents
 c=NonZeroInt(-5,5,[0,1])
-p=RandInt(0,2)
+p=randint(0,2)
 q=NonZeroInt(0,2,[p])
 
 #Defining function choices
@@ -352,7 +352,7 @@ Find the volume of the solid generated when the are bounded by the curve $y=\sag
 var('x,y')
 # Define variables and constants/exponents
 c=NonZeroInt(-5,5,[0,1])
-p=RandInt(0,2)
+p=randint(0,2)
 q=NonZeroInt(0,2,[p])
 
 #Defining function choices

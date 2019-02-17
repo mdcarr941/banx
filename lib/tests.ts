@@ -5,7 +5,7 @@ import { DeleteWriteOpResultObject, InsertWriteOpResult, ObjectID } from 'mongod
 
 import { GlobalRepoPromise, ProblemRepo } from './problemRepo';
 import { Problem, ProblemIndex } from './schema';
-import { GlobalSageServer } from './sageServer';
+import { GlobalProblemGenerator } from './problemGenerator';
 
 function insertDocuments(repo: ProblemRepo): Promise<InsertWriteOpResult> {
     const prob1 = new Problem({
@@ -70,15 +70,9 @@ function getProblemIndex(repo: ProblemRepo): Promise<ProblemIndex> {
     return repo.getProblemIndex();
 }
 
-async function getInstance(repo: ProblemRepo, id: string): Promise<void> {
-    await Promise.all([
-        GlobalSageServer.execute(id)
-            .then((result: any) => console.log(JSON.stringify(result)))
-            .catch((err: Error) => console.error(err.message)),
-        GlobalSageServer.execute('n = factorial(20)')
-            .then((result: any) => console.log(`n = ${result.n}`))
-            .catch((err: Error) => console.error(err))
-    ]);
+async function getInstance(id: string): Promise<void> {
+    return GlobalProblemGenerator.getInstance(ObjectID.createFromHexString(id))
+        .then(problem => console.log(problem.toString()));
 }
 
 async function main(command: string, tokens: string[]): Promise<void> {
@@ -106,7 +100,9 @@ async function main(command: string, tokens: string[]): Promise<void> {
             console.log(JSON.stringify(index, undefined, 2));
         });
     } else if ('getInstance' == command) {
-        await getInstance(repo, tokens[0]);
+        await getInstance(tokens[0]).catch(err => {
+            console.error('An error occured while running getInstance: ', err);
+        });
     } else {
         throw 'Unrecognized argument: ' + command;
     }
