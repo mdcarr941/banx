@@ -6,8 +6,8 @@ After excution is complete, it responds with the variables which were
 in scope when the code terminated, serialized as a JSON object.
 """
 from __future__ import print_function
-from sage.all import *
 from sage.repl.preparse import preparse_file as sage_preparse_file
+import sage.all
 from multiprocessing import Process, Queue
 from string import Template
 import json
@@ -56,7 +56,7 @@ class JSONEncoderSaged(json.JSONEncoder):
         elif type(o) == sage.rings.real_mpfr.RealLiteral:
             return float(o)
         elif type(o) == sage.rings.rational.Rational:
-            return float(o)
+            return str(o)
         else:
             return self.ignore
 
@@ -71,6 +71,9 @@ class JSONEncoderSaged(json.JSONEncoder):
     def filter_dict(self, o):
         new_o = {}
         for key, value in o.items():
+            # Ignore variables whose name starts with '_sage'.
+            if key.startswith('_sage'):
+                continue
             value = self.filter(value)
             if value != self.ignore:
                 new_o[key] = value
@@ -101,6 +104,31 @@ def deadline(timeout, *args):
     
     return decorate
 
+# These builtin function will not be callable from user code.
+BLACKLISTED_BUILTINS = [
+    'compile',
+    'execfile',
+    'eval',
+    'file',
+    'input',
+    'open',
+    'raw_input',
+    'reload',
+    '__import__'
+]
+
+def filterBuiltins(base):
+    rval = dict(base) # copy base
+    builtins = rval['__builtins__']
+    newBuiltins = {}
+    for key, value in builtins.iteritems():
+        if not key in BLACKLISTED_BUILTINS:
+            newBuiltins[key] = builtins[key]
+    rval['__builtins__'] = newBuiltins
+    return rval
+
+USER_CODE_GLOBALS = filterBuiltins(sage.all.__dict__)
+
 @deadline(USER_CODE_DEADLINE)
 def compute(code):
     """
@@ -108,7 +136,7 @@ def compute(code):
     which were in scope when the code exited.
     """
     l = {}
-    exec(sage_preparse_file(code), None, l)
+    exec(sage_preparse_file(code), USER_CODE_GLOBALS, l)
     return l
 
 def invertMap(map):
@@ -195,7 +223,7 @@ class WorkerProcess(Process):
         encoder = JSONEncoderSaged()
 
         while True:
-            msgStr = q.get(true) # block until we get something
+            msgStr = q.get(True) # block until we get something
             msgId = None
 
             try:
