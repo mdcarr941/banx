@@ -2,6 +2,10 @@
   "name": "banx",
   "version": "0.0.1",
   "description": "A web application for managing problems hosted by ximera.",
+  "repository": {
+    "type": "git",
+    "url": "."
+  },
   "main": "main.ts",
   "scripts": {
     "build": "tsc",
@@ -14,15 +18,18 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bootstrap": "^4.3.1",
     "btoa": "^1.2.1",
     "commander": "^2.19.0",
     "cookie-parser": "~1.4.3",
     "debug": "~2.6.9",
     "express": "~4.16.0",
     "http-errors": "~1.6.2",
+    "jquery": "^3.3.1",
     "mongodb": "^3.1.12",
     "morgan": "~1.9.0",
-    "pug": "2.0.0-beta11"
+    "popper.js": "^1.14.7",
+    "pug": "^2.0.3"
   },
   "devDependencies": {
     "@types/btoa": "^1.2.0",
