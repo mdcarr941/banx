@@ -12,5 +12,7 @@
     "include": [
         "lib/**/*.ts"
     ],
-    "exclude": [ ]
+    "exclude": [
+        "banx-app/*"
+    ]
 }
