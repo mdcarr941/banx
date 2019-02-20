@@ -44,10 +44,10 @@ export class Problem implements IProblem {
 
     public toString(): string {
         return `%%%%%%%%%%%%%%%%%%%%%%%
-%%\\taged{${this.tags.map(kv => `${kv.key}@${kv.value}`).join(', ')}}{
+%%\\taged{${this.formatTags()}}{
 ${this.content}
 %}
-%%%%%%%%%%%%%%%%%%%%%%%`
+%%%%%%%%%%%%%%%%%%%%%%%`;
     }
 }
 
