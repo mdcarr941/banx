@@ -38,6 +38,10 @@ export class Problem implements IProblem {
         }
     }
 
+    public formatTags(): string {
+        return this.tags.map(kv => `${kv.key}@${kv.value}`).join(', ');
+    }
+
     public toString(): string {
         return `%%%%%%%%%%%%%%%%%%%%%%%
 %%\\taged{${this.tags.map(kv => `${kv.key}@${kv.value}`).join(', ')}}{

@@ -23,6 +23,10 @@ export class ProblemRepo {
         return this.collection.findOne({_id: id}).then(p => p ? new Problem(p) : null);
     }
 
+    public getProblems(ids: ObjectID[]): Cursor<Problem> {
+        return this.collection.find({_id: {$in: ids}}).map(p => new Problem(p));
+    }
+
     public async getProblemIndex(): Promise<ProblemIndex> {
         if (this.problemIndex) return this.problemIndex;
         return this.indexCollection.findOne({}).then(problemIndex => {

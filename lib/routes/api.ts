@@ -1,9 +1,9 @@
 import * as express from 'express';
+import { ObjectID } from 'mongodb';
 
 import { GlobalRepoPromise, ProblemRepo } from '../problemRepo';
 import { makePairs } from '../common';
 import { GlobalProblemGenerator } from '../problemGenerator';
-import { RSA_NO_PADDING } from 'constants';
 
 const router = express.Router();
 
@@ -11,6 +11,20 @@ let repo: ProblemRepo;
 async function init() {
     repo = await GlobalRepoPromise;
 }
+
+router.get('/problem/:problemId', (req, res) => {
+    repo.getProblem(req.params['problemId'])
+        .then(problem => res.send(problem))
+        .catch(() => res.sendStatus(404));
+});
+
+router.post('/problems', (req, res) => {
+    repo.getProblems(req.body.map((id: string) => ObjectID.createFromHexString(id)))
+        .toArray((err, problems) => {
+            if (err) res.sendStatus(500);
+            else res.send(problems)
+        });
+});
 
 router.get('/problems', (req, res) => {
     let tags = req.query.tags;
@@ -25,8 +39,8 @@ router.get('/problems', (req, res) => {
 router.get('/instance/:problemId', (req, res) => {
     GlobalProblemGenerator.getInstance(req.params['problemId'])
         .then(problem => res.send(problem))
-        .catch(err => res.sendStatus(400));
-})
+        .catch(() => res.sendStatus(400));
+});
 
 init().catch(err => {
     console.error('Failed to initialize the API.');

@@ -1,19 +1,48 @@
 <div class="container-fluid">
   <div class="row">
-    <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+    <nav class="col-md-3 d-none d-md-block bg-light sidebar">
       <div class="sidebar-sticky">
-        <ul class="nav flex-column" *ngIf="problemIndex$ | async as problemIndex">
-          <li class="nav-item" *ngFor="let topic of problemIndex.index | keyvalue">
-            <h3>{{topic.key}}</h3>
-            <ul class="nav flex-column">
-              <li class="nav-item" *ngFor="let subtopic of topic.value | keyvalue">
-                <a>{{subtopic.key}}</a>
+        <ul class="nav flex-column" *ngIf="problemIndex">
+
+          <li *ngFor="let topicPair of problemIndex.index | keyvalue">
+            <h4 (click)="toggleCollapsed(topicId(topicPair.key))" (click)="selectTopic(topicPair.key)">{{topicPair.key}}</h4>
+            <ul class="collapse nav flex-column" id="{{topicId(topicPair.key)}}">
+
+              <li *ngFor="let subtopicPair of topicPair.value | keyvalue">
+                <div (click)="toggleCollapsed(subtopicId(topicPair.key, subtopicPair.key))" (click)="selectSubtopic(subtopicPair.key)">
+                  {{subtopicPair.key}}
+                </div>
+                <ul class="collapse" id="{{subtopicId(topicPair.key, subtopicPair.key)}}">
+
+                  <li *ngFor="let tagPair of subtopicPair.value.tags | keyvalue">
+                    <div (click)="toggleCollapsed(tagKeyId(topicPair.key, subtopicPair.key, tagPair.key))">{{tagPair.key}}</div>
+                    <ul class="collapse" id="{{tagKeyId(topicPair.key, subtopicPair.key, tagPair.key)}}">
+
+                      <li *ngFor="let valuePair of tagPair.value | keyvalue">
+                        <label class="mr-1">{{valuePair.key}}</label>
+                        <input type="checkbox" (click)="toggleTag(tagPair.key, valuePair.key)">
+                      </li>
+
+                    </ul>
+                  </li>
+
+                </ul>
               </li>
+
             </ul>
           </li>
+
         </ul>
       </div>
+      <button class="btn btn-primary" (click)="getProblems()">Get Problems</button>
     </nav>
+
+    <div class="col-md-9">
+      <div *ngFor="let problem of problems">
+        <div>{{problem.formatTags()}}<div>
+        <pre>{{problem.content}}</pre>
+      </div>
+    </div>
   </div>
 </div>
 
