@@ -30,6 +30,12 @@ export class AppComponent implements OnInit {
   // };
   private state: StringBag = {};
 
+  constructor(private api: ApiService) { }
+
+  ngOnInit() {
+    this.problemIndex = problemIndexInitial;
+  }
+
   _toggle(superState: StringBag, args: string[]) {
     const arg = args[0];
     if (1 == args.length) {
@@ -47,12 +53,6 @@ export class AppComponent implements OnInit {
 
   toggle(...args: string[]) {
     return this._toggle(this.state, args);
-  }
-
-  constructor(private api: ApiService) { }
-
-  ngOnInit() {
-    this.problemIndex = problemIndexInitial;
   }
 
   topicId(topicKey: string): string {

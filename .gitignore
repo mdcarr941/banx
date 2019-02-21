@@ -8,3 +8,4 @@ problem_generator.py
 public/bootstrap
 public/jquery
 public/popper.js
+public/mathjax
