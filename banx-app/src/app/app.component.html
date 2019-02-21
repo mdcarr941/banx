@@ -1,5 +1,6 @@
 <div class="container-fluid">
   <div class="row">
+
     <nav class="col-md-3 d-none d-md-block bg-light sidebar">
       <div class="sidebar-sticky">
         <ul class="nav flex-column" *ngIf="problemIndex">
@@ -45,12 +46,28 @@
       <button class="btn btn-primary" (click)="getProblems()">Get Problems</button>
     </nav>
 
-    <div class="col-md-9">
+    <div class="col-md-9" #instanceDiv>
+      <div *ngIf="instances.length > 0">
+        <div *ngFor="let instance of instances">
+          <div>{{instance.content}}</div>
+          <label class="mr-1">Include:</label>
+          <input type="checkbox" />
+          <hr>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-9" *ngIf="problems.length > 0">
       <div *ngFor="let problem of problems">
         <div>{{problem.formatTags()}}<div>
         <pre>{{problem.content}}</pre>
+        <button class="btn btn-primary" (click)="getInstances(problem._id)">
+          Get Instances
+        </button>
+        <hr>
       </div>
     </div>
+
   </div>
 </div>
 

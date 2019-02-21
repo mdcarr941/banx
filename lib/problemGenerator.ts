@@ -1,7 +1,7 @@
 import { ObjectID } from 'mongodb';
 
 import { Problem } from './schema';
-import { GlobalSageServer } from './sageServer';
+import { GlobalSageServer, SageVariables } from './sageServer';
 import { GlobalRepoPromise, ProblemRepo } from './problemRepo';
 
 interface ContentPartition {
@@ -19,6 +19,12 @@ export class ProblemGenerator {
         return this.repo;
     }
 
+    private async getProblem(problemId: string): Promise<Problem> {
+        const repo = await this.getRepo();
+        const problem = await repo.getProblem(problemId);
+        return problem;
+    }
+
     private static codeRgx = /\\begin{sagesilent}([\s\S]*)\\end{sagesilent}/
 
     private static extractCode(problem: Problem): ContentPartition {
@@ -31,24 +37,46 @@ export class ProblemGenerator {
         };
     }
 
-    private static sageVarRgx = /\\sage{([^}]*)}/g
+    private static sageVarRgx = /\\sage{([^}]*)}/g;
+
+    private static replaceVars(content: string, vars: SageVariables) {
+        return content.replace(
+            ProblemGenerator.sageVarRgx,
+            (match: string, varName: string) => vars[varName]
+        );
+    }
 
     public async getInstance(problemId: string): Promise<Problem> {
-        const id = ObjectID.createFromHexString(problemId);
-        const repo = await this.getRepo();
-
-        const problem = await repo.getProblem(id);
-        if (!problem) return problem;
+        const problem = await this.getProblem(problemId);
 
         const partition = ProblemGenerator.extractCode(problem);
         if (!partition.code) return problem;
 
         const vars = await GlobalSageServer.execute(partition.code);
-        problem.content = partition.content.replace(
-            ProblemGenerator.sageVarRgx,
-            (match: string, varName: string) => vars[varName]
-        );
+        problem.content = ProblemGenerator.replaceVars(partition.content, vars);
         return problem;
+    }
+
+    public async getInstances(problemId: string, numInstances: number): Promise<Problem[]> {
+        const problem = await this.getProblem(problemId);
+
+        const partition = ProblemGenerator.extractCode(problem);
+        if (!partition.code) return [problem];
+
+        let promises: Promise<SageVariables>[] = [];
+        for (let k = 0; k < numInstances; ++k) {
+            promises.push(GlobalSageServer.execute(partition.code));
+        }
+
+        const allVars = await Promise.all(promises);
+        const instances: Problem[] = [];
+        for (let k = 0; k < numInstances; ++k) {
+            instances.push(new Problem({
+                tags: problem.tags,
+                content: ProblemGenerator.replaceVars(partition.content, allVars[k])
+            }));
+        }
+        return instances;
     }
 }
 

@@ -1,10 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 
 import { ApiService } from './api.service';
 import { ProblemIndex, KeyValPair, Problem } from '../../../lib/schema';
 
-declare const problemIndexInitial: ProblemIndex;
-declare const $: Function;
+// this is rendered into the index template
+declare const problemIndexInitial: ProblemIndex
+declare const $: Function; // jquery
+declare const MathJax: any // MathJax global object.
 
 interface StringBag {
   [key: string]: StringBag
@@ -18,6 +20,7 @@ interface StringBag {
 export class AppComponent implements OnInit {
   private problemIndex: ProblemIndex;
   private problems: Problem[] = [];
+  private instances: Problem[] = [];
   // state is hierarchical. Keep this diagram in mind when reading this code.
   // state = {
   //   [topic: string]: {
@@ -115,6 +118,20 @@ export class AppComponent implements OnInit {
 
   getProblems() {
     this.api.getProblems(this.allSelectedProblems())
-      .subscribe(problems => this.problems = problems);
+      .subscribe(problems => {
+        this.instances = [];
+        this.problems = problems
+      });
+  }
+
+  @ViewChild('instanceDiv') instanceDiv;
+
+  getInstances(problemId: string) {
+    this.api.getInstances(problemId)
+      .subscribe(instances => {
+        this.problems = [];
+        this.instances = instances;
+        MathJax.Hub.Queue(["Typeset", MathJax.Hub, this.instanceDiv.nativeElement])
+      })
   }
 }

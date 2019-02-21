@@ -19,12 +19,20 @@ export class ProblemRepo {
         return new ProblemRepo(problemCollection, indexCollection);
     }
 
-    public async getProblem(id: ObjectID): Promise<Problem> {
-        return this.collection.findOne({_id: id}).then(p => p ? new Problem(p) : null);
+    public async getProblem(id: string): Promise<Problem> {
+        return this.collection.findOne({_id: ObjectID.createFromHexString(id)})
+            .then(p => p ? new Problem(p) : null)
+            .catch(err => {
+                console.error(`ProblemRepo: error during getProblem(${id}):`);
+                console.error(err);
+                return null;
+            })
     }
 
-    public getProblems(ids: ObjectID[]): Cursor<Problem> {
-        return this.collection.find({_id: {$in: ids}}).map(p => new Problem(p));
+    public getProblems(ids: string[]): Cursor<Problem> {
+        const oids = ids.map(id => ObjectID.createFromHexString(id));
+        return this.collection.find({_id: {$in: oids}})
+            .map(p => new Problem(p));
     }
 
     public async getProblemIndex(): Promise<ProblemIndex> {
