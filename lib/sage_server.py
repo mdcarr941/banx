@@ -225,6 +225,7 @@ class WorkerProcess(Process):
         q = self.q
         outputQ = self.outputQ
         encoder = JSONEncoderSaged()
+        sage.misc.randstate.set_random_seed()
 
         while True:
             msgStr = q.get(True) # block until we get something

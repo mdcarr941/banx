@@ -131,7 +131,7 @@ export class AppComponent implements OnInit {
       .subscribe(instances => {
         this.problems = [];
         this.instances = instances;
-        MathJax.Hub.Queue(["Typeset", MathJax.Hub, this.instanceDiv.nativeElement])
+        MathJax.Hub.Queue(["Typeset", MathJax.Hub])
       })
   }
 }
