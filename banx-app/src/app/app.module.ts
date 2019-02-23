@@ -4,10 +4,12 @@ import { HttpClientModule } from '@angular/common/http';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
+import { InstanceListComponent } from './instance-list/instance-list.component';
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    InstanceListComponent
   ],
   imports: [
     BrowserModule,

@@ -46,8 +46,7 @@ export class Problem implements IProblem {
         return `%%%%%%%%%%%%%%%%%%%%%%%
 %%\\taged{${this.formatTags()}}{
 ${this.content}
-%}
-%%%%%%%%%%%%%%%%%%%%%%%`;
+%}`;
     }
 }
 

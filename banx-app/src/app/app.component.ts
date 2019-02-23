@@ -1,4 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 
 import { ApiService } from './api.service';
 import { ProblemIndex, KeyValPair, Problem } from '../../../lib/schema';
@@ -21,6 +22,8 @@ export class AppComponent implements OnInit {
   private problemIndex: ProblemIndex;
   private problems: Problem[] = [];
   private instances: Problem[] = [];
+  private selectedInstances: Problem[] = [];
+  private showSelectedInstances: boolean = false;
   // state is hierarchical. Keep this diagram in mind when reading this code.
   // state = {
   //   [topic: string]: {
@@ -133,5 +136,39 @@ export class AppComponent implements OnInit {
         this.instances = instances;
         MathJax.Hub.Queue(["Typeset", MathJax.Hub])
       })
+  }
+
+  selectInstance(instance: Problem) {
+    this.selectedInstances.push(instance);
+  }
+
+  deselectInstance(instance: Problem) {
+    const index = this.selectedInstances.findIndex(inst => inst === instance);
+    if (index < 0) {
+      console.error(`AppComponent.deselectInstance: failed to find instance.`);
+      return;
+    }
+    this.selectedInstances.splice(index, 1);
+  }
+
+  onSubmissionSuccess(response: any) {
+    alert('Submission Successful');
+    location.reload();
+  }
+
+  onSubmissionFailure(err: HttpErrorResponse) {
+    console.error(err);
+    alert(`Submission Failed:\n${err.error}`);
+  }
+
+  submit() {
+    if (this.selectedInstances.length <= 0) {
+      alert('Select at least one instance before submitting.');
+      return;
+    }
+    this.api.submit(this.selectedInstances).subscribe(
+      (response: any) => this.onSubmissionSuccess(response),
+      (err: HttpErrorResponse) => this.onSubmissionFailure(err)
+    );
   }
 }

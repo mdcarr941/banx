@@ -1,73 +1,107 @@
 <div class="container-fluid">
-  <div class="row">
 
-    <nav class="col-md-3 d-none d-md-block bg-light sidebar">
-      <div class="sidebar-sticky">
-        <ul class="nav flex-column" *ngIf="problemIndex">
+  <ng-container *ngIf="showSelectedInstances; then selectedInstancesInterface; else mainInterface"></ng-container>
 
-          <li *ngFor="let topicPair of problemIndex.index | keyvalue">
-            <h4 (click)="toggleCollapsed(topicId(topicPair.key))"
-                (click)="toggle(topicPair.key)">
-                {{topicPair.key}}
-            </h4>
-            <ul class="collapse nav flex-column" id="{{topicId(topicPair.key)}}">
-
-              <li *ngFor="let subtopicPair of topicPair.value | keyvalue">
-                <div (click)="toggleCollapsed(subtopicId(topicPair.key, subtopicPair.key))"
-                     (click)="toggle(topicPair.key, subtopicPair.key)">
-                  {{subtopicPair.key}}
-                </div>
-                <ul class="collapse" id="{{subtopicId(topicPair.key, subtopicPair.key)}}">
-
-                  <li *ngFor="let tagPair of subtopicPair.value.tags | keyvalue">
-                    <div (click)="toggleCollapsed(tagKeyId(topicPair.key, subtopicPair.key, tagPair.key))"
-                         (click)="toggle(topicPair.key, subtopicPair.key, tagPair.key)">
-                      {{tagPair.key}}
-                    </div>
-                    <ul class="collapse" id="{{tagKeyId(topicPair.key, subtopicPair.key, tagPair.key)}}">
-
-                      <li *ngFor="let valuePair of tagPair.value | keyvalue">
-                        <label class="mr-1">{{valuePair.key}}</label>
-                        <input type="checkbox"
-                               (click)="toggle(topicPair.key, subtopicPair.key, tagPair.key, valuePair.key)">
-                      </li>
-
-                    </ul>
-                  </li>
-
-                </ul>
-              </li>
-
-            </ul>
-          </li>
-
-        </ul>
+  <ng-template #selectedInstancesInterface>
+    <div class="row">
+      <div class="col-md-2">
+        <button class="btn btn-primary" (click)="showSelectedInstances = false">
+          Back
+        </button>
       </div>
-      <button class="btn btn-primary" (click)="getProblems()">Get Problems</button>
-    </nav>
-
-    <div class="col-md-9">
-      <div *ngIf="problems.length > 0; else instancesList">
-        <div *ngFor="let problem of problems">
-          <div>{{problem.formatTags()}}</div>
-          <pre>{{problem.content}}</pre>
-          <button class="btn btn-primary" (click)="getInstances(problem._id)">
-            Get Instances
-          </button>
-          <hr>
-        </div>
+      <div class="offset-md-8 col-md-2">
+        <button class="btn btn-primary" (click)="submit()">
+          Submit
+        </button>
       </div>
+    </div>
+    <app-instance-list [selectedInstances]="selectedInstances" (deselect)="deselectInstance($event)">
+    </app-instance-list>
+  </ng-template>
 
-      <ng-template #instancesList>
-        <div *ngFor="let instance of instances">
-          <pre>{{instance.content}}</pre>
-          <button class="btn btn-primary">Include</button>
-          <hr>
-        </div>
-      </ng-template>
+  <ng-template #mainInterface>
+    <div class="row">
+      <div class="col-md-4 offset-md-8">
+        <button class="btn btn-link" (click)="showSelectedInstances = true">
+          Selected Instances: {{selectedInstances.length}}
+        </button>
+      </div>
     </div>
 
-  </div>
+    <div class="row">
+
+      <nav class="col-md-3 d-none d-md-block bg-light sidebar">
+        <div class="sidebar-sticky">
+          <ul class="nav flex-column" *ngIf="problemIndex">
+
+            <li *ngFor="let topicPair of problemIndex.index | keyvalue">
+              <h4 (click)="toggleCollapsed(topicId(topicPair.key))"
+                  (click)="toggle(topicPair.key)">
+                  {{topicPair.key}}
+              </h4>
+              <ul class="collapse nav flex-column" id="{{topicId(topicPair.key)}}">
+
+                <li *ngFor="let subtopicPair of topicPair.value | keyvalue">
+                  <div (click)="toggleCollapsed(subtopicId(topicPair.key, subtopicPair.key))"
+                      (click)="toggle(topicPair.key, subtopicPair.key)">
+                    {{subtopicPair.key}}
+                  </div>
+                  <ul class="collapse" id="{{subtopicId(topicPair.key, subtopicPair.key)}}">
+
+                    <li *ngFor="let tagPair of subtopicPair.value.tags | keyvalue">
+                      <div (click)="toggleCollapsed(tagKeyId(topicPair.key, subtopicPair.key, tagPair.key))"
+                          (click)="toggle(topicPair.key, subtopicPair.key, tagPair.key)">
+                        {{tagPair.key}}
+                      </div>
+                      <ul class="collapse" id="{{tagKeyId(topicPair.key, subtopicPair.key, tagPair.key)}}">
+
+                        <li *ngFor="let valuePair of tagPair.value | keyvalue">
+                          <label class="mr-1">{{valuePair.key}}</label>
+                          <input type="checkbox"
+                                (click)="toggle(topicPair.key, subtopicPair.key, tagPair.key, valuePair.key)">
+                        </li>
+
+                      </ul>
+                    </li>
+
+                  </ul>
+                </li>
+
+              </ul>
+            </li>
+
+          </ul>
+        </div>
+        <button class="btn btn-primary" (click)="getProblems()">Get Problems</button>
+      </nav>
+
+      <div class="col-md-9">
+
+        <ng-container *ngIf="problems.length > 0; then problemsList; else instancesList"></ng-container>
+
+        <ng-template #problemsList>
+
+          <div *ngFor="let problem of problems">
+            <div>{{problem.formatTags()}}</div>
+            <pre>{{problem.content}}</pre>
+            <button class="btn btn-primary" (click)="getInstances(problem._id)">
+              Get Instances
+            </button>
+            <hr>
+          </div>
+        </ng-template>
+
+        <ng-template #instancesList>
+          <div *ngFor="let instance of instances">
+            <pre>{{instance.content}}</pre>
+            <button class="btn btn-primary" (click)="selectInstance(instance)">Include</button>
+            <hr>
+          </div>
+        </ng-template>
+      </div>
+
+    </div>
+  </ng-template>
 </div>
 
 

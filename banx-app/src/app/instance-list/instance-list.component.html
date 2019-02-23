@@ -1,0 +1,7 @@
+<div class="row" *ngFor="let instance of selectedInstances">
+  <pre>{{instance.content}}</pre>
+  <button class="btn btn-danger" (click)="deselect.next(instance)">
+    Deselect
+  </button>
+  <hr>
+</div>

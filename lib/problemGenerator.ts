@@ -43,7 +43,7 @@ export class ProblemGenerator {
         return content.replace(
             ProblemGenerator.sageVarRgx,
             (match: string, varName: string) => vars[varName]
-        );
+        ).trim();
     }
 
     public async getInstance(problemId: string): Promise<Problem> {

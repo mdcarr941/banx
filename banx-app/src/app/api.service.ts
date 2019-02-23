@@ -21,4 +21,8 @@ export class ApiService {
     return this.http.get<IProblem[]>(`/api/instance/${id}?numInstances=${numInstances}`)
       .pipe(map(response => response.map(m => new Problem(m))));
   }
+
+  submit(instances: Problem[]): Observable<Object> {
+    return this.http.post('/api/submission', instances);
+  }
 }
