@@ -6,7 +6,7 @@ import { Problem } from '../../../lib/schema';
   selector: 'app-instance-list',
   template:
     `<div class="row" *ngFor="let instance of selectedInstances">
-      <div>
+      <div class="col-md-12">
         <pre>{{instance.content}}</pre>
         <button class="btn btn-danger" (click)="deselect.next(instance)">
           Deselect

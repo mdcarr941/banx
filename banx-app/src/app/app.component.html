@@ -4,12 +4,12 @@
 
 <div class="container-fluid">
 
-  <ng-container *ngIf="showSelectedInstances; then selectedInstancesInterface; else mainInterface"></ng-container>
+  <ng-container *ngIf="instancesShown; then selectedInstancesInterface; else mainInterface"></ng-container>
 
   <ng-template #selectedInstancesInterface>
     <div class="row">
       <div class="col-md-2">
-        <button class="btn btn-primary" (click)="showSelectedInstances = false">
+        <button class="btn btn-primary" (click)="instancesShown = false">
           Back
         </button>
       </div>
@@ -27,7 +27,7 @@
 
   <ng-template #mainInterface>
     <div class="row">
-      <button class="btn btn-link" (click)="showSelectedInstances = true">
+      <button class="btn btn-link" (click)="instancesShown = true">
         Selected Instances: {{selectedInstances.length}}
       </button>
     </div>

@@ -22,8 +22,8 @@ export class AppComponent implements OnInit {
   private problems: Problem[] = [];
   private instances: Problem[] = [];
   private selectedInstances: Problem[] = [];
-  private showSelectedInstances: boolean = false;
-  // treeState is hierarchical. Keep this diagram in mind when reading this code.
+  private instancesShown: boolean = false;
+  // treeState is hierarchical:
   // treeState = {
   //   [topic: string]: {
   //     [subtopic: string]: {
@@ -113,7 +113,10 @@ export class AppComponent implements OnInit {
       .subscribe(instances => {
         this.problems = [];
         this.instances = instances;
-        MathJax.Hub.Queue(["Typeset", MathJax.Hub])
+        // Re-typeset mathematics on the page.
+        MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+        // Scroll to the top of the page.
+        document.body.scrollTop = document.documentElement.scrollTop = 0;
       })
   }
 
