@@ -6,7 +6,6 @@ import { ProblemIndex, KeyValPair, Problem } from '../../../lib/schema';
 
 // this is rendered into the index template
 declare const problemIndexInitial: ProblemIndex
-declare const $: Function; // jquery
 declare const MathJax: any // MathJax global object.
 
 interface StringBag {
@@ -24,8 +23,8 @@ export class AppComponent implements OnInit {
   private instances: Problem[] = [];
   private selectedInstances: Problem[] = [];
   private showSelectedInstances: boolean = false;
-  // state is hierarchical. Keep this diagram in mind when reading this code.
-  // state = {
+  // treeState is hierarchical. Keep this diagram in mind when reading this code.
+  // treeState = {
   //   [topic: string]: {
   //     [subtopic: string]: {
   //       [tagKey: string]: {
@@ -34,7 +33,7 @@ export class AppComponent implements OnInit {
   //     }
   //   }
   // };
-  private state: StringBag = {};
+  private treeState: StringBag = {};
 
   constructor(private api: ApiService) { }
 
@@ -58,27 +57,7 @@ export class AppComponent implements OnInit {
   }
 
   toggle(...args: string[]) {
-    return this._toggle(this.state, args);
-  }
-
-  topicId(topicKey: string): string {
-    return topicKey;
-  }
-
-  subtopicId(topicKey: string, subtopicKey: string) {
-    return `${this.topicId(topicKey)}-${subtopicKey}`;
-  }
-
-  tagKeyId(topicKey: string, subtopicKey: string, tagKey: string): string {
-    return `${this.subtopicId(topicKey, subtopicKey)}-${tagKey}`;
-  }
-
-  toggleCollapsed(id: string) {
-    $(`#${id}`).collapse('toggle');
-  }
-
-  log(...msgs: any[]) {
-    console.log(...msgs);
+    return this._toggle(this.treeState, args);
   }
 
   /**
@@ -109,8 +88,8 @@ export class AppComponent implements OnInit {
 
   allSelectedProblems(): string[] {
     const selected: string[] = [];
-    for (let topic in this.state) {
-      const subtopics = this.state[topic];
+    for (let topic in this.treeState) {
+      const subtopics = this.treeState[topic];
       for (let subtopic in subtopics) {
         const tags = subtopics[subtopic];
         selected.push(...this.selectedProblems(topic, subtopic, tags));

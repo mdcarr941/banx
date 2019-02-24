@@ -6,9 +6,9 @@ export interface KeyValPair {
 }
 
 export interface IProblem {
-    _id: ObjectID;
-    tags: KeyValPair[];
-    content: string;
+    _id?: ObjectID;
+    tags?: KeyValPair[];
+    content?: string;
 }
 
 export class Problem implements IProblem {
@@ -16,7 +16,7 @@ export class Problem implements IProblem {
     public tags: KeyValPair[] = [];
     public content: string;
 
-    constructor(obj?: any) {
+    constructor(obj?: IProblem) {
         if (!obj) return;
         this._id = obj._id;
         this.tags = obj.tags;

@@ -4,12 +4,14 @@ import { HttpClientModule } from '@angular/common/http';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { InstanceListComponent } from './instance-list/instance-list.component';
+import { InstanceListComponent } from './instance-list.component';
+import { CollapsibleComponent } from './collapsible.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    InstanceListComponent
+    InstanceListComponent,
+    CollapsibleComponent
   ],
   imports: [
     BrowserModule,
