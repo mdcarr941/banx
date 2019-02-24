@@ -128,6 +128,8 @@ def filterBuiltins(base):
         if not key in BLACKLISTED_BUILTINS:
             newBuiltins[key] = builtins[key]
     rval['__builtins__'] = newBuiltins
+    # The symbolic variable 'x' should be available to user code.
+    exec('var(\'x\')', rval, {})
     return rval
 
 USER_CODE_GLOBALS = filterBuiltins(sage.all.__dict__)
