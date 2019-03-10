@@ -1,12 +1,9 @@
 node_modules/
-built/
 bin/
 banx-app/node_modules/
 public/banx-app/
 *.pyc
-problem_generator.py
 public/bootstrap
 public/jquery
 public/popper.js
 public/mathjax
-public/angular-favicon.ico
