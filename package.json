@@ -10,7 +10,9 @@
   "scripts": {
     "build": "tsc",
     "build-watch": "tsc --watch",
+    "ng-build": "cd banx-app && ng build",
     "ng-build-watch": "cd banx-app && ng build --watch",
+    "build-all": "npm run build && npm run ng-build",
     "start": "node ./bin/www",
     "nodemon": "nodemon --signal SIGTERM ./bin/www",
     "dev": "npm run ng-build-watch & npm run build-watch & npm run nodemon",
