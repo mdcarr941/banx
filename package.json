@@ -8,14 +8,14 @@
   },
   "main": "main.ts",
   "scripts": {
-    "build": "tsc",
-    "build-watch": "tsc --watch",
-    "ng-build": "cd banx-app && ng build && cd ..",
-    "ng-build-watch": "cd banx-app && ng build --watch",
+    "build": "node_modules/typescript/bin/tsc",
+    "build-watch": "node_modules/typescript/bin/tsc --watch",
+    "ng-build": "cd banx-app && node_modules/@angular/cli/bin/ng build && cd ..",
+    "ng-build-watch": "cd banx-app && node_modules/@angular/cli/bin/ng build --watch",
     "build-all": "npm run build && npm run ng-build",
     "init": "npm install && ./make_links.sh && cd banx-app && npm install && cd .. && npm run build-all",
     "start": "node ./www",
-    "nodemon": "nodemon --signal SIGTERM ./www",
+    "nodemon": "node_modules/nodemon/bin/nodemon.js --signal SIGTERM ./www",
     "dev": "npm run ng-build-watch & npm run build-watch & npm run nodemon",
     "prod": "npm run build-all && npm run start",
     "test": "node ./bin/tests.js",
@@ -37,7 +37,8 @@
     "morgan": "~1.9.0",
     "nodemailer": "^5.1.1",
     "popper.js": "^1.14.7",
-    "pug": "^2.0.3"
+    "pug": "^2.0.3",
+    "typescript": "^3.4.1"
   },
   "devDependencies": {
     "@types/btoa": "^1.2.0",
@@ -46,6 +47,7 @@
     "@types/http-errors": "^1.6.1",
     "@types/mongodb": "^3.1.19",
     "@types/morgan": "^1.7.35",
-    "@types/nodemailer": "^4.6.6"
+    "@types/nodemailer": "^4.6.6",
+    "nodemon": "^1.18.10"
   }
 }
