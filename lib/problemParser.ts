@@ -1,6 +1,19 @@
 import * as fs from 'fs';
+import * as path from 'path';
 
 import { Problem } from './schema';
+
+/** Replace the `\input` commands in input with the files they reference.
+ *  The file names given to `\input` are interpreted as relative to the directory
+ *  containing `file`.
+ */
+function doImports(content: string, file: string): string {
+    const inputRgx = /\\input{([^}]+)}/;
+    const dir = path.dirname(file);
+    return content.replace(inputRgx, (match: string, inputFile: string) => {
+        return fs.readFileSync(path.join(dir, inputFile), {encoding: 'utf8'});
+    })
+}
 
 export function* ProblemParser(...files: string[]): IterableIterator<Problem | Error> {
     /* First check that all files exist and are actually files. This way the
@@ -29,6 +42,7 @@ export function* ProblemParser(...files: string[]): IterableIterator<Problem | E
             if (current) {
                 if ( (result = endRgx.exec(line)) ) {
                     current.content += '\n' + line.slice(0, result.index);
+                    current.content = doImports(current.content, file);
                     yield current;
                     current = null;
                 } else {
