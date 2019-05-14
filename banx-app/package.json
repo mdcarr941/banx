@@ -2,12 +2,13 @@
   "name": "banx-app",
   "version": "0.0.0",
   "scripts": {
-    "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build",
-    "test": "ng test",
-    "lint": "ng lint",
-    "e2e": "ng e2e"
+    "ng": "node_packages/@angular/cli/bin/ng",
+    "start": "node_packages/@angular/cli/bin/ng serve",
+    "build": "node_packages/@angular/cli/bin/ng build",
+    "build-watch": "node_packages/@angular/cli/bin/ng build --watch",
+    "test": "node_packages/@angular/cli/bin/ng test",
+    "lint": "node_packages/@angular/cli/bin/ng lint",
+    "e2e": "node_packages/@angular/cli/bin/ng e2e"
   },
   "private": true,
   "dependencies": {

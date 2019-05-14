@@ -10,8 +10,8 @@
   "scripts": {
     "build": "tsc",
     "build-watch": "tsc --watch",
-    "ng-build": "cd banx-app && ng build && cd ..",
-    "ng-build-watch": "cd banx-app && ng build --watch",
+    "ng-build": "cd banx-app && npm run build && cd ..",
+    "ng-build-watch": "cd banx-app && npm run build-watch",
     "build-all": "npm run build && npm run ng-build",
     "init": "npm install && ./make_links.sh && cd banx-app && npm install && cd .. && npm run build-all",
     "start": "node ./www",
@@ -37,7 +37,8 @@
     "morgan": "~1.9.0",
     "nodemailer": "^5.1.1",
     "popper.js": "^1.14.7",
-    "pug": "^2.0.3"
+    "pug": "^2.0.3",
+    "typescript": "^3.4.5"
   },
   "devDependencies": {
     "@types/btoa": "^1.2.0",
