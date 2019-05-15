@@ -5,25 +5,23 @@ import { GlobalRepoPromise, ProblemRepo } from '../problemRepo';
 import { makePairs } from '../common';
 import { GlobalProblemGenerator } from '../problemGenerator';
 import { Problem, IProblem } from '../schema';
+import config from '../config';
 
 const router = express.Router();
 
-const smtpUser = 'mdcarr@ufl.edu';
-const smtpPass = '#37Roomtobreath73#';
-const emailRecipient = 'mdcarr@ufl.edu';
 const transporter = nodemailer.createTransport({
     host: 'smtp.office365.com',
     port: 587,
     secure: false, // office365 uses STARTTLS
     requireTLS: true, // if STARTTLS is not used, don't send messages
     auth: {
-        user: smtpUser,
-        pass: smtpPass
+        user: config.smtpUser,
+        pass: config.smtpPass
     }
 }, {
     // Default Message Fields
-    from: `Banx <${smtpUser}>`,
-    to: emailRecipient,
+    from: `Banx <${config.smtpUser}>`,
+    to: config.emailRecipient,
     subject: 'Banx Test',
     text: 'Sent from the Banx app.'
 });

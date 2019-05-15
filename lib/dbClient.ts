@@ -1,14 +1,12 @@
 import { MongoClient, Db, Collection } from "mongodb";
-
-const mongoUri = 'mongodb://localhost:27017/banx';
-const globalDefaultCollection = 'problems';
+import config from "./config";
 
 class DbClient {
     private _client: MongoClient;
 
     constructor(
-        readonly uri: string = mongoUri,
-        readonly defaultCollection: string = globalDefaultCollection
+        readonly uri: string = config.mongoUri,
+        readonly defaultCollection: string = config.problemCollection
     ) { }
 
     private get client(): Promise<MongoClient> {
