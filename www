@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+console.log("banx is starting up");
+
 /**
  * Module dependencies.
  */
@@ -88,3 +90,5 @@ function onListening() {
     : 'port ' + addr.port;
   debug('Listening on ' + bind);
 }
+
+console.log("banx start up complete");
