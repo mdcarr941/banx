@@ -24,11 +24,10 @@ class DbClient {
         });
     }
 
-    private printError<T>(message: string, err: Error): T {
+    private printError<T>(message: string, err: Error) {
         const showMessage = err && err.message && err.message.length > 0;
         console.error(`DbClient: ${message}${showMessage ? ':' : ''}`);
         if (showMessage) console.error(err.message);
-        return null
     }
 
     /**
@@ -45,7 +44,10 @@ class DbClient {
     public async db(): Promise<Db> {
         return this.client
             .then(client => client.db())
-            .catch(err => this.printError<Db>('Failed to get db', err));
+            .catch(err => {
+                this.printError<Db>('Failed to get db', err)
+                throw err;
+            });
     }
 
     public async collection(collection: string = this.defaultCollection): Promise<Collection<any>> {
@@ -53,7 +55,8 @@ class DbClient {
         return this.client
             .then(client => client.db().collection(collection))
             .catch(err => {
-                return this.printError<Collection<any>>(`Failed to get collection '${collection}'`, err)
+                this.printError<Collection<any>>(`Failed to get collection '${collection}'`, err);
+                throw err;
             });
     }
 }

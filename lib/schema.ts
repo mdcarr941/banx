@@ -32,9 +32,9 @@ export class Problem implements IProblem {
         if (values.length == 1) {
             return values[0];
         } else if (values.length == 0) {
-            throw new Error("Tag not found: " + tag);
+            throw new Error('Tag not found: ' + tag);
         } else {
-            throw new Error("Multiple values found for: " + tag);
+            throw new Error('Multiple values found for: ' + tag);
         }
     }
 

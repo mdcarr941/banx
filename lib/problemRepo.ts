@@ -6,8 +6,6 @@ import client from './dbClient';
 import { Problem, IProblem, KeyValPair, ProblemIndex } from './schema';
 
 export class ProblemRepo {
-    private problemIndex: ProblemIndex;
-
     constructor(
         private collection: Collection<IProblem>,
         private indexCollection: Collection<ProblemIndex>
@@ -36,10 +34,8 @@ export class ProblemRepo {
     }
 
     public async getProblemIndex(): Promise<ProblemIndex> {
-        if (this.problemIndex) return this.problemIndex;
         return this.indexCollection.findOne({}).then(problemIndex => {
             if (!problemIndex) problemIndex = {_id: undefined, index: {}};
-            this.problemIndex = problemIndex;
             return problemIndex;
         });
     }
@@ -48,7 +44,7 @@ export class ProblemRepo {
         const query: any = {};
         if (problemIndex._id) query._id = problemIndex._id;
         return this.indexCollection.findOneAndReplace(query, problemIndex, {upsert: true})
-            .then(result => this.problemIndex = result.value);
+            .then(result => result.value);
     }
 
     private async updateIndexOnInsert(problems: Problem[]): Promise<Problem[]> {

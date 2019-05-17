@@ -3,6 +3,6 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y install sagemath
 WORKDIR /banx
 EXPOSE 8080
 COPY . /banx
-RUN npm run init && npm run build-all
+RUN npm run init
 ENV PORT=8080 SAGE_LOCAL="/usr/share/sagemath" SAGE_ROOT=""
 CMD ["node", "www"]

@@ -3,6 +3,8 @@ networks:
   webnet:
 volumes:
   mongodata:
+    external:
+      name: mongodata
 services:
   mongo:
     image: mongo:4.1.11-bionic
@@ -10,15 +12,21 @@ services:
       - "27017:27017"
     networks:
       - webnet
+    volumes:
+      - mongodata:/data
     deploy:
       placement:
         constraints: [node.role == manager]
+    depends_on:
+      - web
   web:
     image: mdcarr941/banx:latest
     ports:
       - "8080:8080"
     networks:
       - webnet
+    # depends_on:
+    #   - mongo
     deploy:
       replicas: 1
       restart_policy:
