@@ -1,27 +1,28 @@
 #!/usr/bin/env node
 
-console.log("banx is starting up");
-
 /**
  * Module dependencies.
  */
 
-var app = require('./bin/app').app;
-var debug = require('debug')('banx-web:server');
-var http = require('http');
+const app = require('./bin/app').app;
+const config = require('./bin/config').default;
+const debug = require('debug')('banx-web:server');
+const http = require('http');
+
+console.log('banx is starting up');
 
 /**
  * Get port from environment and store in Express.
  */
 
-var port = normalizePort(process.env.PORT || '3000');
+const port = normalizePort(config.port);
 app.set('port', port);
 
 /**
  * Create HTTP server.
  */
 
-var server = http.createServer(app);
+const server = http.createServer(app);
 
 /**
  * Listen on provided port, on all network interfaces.
@@ -91,4 +92,4 @@ function onListening() {
   debug('Listening on ' + bind);
 }
 
-console.log("banx start up complete");
+console.log(`banx start up complete. Listening on port ${port}.`);

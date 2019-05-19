@@ -2,7 +2,7 @@ import { ObjectID } from 'mongodb';
 
 import { Problem } from './schema';
 import { GlobalSageServer, SageVariables } from './sageServer';
-import { GlobalRepoPromise, ProblemRepo } from './problemRepo';
+import { ProblemRepo } from './problemRepo';
 
 interface ContentPartition {
     code?: string;
@@ -14,7 +14,7 @@ export class ProblemGenerator {
 
     private async getRepo(): Promise<ProblemRepo> {
         if (!this.repo) {
-            this.repo = await GlobalRepoPromise;
+            this.repo = await ProblemRepo.create();
         }
         return this.repo;
     }

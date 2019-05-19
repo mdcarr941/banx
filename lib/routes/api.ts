@@ -1,7 +1,7 @@
 import * as express from 'express';
 import * as nodemailer from 'nodemailer';
 
-import { GlobalRepoPromise, ProblemRepo } from '../problemRepo';
+import { ProblemRepo } from '../problemRepo';
 import { makePairs } from '../common';
 import { GlobalProblemGenerator } from '../problemGenerator';
 import { Problem, IProblem } from '../schema';
@@ -36,7 +36,7 @@ const getRepo = (() => {
     return async () => {
         if (repo) return repo;
         try {
-            return await GlobalRepoPromise;
+            return await ProblemRepo.create();
         } catch(err) {
             printError('failed to get the problem repository.', err);
             throw err;

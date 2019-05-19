@@ -4,7 +4,7 @@ import * as program from 'commander';
 import * as readline from 'readline';
 const repl = require('repl');
 
-import { GlobalRepoPromise, ProblemRepo } from './problemRepo';
+import { ProblemRepo } from './problemRepo';
 import { ProblemParser } from './problemParser';
 import { Problem } from './schema';
 import { makePairs } from './common';
@@ -90,7 +90,7 @@ interface IAction {
 }
 
 async function main(argv: string[]) {
-    const repo = await GlobalRepoPromise;
+    const repo = await ProblemRepo.create();
     let action: IAction = { command: 'default', options: {} };
     program.version('0.0.1');
     program.command('find [tags...]')

@@ -4,9 +4,9 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 const config = {
+    'port': process.env.PORT || 8080,
     /* Mongo configuration. */
-    'mongoUri': process.env.MONGO_URI || 'mongodb://localhost:27017/banx',
-    'problemCollection': process.env.PROBLEM_COLLECTION || 'problems',
+    'mongoUri': process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/banx',
     /* Email configuration. */
     'smtpUser': process.env.SMTP_USER || 'username',
     'smtpPass': process.env.SMTP_PASS || 'password',

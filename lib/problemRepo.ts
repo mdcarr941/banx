@@ -11,10 +11,13 @@ export class ProblemRepo {
         private indexCollection: Collection<ProblemIndex>
     ) { }
 
-    public static async create(): Promise<ProblemRepo> {
-        const problemCollection: Collection<Problem> = await client.collection('problems');
-        const indexCollection: Collection<ProblemIndex> = await client.collection('problemIndex');
-        return new ProblemRepo(problemCollection, indexCollection);
+    public static create() : Promise<ProblemRepo> {
+        return Promise.all([client.collection('problems'), client.collection('problemIndex') ])
+            .then(results => {
+                const problemCollection: Collection<Problem> = results[0];
+                const problemIndex: Collection<ProblemIndex> = results[1];
+                return new ProblemRepo(problemCollection, problemIndex);
+            });
     }
 
     public async getProblem(id: string): Promise<Problem> {
@@ -188,5 +191,3 @@ export class ProblemRepo {
         });
     }
 }
-
-export const GlobalRepoPromise = ProblemRepo.create();

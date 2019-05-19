@@ -3,7 +3,7 @@
 import * as assert from 'assert';
 import { DeleteWriteOpResultObject, InsertWriteOpResult, ObjectID } from 'mongodb';
 
-import { GlobalRepoPromise, ProblemRepo } from './problemRepo';
+import { ProblemRepo } from './problemRepo';
 import { Problem, ProblemIndex } from './schema';
 import { GlobalProblemGenerator } from './problemGenerator';
 
@@ -76,7 +76,7 @@ async function getInstance(id: string): Promise<void> {
 }
 
 async function main(command: string, tokens: string[]): Promise<void> {
-    const repo = await GlobalRepoPromise;
+    const repo = await ProblemRepo.create();
     if ('insert' == command) {
         await insertDocuments(repo).then(result => {
             console.log(`Inserted ${result.result.n} document${result.result.n == 1 ? '' : 's'} into the collection.`)
