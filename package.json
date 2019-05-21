@@ -38,8 +38,7 @@
     "morgan": "~1.9.0",
     "nodemailer": "^5.1.1",
     "popper.js": "^1.14.7",
-    "pug": "^2.0.3",
-    "typescript": "^3.4.1"
+    "pug": "^2.0.3"
   },
   "devDependencies": {
     "@types/btoa": "^1.2.0",
@@ -50,6 +49,7 @@
     "@types/mongodb": "^3.1.19",
     "@types/morgan": "^1.7.35",
     "@types/nodemailer": "^4.6.6",
-    "nodemon": "^1.18.10"
+    "nodemon": "^1.18.10",
+    "typescript": "^3.4.1"
   }
 }
