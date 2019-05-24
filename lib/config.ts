@@ -4,7 +4,7 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 const config = {
-    'port': process.env.PORT || 8080,
+    'port': process.env.PORT || 3001,
     /* Mongo configuration. */
     'mongoUri': process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/banx',
     /* Email configuration. */
