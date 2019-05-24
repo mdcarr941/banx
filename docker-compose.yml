@@ -20,7 +20,7 @@ services:
   web:
     image: mdcarr941/banx:latest
     ports:
-      - "8080:8080"
+      - "3001:3001"
     networks:
       - webnet
     depends_on:
@@ -31,4 +31,4 @@ services:
         condition: on-failure
     environment:
        MONGO_URI: "mongodb://mongo:27017/banx"
-       PORT: 8080
+       PORT: 3001
