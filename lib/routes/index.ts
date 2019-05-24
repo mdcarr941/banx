@@ -25,7 +25,7 @@ router.get('/', function(req, res, next) {
 function doIndexResponse(repo: ProblemRepo, req: any, res: any, next: Function) {
   repo.getProblemIndex()
     .then(problemIndex => {
-      res.render('index', { title: 'Banx', problemIndexStr: JSON.stringify(problemIndex) });
+      res.render('index', { title: 'Banx', problemIndexStr: JSON.stringify(problemIndex), 'requestUrl': req.url });
     })
     .catch(err => {
       console.error('index: Failed to get the problem index.');
