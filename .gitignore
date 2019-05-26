@@ -8,3 +8,4 @@ src/public/bootstrap
 src/public/jquery
 src/public/popper.js
 src/public/mathjax
+build.sh
