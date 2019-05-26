@@ -26,10 +26,10 @@ router.use('/', indexRouter);
 router.use('/users', usersRouter);
 router.use('/api', apiRouter);
 
-app.use(config.banxPrefix, router);
+app.use('/' + config.banxPrefix, router);
 
 // Static file setup.
-app.use('/', express.static(path.join(__dirname, '../public')));
+app.use('/' + config.banxPrefix, express.static(path.join(__dirname, '../public')));
 
 // Catch 404 errors and forward them to the error handler.
 app.use(function(req, res, next) {
