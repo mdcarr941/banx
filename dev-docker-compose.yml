@@ -23,6 +23,8 @@ services:
       - "3001:3001"
     networks:
       - webnet
+    volumes:
+      - "/root/hesiod-banx/src:/banx"
     depends_on:
       - mongo
     deploy:
