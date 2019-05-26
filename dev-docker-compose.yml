@@ -24,7 +24,7 @@ services:
     networks:
       - webnet
     volumes:
-      - "/root/hesiod-banx/src:/banx"
+      - "/tmp/banx/src:/banx"
     depends_on:
       - mongo
     deploy:
