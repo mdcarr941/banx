@@ -5,11 +5,11 @@ block content
 
 block scripts
   script const problemIndexInitial = !{problemIndexStr};
-  script(src="/banx-app/runtime.js")
-  script(src="/banx-app/es2015-polyfills.js")
-  script(src="/banx-app/polyfills.js")
-  script(src="/banx-app/styles.js")
-  script(src="/banx-app/vendor.js")
-  script(src="/banx-app/main.js")
+  script(src=`${banxPrefix}/banx-app/runtime.js`)
+  script(src=`${banxPrefix}/banx-app/es2015-polyfills.js`)
+  script(src=`${banxPrefix}/banx-app/polyfills.js`)
+  script(src=`${banxPrefix}/banx-app/styles.js`)
+  script(src=`${banxPrefix}/banx-app/vendor.js`)
+  script(src=`${banxPrefix}/banx-app/main.js`)
   script(type="text/x-mathjax-config") MathJax.Hub.Config({ tex2jax: {inlineMath: [ ['$', '$'], ['\\(', '\\)'] ]} })
-  script(src="/mathjax/MathJax.js?config=TeX-MML-AM_CHTML" async)
+  script(src=`${banxPrefix}/mathjax/MathJax.js?config=TeX-MML-AM_CHTML` async)

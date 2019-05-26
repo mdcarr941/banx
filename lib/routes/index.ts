@@ -1,5 +1,6 @@
 import * as express from 'express';
 
+import config from '../config';
 import client from '../dbClient';
 import { ProblemRepo } from '../problemRepo';
 
@@ -25,7 +26,11 @@ router.get('/', function(req, res, next) {
 function doIndexResponse(repo: ProblemRepo, req: any, res: any, next: Function) {
   repo.getProblemIndex()
     .then(problemIndex => {
-      res.render('index', { title: 'Banx', problemIndexStr: JSON.stringify(problemIndex) });
+      res.render('index', {
+        title: 'Banx',
+        problemIndexStr: JSON.stringify(problemIndex),
+        banxPrefix: config.banxPrefix
+      });
     })
     .catch(err => {
       console.error('index: Failed to get the problem index.');
