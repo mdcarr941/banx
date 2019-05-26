@@ -7,6 +7,7 @@ import * as logger from 'morgan';
 import usersRouter from './routes/users';
 import indexRouter from './routes/index';
 import apiRouter from './routes/api';
+import config from './config';
 
 export const app = express();
 
@@ -20,9 +21,12 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 // Router setup.
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
-app.use('/api', apiRouter);
+const router = express.Router();
+router.use('/', indexRouter);
+router.use('/users', usersRouter);
+router.use('/api', apiRouter);
+
+app.use(config.banxPrefix, router);
 
 // Static file setup.
 app.use('/', express.static(path.join(__dirname, '../public')));

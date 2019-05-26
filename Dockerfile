@@ -4,5 +4,5 @@ WORKDIR /banx
 EXPOSE 3001
 COPY . /banx
 RUN npm run init
-ENV PORT=8080 SAGE_LOCAL="/usr/share/sagemath" SAGE_ROOT=""
+ENV PORT=3001 SAGE_LOCAL="/usr/share/sagemath" SAGE_ROOT=""
 CMD ["node", "www"]

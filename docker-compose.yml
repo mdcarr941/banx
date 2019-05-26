@@ -32,3 +32,4 @@ services:
     environment:
        MONGO_URI: "mongodb://mongo:27017/banx"
        PORT: 3001
+       BANX_PREFIX: /banx
