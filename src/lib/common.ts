@@ -21,7 +21,3 @@ export function makePairs(tags: string[]): KeyValPair[] {
         return { key: p[0], value: p[1] };
     });
 }
-
-export function cleanPrefix(prefix: string): string {
-    return prefix.split('/').filter(s => s.length > 0).join('/');
-}

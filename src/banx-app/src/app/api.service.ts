@@ -5,10 +5,7 @@ import { map } from 'rxjs/operators';
 
 import { IProblem, Problem } from '../../../lib/schema';
 
-// The prefix of the banx app from the config object.
-declare const banxPrefix: string;
-
-export const apiEndpoint: string = `${banxPrefix}/api`;
+export const apiEndpoint: string = 'api';
 
 @Injectable({
   providedIn: 'root'

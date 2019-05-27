@@ -1,6 +1,5 @@
 import * as express from 'express';
 
-import config from '../config';
 import client from '../dbClient';
 import { ProblemRepo } from '../problemRepo';
 
@@ -28,8 +27,7 @@ function doIndexResponse(repo: ProblemRepo, req: any, res: any, next: Function) 
     .then(problemIndex => {
       res.render('index', {
         title: 'Banx',
-        problemIndexStr: JSON.stringify(problemIndex),
-        banxPrefix: config.banxPrefix
+        problemIndexStr: JSON.stringify(problemIndex)
       });
     })
     .catch(err => {

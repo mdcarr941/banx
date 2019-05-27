@@ -14,12 +14,11 @@
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
             "outputPath": "../public/banx-app",
-            "index": "src/index.html",
+            "index": "",
             "main": "src/main.ts",
             "polyfills": "src/polyfills.ts",
             "tsConfig": "src/tsconfig.app.json",
             "assets": [
-              "src/favicon.ico",
               "src/assets"
             ],
             "styles": [
