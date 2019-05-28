@@ -20,7 +20,7 @@ services:
   web:
     image: mdcarr941/banx:latest
     ports:
-      - "3001:3001"
+      - "127.0.0.1:3001:3001"
     networks:
       - webnet
     depends_on:
