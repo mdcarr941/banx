@@ -1,4 +1,5 @@
 import { KeyValPair } from './schema';
+import config from './config';
 
 interface IIndexable {
     [key: string]: any;
@@ -20,4 +21,9 @@ export function makePairs(tags: string[]): KeyValPair[] {
     return tags.map(s => s.split('@')).map(p => {
         return { key: p[0], value: p[1] };
     });
+}
+
+const adminArray = config.admins.split(',');
+export function isAdmin(userGlid: string) {
+    return adminArray.indexOf(userGlid) >= 0;
 }

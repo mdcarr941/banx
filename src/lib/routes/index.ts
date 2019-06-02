@@ -2,6 +2,7 @@ import * as express from 'express';
 
 import client from '../dbClient';
 import { ProblemRepo } from '../problemRepo';
+import { isAdmin } from '../common';
 
 const router = express.Router();
 let problemRepo: ProblemRepo = null;
@@ -25,9 +26,12 @@ router.get('/', function(req, res, next) {
 function doIndexResponse(repo: ProblemRepo, req: any, res: any, next: Function) {
   repo.getProblemIndex()
     .then(problemIndex => {
+      const userGlid = req.headers['ufshib_glid'];
       res.render('index', {
         title: 'Banx',
-        problemIndexStr: JSON.stringify(problemIndex)
+        problemIndexStr: JSON.stringify(problemIndex),
+        userGlid: userGlid,
+        isAdmin: isAdmin(userGlid)
       });
     })
     .catch(err => {

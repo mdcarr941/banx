@@ -1,11 +1,12 @@
 extends layout
 
 block content
+  if isAdmin
+    a(href="#admin-dashboard") Admin Dashboard
   app-root
 
 block scripts
   script const problemIndexInitial = !{problemIndexStr};
-  script const banxPrefix = '!{banxPrefix}';
   script(src="banx-app/runtime.js")
   script(src="banx-app/es2015-polyfills.js")
   script(src="banx-app/polyfills.js")
