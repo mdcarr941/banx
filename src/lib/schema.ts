@@ -5,8 +5,11 @@ export interface KeyValPair {
     value: string;
 }
 
-export interface IProblem {
+export interface IMongoObject {
     _id?: ObjectID;
+}
+
+export interface IProblem extends IMongoObject {
     tags?: KeyValPair[];
     content?: string;
 }
@@ -71,3 +74,34 @@ export interface ProblemIndex {
     }
 }
 // Note that a problemId will appear once for each (topic, subtopic) defined on it.
+
+export enum UserRole {
+    Admin = 'Admin',
+    Author = 'Author'
+}
+
+export interface IBanxUser extends IMongoObject {
+    glid: string;
+    roles: UserRole[];
+}
+
+export class BanxUser {
+    public _id?: ObjectID;
+    public glid: string;
+    public roles: UserRole[];
+
+    constructor(obj?: IBanxUser) {
+        if (!obj) return;
+        this._id = obj._id || null;
+        this.glid = obj.glid || "";
+        this.roles = obj.roles || [];
+    }
+
+    public isAdmin(): boolean {
+        return this.roles.indexOf(UserRole.Admin) >= 0;
+    }
+
+    public toString(): string {
+        return `_id: ${this._id}, glid: ${this.glid}, roles: ${this.roles.map(role => role.toString()).join(',')}`;
+    }
+}

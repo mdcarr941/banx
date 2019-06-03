@@ -5,8 +5,9 @@ import * as readline from 'readline';
 const repl = require('repl');
 
 import { ProblemRepo } from './problemRepo';
+import { UserRepo } from './userRepo';
 import { ProblemParser } from './problemParser';
-import { Problem } from './schema';
+import { Problem, BanxUser, UserRole } from './schema';
 import { makePairs } from './common';
 import { GlobalSageServer } from './sageServer';
 
@@ -44,12 +45,16 @@ async function find(repo: ProblemRepo, tags: string[]) {
 
 async function del(repo: ProblemRepo, tags: string[]) {
     const pairs = makePairs(tags);
-    const problems = await repo.find(pairs).toArray();
-    if (0 === problems.length) {
+    const problems: Problem[] = [];
+    await repo.find(pairs).forEach(problem => {
+        console.log(problem.toString());
+        problems.push(problem);
+    });
+    if (0 == problems.length) {
         console.log('No problems were found which matched your query.');
         return;
     }
-    problems.forEach(problem => console.log(problem.toString()));
+
     const rl = readline.createInterface({
         input: process.stdin, output: process.stdout
     });
@@ -82,6 +87,42 @@ function sageShell(): Promise<void> {
     return new Promise(resolve => server.on('exit', () => resolve()));
 }
 
+async function userAdd(glid: string, roleStrings: string[]): Promise<void> {
+    const roles = roleStrings.map(role => {
+        switch (role) {
+            case 'Admin':
+                return UserRole.Admin;
+            case 'Author':
+                return UserRole.Author;
+            default:
+                throw new Error(`Unknown role specified: ${role}`);
+        }
+    });
+    const user = new BanxUser({glid: glid, roles: roles});
+    return UserRepo.create()
+        .then(userRepo => {
+            return userRepo.insert(user)
+                .then(() => console.log('User inserted successfully.'))
+                .catch(err => console.error(`User insertion failed.\n${err.message}`));
+        })
+        .catch(err => console.error(`Failed to get a UserRepo.\n${err.message}`));
+}
+
+async function userDel(glid: string): Promise<void> {
+    return UserRepo.create()
+        .then(userRepo => {
+            if (userRepo.del(glid)) console.log(`User with glid '${glid}' has been deleted.`);
+            else console.log(`No user with glid '${glid}' found.`);
+        })
+        .catch(err => console.error(`An error occured:\n${err.message}.`));
+}
+
+async function userList(): Promise<void> {
+    return UserRepo.create()
+        .then(repo => repo.list().forEach(user => console.log(user.toString())))
+        .catch(err => console.error(`Failed to list users.\n${err.message}`));
+}
+
 type IOptions = {[key: string]: any};
 
 interface IAction {
@@ -112,7 +153,22 @@ async function main(argv: string[]) {
         .description('Launch a shell that will interpret sage commands.')
         .action(() => {
             action = { command: 'sageShell', options: {} };
-        })
+        });
+    program.command('userAdd <glid> [roles...]')
+        .description('Add a user to the database.')
+        .action((glid: string, roles: string[]) => {
+            action = { command: 'userAdd', options: {glid: glid, roles: roles}};
+        });
+    program.command('userDel <glid>')
+        .description('Delete a user from the database.')
+        .action((glid: string) => {
+            action = { command: 'userDel', options: {glid: glid}};
+        });
+    program.command('userList')
+        .description('List the users in the database.')
+        .action(() => {
+            action = { command: 'userList', options: {} };
+        });
     program.parse(argv);
     switch (action.command) {
         case 'insert':
@@ -127,10 +183,18 @@ async function main(argv: string[]) {
         case 'sageShell':
             await sageShell();
             break;
+        case 'userAdd':
+            await userAdd(action.options.glid, action.options.roles);
+            break;
+        case 'userDel':
+            await userDel(action.options.glid);
+            break;
+        case 'userList':
+            await userList();
+            break;
         default:
             throw new Error('unknown command');
     }
-
 }
 
 main(process.argv)

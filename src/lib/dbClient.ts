@@ -1,6 +1,8 @@
 import { MongoClient, Db, Collection } from "mongodb";
 import config from "./config";
 
+export class NonExistantCollectionError extends Error { }
+
 class DbClient {
     private _client: MongoClient;
 
@@ -34,7 +36,7 @@ class DbClient {
 
     public async db(name: string = ''): Promise<Db> {
         return this.client
-            .then(client => client.db())
+            .then(client => client.db(name))
             .catch(err => {
                 console.error('DbClient: Unable to get the db object.');
                 this.disconnect();
@@ -42,15 +44,30 @@ class DbClient {
             });
     }
 
-    public async collection(collection: string): Promise<Collection<any>> {
-        // TODO: write a validator for the default collection.
-        return this.client
-            .then(client => client.db().collection(collection))
-            .catch(err => {
-                console.error(`DbClient: unable to get collection ${collection}.`);
-                this.disconnect();
-                throw err;
-            });
+    public async collection(collectionName: string) : Promise<Collection<any>> {
+        const promise: Promise<Collection<any>> = new Promise((resolve, reject) => {
+            this.client
+                .then(client => {
+                    client.db().collection(collectionName, {strict: true},
+                        (err, collection) => {
+                            if (err) {
+                                console.error(
+                                    `DbClient: an error occured while calling db().collection:\n${err.message}.`
+                                );
+                                reject(new NonExistantCollectionError(err.message));
+                            }
+                            resolve(collection);
+                        });
+                })
+                .catch(err => {
+                    console.error(
+                        `DbClient: unable to get collection ${collectionName}\n${err.message}.`
+                    );
+                    this.disconnect();
+                    reject(err);
+                });
+        });
+        return promise;
     }
 }
 
