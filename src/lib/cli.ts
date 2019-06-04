@@ -5,11 +5,12 @@ import * as readline from 'readline';
 const repl = require('repl');
 
 import { ProblemRepo } from './problemRepo';
-import { UserRepo } from './userRepo';
+import { UserRepo, UnknownUserError } from './userRepo';
 import { ProblemParser } from './problemParser';
 import { Problem, BanxUser, UserRole } from './schema';
 import { makePairs, printError } from './common';
 import { GlobalSageServer } from './sageServer';
+import { catchClause } from 'babel-types';
 
 const bufferLimit = 1000;
 
@@ -137,6 +138,21 @@ async function userList(): Promise<void> {
     .catch(err => printError(err, 'Failed to list users'));
 }
 
+async function userInfo(glid: string): Promise<void> {
+    return UserRepo.create()
+    .then(repo => {
+        return repo.get(glid)
+        .then(user => console.log(user.toString()))
+        .catch(err => {
+            if (err instanceof UnknownUserError) {
+                console.log(`There is no user with glid '${glid}' in the database.`);
+            }
+            else printError(err, 'An unknown error occured');
+        });
+    })
+    .catch(err => printError(err));
+}
+
 type IOptions = {[key: string]: any};
 
 interface IAction {
@@ -183,6 +199,11 @@ async function main(argv: string[]) {
         .action(() => {
             action = { command: 'userList', options: {} };
         });
+    program.command('userInfo <glid>')
+        .description('Show information about a particular user.')
+        .action((glid: string) => {
+            action = { command: 'userInfo', options: {glid: glid}};
+        });
     program.parse(argv);
     switch (action.command) {
         case 'insert':
@@ -205,6 +226,9 @@ async function main(argv: string[]) {
             break;
         case 'userList':
             await userList();
+            break;
+        case 'userInfo':
+            await userInfo(action.options.glid);
             break;
         default:
             throw new Error('unknown command');

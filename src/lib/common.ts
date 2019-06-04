@@ -23,11 +23,6 @@ export function makePairs(tags: string[]): KeyValPair[] {
     });
 }
 
-const adminArray = config.admins.split(',');
-export function isAdmin(userGlid: string) {
-    return adminArray.indexOf(userGlid) >= 0;
-}
-
 export function printError(err: Error, message?: string) {
     if (!message || 0 == message.length) message = "An error occured";
     console.error(`${message}\n${err.message}`);

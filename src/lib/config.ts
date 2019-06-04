@@ -10,9 +10,7 @@ const config = {
     /* Email configuration. */
     'smtpUser': process.env.SMTP_USER || 'username',
     'smtpPass': process.env.SMTP_PASS || 'password',
-    'emailRecipient': process.env.EMAIL_RECIPIENT || 'email@example.com',
-    /* Request whose 'ufshib_glid' are in this comma delimited list will be granted admin access. */
-    'admins': process.env.ADMINS || 'mdcarr,jnowell'
+    'emailRecipient': process.env.EMAIL_RECIPIENT || 'email@example.com'
 };
 
 export default config;

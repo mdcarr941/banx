@@ -6,6 +6,8 @@ import { IBanxUser, BanxUser } from './schema';
 
 const userCollectionName = 'users';
 
+export class UnknownUserError extends Error { }
+
 export class UserRepo {
     constructor(
         private userCollection: Collection<IBanxUser>
@@ -31,7 +33,10 @@ export class UserRepo {
 
     public async get(glid: string): Promise<BanxUser> {
         return this.userCollection.findOne({glid: glid})
-            .then(iuser => new BanxUser(iuser));
+            .then(iuser => {
+                if (iuser) return new BanxUser(iuser);
+                throw new UnknownUserError(glid);
+            });
     }
 
     public async del(glid: string): Promise<boolean> {
