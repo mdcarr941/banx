@@ -38,7 +38,7 @@ class DbClient {
         return this.client
             .then(client => client.db(name))
             .catch(err => {
-                console.error('DbClient: Unable to get the db object.');
+                console.error(`DbClient: Unable to get the db object:\n${err.message}`);
                 this.disconnect();
                 throw err;
             });
@@ -50,19 +50,11 @@ class DbClient {
                 .then(client => {
                     client.db().collection(collectionName, {strict: true},
                         (err, collection) => {
-                            if (err) {
-                                console.error(
-                                    `DbClient: an error occured while calling db().collection:\n${err.message}.`
-                                );
-                                reject(new NonExistantCollectionError(err.message));
-                            }
-                            resolve(collection);
+                            if (err) reject(new NonExistantCollectionError(err.message));
+                            else resolve(collection);
                         });
                 })
                 .catch(err => {
-                    console.error(
-                        `DbClient: unable to get collection ${collectionName}\n${err.message}.`
-                    );
                     this.disconnect();
                     reject(err);
                 });

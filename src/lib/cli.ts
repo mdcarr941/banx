@@ -8,7 +8,7 @@ import { ProblemRepo } from './problemRepo';
 import { UserRepo } from './userRepo';
 import { ProblemParser } from './problemParser';
 import { Problem, BanxUser, UserRole } from './schema';
-import { makePairs } from './common';
+import { makePairs, printError } from './common';
 import { GlobalSageServer } from './sageServer';
 
 const bufferLimit = 1000;
@@ -100,27 +100,41 @@ async function userAdd(glid: string, roleStrings: string[]): Promise<void> {
     });
     const user = new BanxUser({glid: glid, roles: roles});
     return UserRepo.create()
-        .then(userRepo => {
-            return userRepo.insert(user)
-                .then(() => console.log('User inserted successfully.'))
-                .catch(err => console.error(`User insertion failed.\n${err.message}`));
-        })
-        .catch(err => console.error(`Failed to get a UserRepo.\n${err.message}`));
+    .then(userRepo => {
+        return userRepo.insert(user)
+        .then(() => console.log('User inserted successfully.'))
+        .catch(err => printError(err, 'User insertion failed'));
+    })
+    .catch(err => printError(err, 'Failed to get a UserRepo'));
 }
 
 async function userDel(glid: string): Promise<void> {
     return UserRepo.create()
-        .then(userRepo => {
-            if (userRepo.del(glid)) console.log(`User with glid '${glid}' has been deleted.`);
+    .then(userRepo => {
+        return userRepo.del(glid)
+        .then(deleted => {
+            if (deleted) console.log(`User with glid '${glid}' has been deleted.`);
             else console.log(`No user with glid '${glid}' found.`);
         })
-        .catch(err => console.error(`An error occured:\n${err.message}.`));
+        .catch(err => printError(err));
+    })
+    .catch(err => printError(err));
 }
 
 async function userList(): Promise<void> {
     return UserRepo.create()
-        .then(repo => repo.list().forEach(user => console.log(user.toString())))
-        .catch(err => console.error(`Failed to list users.\n${err.message}`));
+    .then(repo => {
+        let numUsers = 0;
+        return repo.list().forEach(user => {
+            console.log(user.toString());
+            numUsers += 1;
+        })
+        .then(() => {
+            console.log(`Number of users in the database: ${numUsers}`);
+        })
+        .catch(err => printError(err));
+    })
+    .catch(err => printError(err, 'Failed to list users'));
 }
 
 type IOptions = {[key: string]: any};

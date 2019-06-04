@@ -11,25 +11,21 @@ export class UserRepo {
         private userCollection: Collection<IBanxUser>
     ) { }
 
-    public static create(): Promise<UserRepo> {
-        return new Promise((resolve, reject) => {
-            client.collection(userCollectionName)
-            .then(userCollection => resolve(new UserRepo(userCollection)))
-            .catch(err => {
-                if (err instanceof NonExistantCollectionError) {
-                    client.db()
-                    .then(client => {
-                        client.createCollection(userCollectionName, (err, userCollection) => {
-                            if (err) reject(err);
-                            else userCollection.createIndex({glid: 1}, (err, result) => {
-                                if (err) reject(err);
-                                else resolve(new UserRepo(userCollection));
-                            });
-                        });
+    public static create() : Promise<UserRepo> {
+        return client.collection(userCollectionName)
+        .then(userCollection => new UserRepo(userCollection))
+        .catch(err => {
+            if (err instanceof NonExistantCollectionError) {
+                return client.db()
+                .then(client => {
+                    return client.createCollection(userCollectionName)
+                    .then(userCollection => {
+                        return userCollection.createIndex({glid: 1}, {unique: true})
+                        .then(() => new UserRepo(userCollection));
                     });
-                }
-                else throw err;
-            });
+                });
+            }
+            else throw err;
         });
     }
 
@@ -40,7 +36,7 @@ export class UserRepo {
 
     public async del(glid: string): Promise<boolean> {
         return this.userCollection.deleteOne({glid: glid})
-            .then(result => result.deletedCount > 1);
+            .then(result => result.deletedCount > 0);
     }
 
     public insert(user: BanxUser): Promise<InsertOneWriteOpResult> {
