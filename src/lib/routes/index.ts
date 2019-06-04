@@ -54,7 +54,7 @@ function doResponse(problemRepo: ProblemRepo, userRepo: UserRepo, req: any, res:
         title: 'Banx',
         problemIndexStr: JSON.stringify(problemIndex),
         userGlid: user.glid,
-        isAdmin: user.isAdmin
+        isAdmin: user.isAdmin()
       });
     })
     .catch(err => {
@@ -89,6 +89,8 @@ router.get('/', (req, res, next) => {
   });
 });
 
-export default router;
+createRepositories()
+.then(() => console.log('index: Now connected to the database.'))
+.catch(err => indexError(err, 'Failed to get repositories'));
 
-createRepositories();
+export default router;

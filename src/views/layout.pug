@@ -11,7 +11,9 @@ html(lang="en")
     nav(class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow")
       h4(class="navbar-branc col-sm-3 col-md-2 mr-0 blue-text")
         a(href="/banx") Banx
-      p(class="blue-text") Logged in as #{userGlid}
+      span(class="blue-text") Logged in as #{userGlid}
+      if isAdmin
+        a(href="admin") Admin Dashboard
       h4
         a(href="/Shibboleth.sso/Logout" style="padding-right:20px;") Logout
     block content
