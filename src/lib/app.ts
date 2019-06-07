@@ -20,12 +20,14 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 // Router setup.
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
+//app.use('/', indexRouter);
+app.use('/app', indexRouter);
+app.get('/', (req, res) => res.redirect('app'));
+//app.use('/users', usersRouter);
 app.use('/api', apiRouter);
 
 // Static file setup.
-app.use('/', express.static(path.join(__dirname, '../public')));
+app.use('/public', express.static(path.join(__dirname, '../public')));
 
 // Catch 404 errors and forward them to the error handler.
 app.use(function(req, res, next) {

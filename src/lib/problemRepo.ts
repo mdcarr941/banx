@@ -14,7 +14,7 @@ export class ProblemRepo {
     public static create() : Promise<ProblemRepo> {
         return Promise.all([client.collection('problems'), client.collection('problemIndex') ])
             .then(results => {
-                const problemCollection: Collection<Problem> = results[0];
+                const problemCollection: Collection<IProblem> = results[0];
                 const problemIndex: Collection<ProblemIndex> = results[1];
                 return new ProblemRepo(problemCollection, problemIndex);
             });

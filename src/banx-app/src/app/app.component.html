@@ -60,7 +60,6 @@
         <ng-container *ngIf="problems.length > 0; then problemsList; else instancesList"></ng-container>
 
         <ng-template #problemsList>
-
           <div *ngFor="let problem of problems">
             <div>{{problem.formatTags()}}</div>
             <pre>{{problem.content}}</pre>

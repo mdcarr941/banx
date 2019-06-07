@@ -27,3 +27,7 @@ export function printError(err: Error, message?: string) {
     if (!message || 0 == message.length) message = "An error occured";
     console.error(`${message}\n${err.message}`);
 }
+
+export function cleanPrefix(prefix: string): string {
+    return prefix.split('/').filter(s => s.length > 0).join('/');
+}

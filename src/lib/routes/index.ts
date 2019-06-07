@@ -4,6 +4,7 @@ import client from '../dbClient';
 import { ProblemRepo } from '../problemRepo';
 import { printError } from '../common';
 import { UserRepo, UnknownUserError } from '../userRepo';
+import config from '../config';
 
 const router = express.Router();
 let problemRepo: ProblemRepo = null;
@@ -54,7 +55,8 @@ function doResponse(problemRepo: ProblemRepo, userRepo: UserRepo, req: any, res:
         title: 'Banx',
         problemIndexStr: JSON.stringify(problemIndex),
         userGlid: user.glid,
-        isAdmin: user.isAdmin()
+        isAdmin: user.isAdmin(),
+        banxPrefix: config.banxPrefix
       });
     })
     .catch(err => {
