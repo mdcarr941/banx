@@ -4,7 +4,7 @@ import * as path from 'path';
 import * as cookieParser from 'cookie-parser';
 import * as logger from 'morgan';
 
-import usersRouter from './routes/users';
+//import usersRouter from './routes/users';
 import indexRouter from './routes/index';
 import apiRouter from './routes/api';
 

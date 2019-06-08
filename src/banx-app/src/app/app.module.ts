@@ -7,9 +7,11 @@ import { AppComponent } from './app.component';
 import { InstanceListComponent } from './instance-list.component';
 import { CollapsibleComponent } from './collapsible.component';
 import { AdminComponent } from './admin/admin.component';
+import { MainInterfaceComponent } from './main-interface/main-interface.component';
 
 const routes: Routes = [
-  { path: '**', component: AdminComponent }
+  { path: 'admin', component: AdminComponent },
+  { path: '', component: MainInterfaceComponent }
 ];
 
 @NgModule({
@@ -17,7 +19,8 @@ const routes: Routes = [
     AppComponent,
     InstanceListComponent,
     CollapsibleComponent,
-    AdminComponent
+    AdminComponent,
+    MainInterfaceComponent
   ],
   imports: [
     RouterModule.forRoot(routes),

@@ -14,7 +14,7 @@ const config = {
     'smtpPass': process.env.SMTP_PASS || 'password',
     'emailRecipient': process.env.EMAIL_RECIPIENT || 'email@example.com',
     /* The prefix under which the banx app is served. */
-    'banxPrefix': process.env.BANX_PREFIX || cleanPrefix('/')
+    'banxPrefix': cleanPrefix(process.env.BANX_PREFIX || '/')
 };
 
 export default config;
