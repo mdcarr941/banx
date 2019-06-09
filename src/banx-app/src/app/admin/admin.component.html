@@ -1,3 +1,45 @@
-<p>
-  admin works!
-</p>
+<div class="row pad-top">
+  <h3 class="col">User Management</h3>
+  <div class="col">
+    <span class="font-weight-bold">Total Number of Users: </span>
+    <span *ngIf="users$ | async as users; else usersLoading">
+      {{users.length}}
+    </span>
+    <ng-template #usersLoading>Loading...</ng-template>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col">
+    <p>
+      Enter a GLID (the part of the UF email address before '@')
+      and click Add User to grant access.
+    </p>
+  </div>
+  <div class="col">
+    <span>User GLID: </span>
+    <input type="text" #userGlidInput/>
+    <button class="btn btn-link" (click)="addUser()">Add User</button>
+  </div>
+</div>
+
+<div class="row">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>User GLID</th>
+        <th>User Roles</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let user of users$ | async">
+        <td>{{user.glid}}</td>
+        <td>{{user.roles}}</td>
+        <td>
+          <button *ngIf="!user.isAdmin()" class="btn btn-danger" (click)="deleteUser(user)">Delete</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

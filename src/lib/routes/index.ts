@@ -2,7 +2,7 @@ import * as express from 'express';
 
 import client from '../dbClient';
 import { ProblemRepo } from '../problemRepo';
-import { printError } from '../common';
+import { printError, urlJoin, getGlid } from '../common';
 import { UserRepo, UnknownUserError } from '../userRepo';
 import config from '../config';
 
@@ -48,7 +48,7 @@ function createRepositories(): Promise<[ProblemRepo, UserRepo]> {
 function doResponse(problemRepo: ProblemRepo, userRepo: UserRepo, req: any, res: any, next: any) {
   problemRepo.getProblemIndex()
   .then(problemIndex => {
-    const glid = <string>req.headers['ufshib_glid'];
+    const glid = getGlid(req);
     userRepo.get(glid)
     .then(user => {
       res.render('index', {
@@ -56,7 +56,7 @@ function doResponse(problemRepo: ProblemRepo, userRepo: UserRepo, req: any, res:
         problemIndexStr: JSON.stringify(problemIndex),
         userGlid: user.glid,
         isAdmin: user.isAdmin(),
-        banxPrefix: config.banxPrefix
+        baseHref: urlJoin('/', config.banxPrefix, 'app'),
       });
     })
     .catch(err => {
@@ -77,7 +77,7 @@ function doResponse(problemRepo: ProblemRepo, userRepo: UserRepo, req: any, res:
   });
 }
 
-router.get('/', (req, res, next) => {
+router.get('*', (req, res, next) => {
   if (problemRepo && userRepo) {
     doResponse(problemRepo, userRepo, req, res, next);
     return;

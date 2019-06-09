@@ -3,18 +3,19 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-import { IProblem, Problem } from '../../../lib/schema';
-
-export const apiEndpoint: string = 'api';
+import { IProblem, Problem, IBanxUser, BanxUser } from '../../../lib/schema';
+import { urlJoin } from '../../../lib/common';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ApiService {
+  static readonly apiEndpoint: string = 'api';
+
   constructor(private http: HttpClient) { }
 
   private getUrl(end: string) {
-    return apiEndpoint + end;
+    return urlJoin(ApiService.apiEndpoint, end);
   }
 
   getProblems(ids: string[]): Observable<Problem[]> {
@@ -29,5 +30,20 @@ export class ApiService {
 
   submit(instances: Problem[]): Observable<Object> {
     return this.http.post(this.getUrl('/submission'), instances);
+  }
+
+  listUsers(): Observable<BanxUser[]> {
+    return this.http.get<IBanxUser[]>(this.getUrl('/users'))
+      .pipe(map(response => response.map(iuser => new BanxUser(iuser))));
+  }
+
+  insertUser(user: BanxUser): Observable<BanxUser> {
+    return this.http.post<BanxUser>(this.getUrl('/users'), user)
+      .pipe(map(response => new BanxUser(response)));
+  }
+
+  deleteUser(user: BanxUser): Observable<Boolean> {
+    return this.http.delete<any>(this.getUrl(`/users/${user.glid}`))
+      .pipe(map(response => response.deleteSucceeded));
   }
 }

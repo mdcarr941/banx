@@ -7,6 +7,23 @@ a {
   color: #00B7FF;
 }
 
+ul {
+    list-style-type: none;
+    padding-left: 20px;
+}
+
 .blue-text {
   color: #007bff;
+}
+
+.pad-top {
+  padding-top: 10px;
+}
+
+.pad-bottom {
+  padding-bottom: 10px;
+}
+
+.margin-right {
+  margin-right: 5px;
 }

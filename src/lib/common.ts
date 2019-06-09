@@ -28,6 +28,21 @@ export function printError(err: Error, message?: string) {
     console.error(`${message}\n${err.message}`);
 }
 
+function segmentFilter(segment: string, index: number, array: Array<string>): boolean {
+    return segment.length > 0 || index == 0 || index == array.length - 1;
+}
+
 export function cleanPrefix(prefix: string): string {
-    return prefix.split('/').filter(s => s.length > 0).join('/');
+    return prefix.split('/').filter(segmentFilter).join('/');
+}
+
+export function urlJoin(...args: string[]) {
+    return args.map(arg => arg.split('/'))
+    .reduce((accum, current) => accum.concat(current))
+    .filter(segmentFilter)
+    .join('/');
+}
+
+export function getGlid(req: any): string {
+    return req.headers.ufshib_glid;
 }

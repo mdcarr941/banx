@@ -10,8 +10,10 @@ import { AdminComponent } from './admin/admin.component';
 import { MainInterfaceComponent } from './main-interface/main-interface.component';
 
 const routes: Routes = [
-  { path: 'admin', component: AdminComponent },
-  { path: '', component: MainInterfaceComponent }
+  { path: '', redirectTo: '/home', pathMatch: 'full'},
+  { path: 'home', component: MainInterfaceComponent },
+  { path: 'instances', component: InstanceListComponent },
+  { path: 'admin', component: AdminComponent }
 ];
 
 @NgModule({

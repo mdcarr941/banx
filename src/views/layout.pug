@@ -1,22 +1,16 @@
 doctype html
 html(lang="en")
   head
-    base(href=`/${banxPrefix}/app` target="_self")
+    base(href=baseHref target="_self")
     meta(charset="utf-8")
     meta(name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no")
     title= title
-    link(rel="shortcut icon", href=`./public/favicon.ico`, type="image/x-icon")
-    link(rel="stylesheet", href=`./public/stylesheets/style.css`)
-    link(rel="stylesheet", href=`./public/bootstrap/css/bootstrap.min.css`)
+    link(rel="shortcut icon", href="./public/favicon.ico", type="image/x-icon")
+    link(rel="stylesheet", href="./public/stylesheets/style.css")
+    link(rel="stylesheet", href="./public/bootstrap/css/bootstrap.min.css")
   body
-    nav(class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow")
-      h4(class="navbar-branc col-sm-3 col-md-2 mr-0 blue-text")
-        a(href=`${banxPrefix}`) Banx
-      span(class="blue-text") Logged in as #{userGlid}
-      h4
-        a(href="/Shibboleth.sso/Logout" style="padding-right:20px;") Logout
     block content
-    script(src=`./public/jquery/jquery.slim.min.js`)
-    script(src=`./public/popper.js/popper.js`)
-    script(src=`./public/bootstrap/js/bootstrap.min.js`)
+    script(src="./public/jquery/jquery.slim.min.js")
+    script(src="./public/popper.js/popper.js")
+    script(src="./public/bootstrap/js/bootstrap.min.js")
     block scripts

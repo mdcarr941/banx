@@ -1,16 +1,15 @@
 extends layout
 
 block content
-  h1 '#{banxPrefix}'
   app-root
 
 block scripts
   script const problemIndexInitial = !{problemIndexStr}; const isAdmin = !{isAdmin};
-  script(src=`/${banxPrefix}/public/banx-app/runtime.js`)
-  script(src=`/${banxPrefix}/public/banx-app/es2015-polyfills.js`)
-  script(src=`/${banxPrefix}/public/banx-app/polyfills.js`)
-  script(src=`/${banxPrefix}/public/banx-app/styles.js`)
-  script(src=`/${banxPrefix}/public/banx-app/vendor.js`)
-  script(src=`/${banxPrefix}/public/banx-app/main.js`)
+  script(src="./public/banx-app/runtime.js")
+  script(src="./public/banx-app/es2015-polyfills.js")
+  script(src="./public/banx-app/polyfills.js")
+  script(src="./public/banx-app/styles.js")
+  script(src="./public/banx-app/vendor.js")
+  script(src="./public/banx-app/main.js")
   script(type="text/x-mathjax-config") MathJax.Hub.Config({ tex2jax: {inlineMath: [ ['$', '$'], ['\\(', '\\)'] ]} })
-  script(src=`/${banxPrefix}/public/mathjax/MathJax.js?config=TeX-MML-AM_CHTML` async)
+  script(src="./public/mathjax/MathJax.js?config=TeX-MML-AM_CHTML" async)

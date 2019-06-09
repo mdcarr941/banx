@@ -4,23 +4,23 @@ import client from './dbClient';
 import { NonExistantCollectionError } from './dbClient';
 import { IBanxUser, BanxUser } from './schema';
 
-const userCollectionName = 'users';
-
 export class UnknownUserError extends Error { }
 
 export class UserRepo {
+    static readonly userCollectionName: string = 'users';
+
     constructor(
         private userCollection: Collection<IBanxUser>
     ) { }
 
     public static create() : Promise<UserRepo> {
-        return client.collection(userCollectionName)
+        return client.collection(UserRepo.userCollectionName)
         .then(userCollection => new UserRepo(userCollection))
         .catch(err => {
             if (err instanceof NonExistantCollectionError) {
                 return client.db()
                 .then(client => {
-                    return client.createCollection(userCollectionName)
+                    return client.createCollection(UserRepo.userCollectionName)
                     .then(userCollection => {
                         return userCollection.createIndex({glid: 1}, {unique: true})
                         .then(() => new UserRepo(userCollection));
@@ -51,4 +51,12 @@ export class UserRepo {
     public list(): Cursor<BanxUser> {
         return this.userCollection.find({}).map(ibanx => new BanxUser(ibanx));
     }
+}
+
+export async function getGlobalUserRepo(): Promise<UserRepo> {
+    let globalUserRepo: UserRepo;
+    if (!globalUserRepo) {
+        globalUserRepo = await UserRepo.create();
+    }
+    return globalUserRepo;
 }
