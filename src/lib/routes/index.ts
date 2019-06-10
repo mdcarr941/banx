@@ -1,15 +1,12 @@
 import * as express from 'express';
 
-import client from '../dbClient';
-import { ProblemRepo } from '../problemRepo';
+import { ProblemRepo, getGlobalProblemRepo } from '../problemRepo';
 import { printError as commonPrintError, urlJoin, getGlid } from '../common';
-import { UserRepo, UnknownUserError } from '../userRepo';
+import { UnknownUserError, UserRepo, getGlobalUserRepo } from '../userRepo';
 import config from '../config';
+import { ProblemIndex, BanxUser } from 'schema';
 
 const router = express.Router();
-let problemRepo: ProblemRepo = null;
-let userRepo: UserRepo = null;
-let repoPromise: Promise<[ProblemRepo, UserRepo]> = null;
 
 function printError(err: Error, message?: string) {
   if (!message) message = '';
@@ -17,81 +14,56 @@ function printError(err: Error, message?: string) {
   commonPrintError(err, message);
 }
 
-function createRepositories(): Promise<[ProblemRepo, UserRepo]> {
-  if (repoPromise) return repoPromise;
-  else if (!problemRepo && !userRepo) {
-    repoPromise = Promise.all([ProblemRepo.create(), UserRepo.create()])
-    .then(result => {
-      repoPromise = null;
-      problemRepo = result[0];
-      userRepo = result[1];
-      return result
-    });
+router.get('*', async (req, res, next) => {
+  let problemRepo: ProblemRepo;
+  let userRepo: UserRepo;
+  try {
+    const result = await Promise.all([getGlobalProblemRepo(), getGlobalUserRepo()])
+    problemRepo = result[0];
+    userRepo = result[1];
   }
-  else if (!problemRepo && userRepo) {
-    repoPromise = ProblemRepo.create().then(repo => {
-      repoPromise = null;
-      problemRepo = repo;
-      return <[ProblemRepo, UserRepo]>[problemRepo, userRepo];
-    });
-  }
-  else if (problemRepo && !userRepo) {
-    repoPromise = UserRepo.create().then(repo => {
-      repoPromise = null;
-      userRepo = repo;
-      return <[ProblemRepo, UserRepo]>[problemRepo, userRepo];
-    });
-  }
-  return repoPromise;
-}
-
-function doResponse(problemRepo: ProblemRepo, userRepo: UserRepo, req: any, res: any, next: any) {
-  problemRepo.getProblemIndex()
-  .then(problemIndex => {
-    const glid = getGlid(req);
-    userRepo.get(glid)
-    .then(user => {
-      res.render('index', {
-        title: 'Banx',
-        problemIndexStr: JSON.stringify(problemIndex),
-        userGlid: user.glid,
-        isAdmin: user.isAdmin(),
-        baseHref: urlJoin('/', config.banxPrefix, 'app'),
-      });
-    })
-    .catch(err => {
-      if (err instanceof UnknownUserError) res.sendStatus(403);
-      else {
-        printError(err, `An unkown error occured while looking up user '${glid}'`);
-        userRepo = null;
-        client.disconnect();
-        next(err);
-      }
-    });
-  })
-  .catch(err => {
-    printError(err, 'Failed to get problem index');
-    problemRepo = null;
-    client.disconnect();
+  catch (err) {
+    printError(err, 'Failed to get repositories')
     next(err);
-  });
-}
-
-router.get('*', (req, res, next) => {
-  if (problemRepo && userRepo) {
-    doResponse(problemRepo, userRepo, req, res, next);
     return;
   }
-  if (!repoPromise) repoPromise = createRepositories();
-  repoPromise
-  .then(result => doResponse(result[0], result[1], req, res, next))
-  .catch(err => {
-    printError(err, 'Failed to get repositories');
+
+  let problemIndex: ProblemIndex;
+  try {
+    problemIndex = await problemRepo.getProblemIndex()
+  }
+  catch (err) {
+    printError(err, 'Failed to get problem index');
     next(err);
+    return;
+  }
+
+  const glid = getGlid(req);
+  let user: BanxUser;
+  try {
+    user = await userRepo.get(glid);
+  }
+  catch (err) {
+    if (err instanceof UnknownUserError) res.sendStatus(403);
+    else {
+      printError(err, `An unkown error occured while looking up user '${glid}'`);
+      next(err);
+    }
+    return
+  }
+
+  res.render('index', {
+    title: 'Banx',
+    problemIndexStr: JSON.stringify(problemIndex),
+    userGlid: user.glid,
+    isAdmin: user.isAdmin(),
+    baseHref: urlJoin('/', config.banxPrefix, 'app'),
   });
 });
 
-createRepositories()
+// We get the repositories right when the app starts so that the first
+// request is not slowed down by their creation.
+Promise.all([getGlobalProblemRepo(), getGlobalUserRepo()])
 .then(() => console.log('index: Now connected to the database.'))
 .catch(err => printError(err, 'Failed to get repositories'));
 

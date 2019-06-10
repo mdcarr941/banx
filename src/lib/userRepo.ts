@@ -13,24 +13,6 @@ export class UserRepo {
         private userCollection: Collection<IBanxUser>
     ) { }
 
-    public static create() : Promise<UserRepo> {
-        return client.collection(UserRepo.userCollectionName)
-        .then(userCollection => new UserRepo(userCollection))
-        .catch(err => {
-            if (err instanceof NonExistantCollectionError) {
-                return client.db()
-                .then(client => {
-                    return client.createCollection(UserRepo.userCollectionName)
-                    .then(userCollection => {
-                        return userCollection.createIndex({glid: 1}, {unique: true})
-                        .then(() => new UserRepo(userCollection));
-                    });
-                });
-            }
-            else throw err;
-        });
-    }
-
     public get(glid: string): Promise<BanxUser> {
         return this.userCollection.findOne({glid: glid})
         .then(iuser => {
@@ -51,4 +33,30 @@ export class UserRepo {
     public list(): Cursor<BanxUser> {
         return this.userCollection.find({}).map(ibanx => new BanxUser(ibanx));
     }
+}
+
+function createUserRepo() : Promise<UserRepo> {
+    return client.collection(UserRepo.userCollectionName)
+    .then(userCollection => new UserRepo(userCollection))
+    .catch(err => {
+        if (err instanceof NonExistantCollectionError) {
+            return client.db()
+            .then(client => {
+                return client.createCollection(UserRepo.userCollectionName)
+                .then(userCollection => {
+                    return userCollection.createIndex({glid: 1}, {unique: true})
+                    .then(() => new UserRepo(userCollection));
+                });
+            });
+        }
+        else throw err;
+    });
+}
+
+let GlobalUserRepo: UserRepo = null;
+export async function getGlobalUserRepo(): Promise<UserRepo> {
+    if (!GlobalUserRepo) {
+        GlobalUserRepo = await createUserRepo();
+    }
+    return GlobalUserRepo;
 }

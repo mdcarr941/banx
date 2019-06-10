@@ -11,15 +11,6 @@ export class ProblemRepo {
         private indexCollection: Collection<ProblemIndex>
     ) { }
 
-    public static create() : Promise<ProblemRepo> {
-        return Promise.all([client.collection('problems'), client.collection('problemIndex') ])
-        .then(results => {
-            const problemCollection: Collection<IProblem> = results[0];
-            const problemIndex: Collection<ProblemIndex> = results[1];
-            return new ProblemRepo(problemCollection, problemIndex);
-        });
-    }
-
     public getProblem(id: string): Promise<Problem> {
         return this.collection.findOne({_id: ObjectID.createFromHexString(id)})
         .then(p => p ? new Problem(p) : null);
@@ -197,4 +188,17 @@ export class ProblemRepo {
         }
         return {};
     }
+}
+
+function createProblemRepo() : Promise<ProblemRepo> {
+    return Promise.all([client.collection('problems'), client.collection('problemIndex') ])
+    .then(results => new ProblemRepo(results[0], results[1]));
+}
+
+let GlobalProblemRepo: ProblemRepo = null;
+export async function getGlobalProblemRepo(): Promise<ProblemRepo> {
+    if (!GlobalProblemRepo) {
+        GlobalProblemRepo = await createProblemRepo();
+    }
+    return GlobalProblemRepo;
 }

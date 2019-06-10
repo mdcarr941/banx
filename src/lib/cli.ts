@@ -4,13 +4,12 @@ import * as program from 'commander';
 import * as readline from 'readline';
 const repl = require('repl');
 
-import { ProblemRepo } from './problemRepo';
-import { UserRepo, UnknownUserError } from './userRepo';
+import { ProblemRepo, getGlobalProblemRepo } from './problemRepo';
+import { UserRepo, UnknownUserError, getGlobalUserRepo } from './userRepo';
 import { ProblemParser } from './problemParser';
 import { Problem, BanxUser, UserRole } from './schema';
 import { makePairs, printError } from './common';
 import { GlobalSageServer } from './sageServer';
-import { catchClause } from 'babel-types';
 
 const bufferLimit = 1000;
 
@@ -100,7 +99,7 @@ async function userAdd(glid: string, roleStrings: string[]): Promise<void> {
         }
     });
     const user = new BanxUser({glid: glid, roles: roles});
-    return UserRepo.create()
+    return getGlobalUserRepo()
     .then(userRepo => {
         return userRepo.insert(user)
         .then(() => console.log('User inserted successfully.'))
@@ -110,7 +109,7 @@ async function userAdd(glid: string, roleStrings: string[]): Promise<void> {
 }
 
 async function userDel(glid: string): Promise<void> {
-    return UserRepo.create()
+    return getGlobalUserRepo()
     .then(userRepo => {
         return userRepo.del(glid)
         .then(deleted => {
@@ -123,7 +122,7 @@ async function userDel(glid: string): Promise<void> {
 }
 
 async function userList(): Promise<void> {
-    return UserRepo.create()
+    return getGlobalUserRepo()
     .then(repo => {
         let numUsers = 0;
         return repo.list().forEach(user => {
@@ -139,7 +138,7 @@ async function userList(): Promise<void> {
 }
 
 async function userInfo(glid: string): Promise<void> {
-    return UserRepo.create()
+    return getGlobalUserRepo()
     .then(repo => {
         return repo.get(glid)
         .then(user => console.log(user.toString()))
@@ -161,7 +160,7 @@ interface IAction {
 }
 
 async function main(argv: string[]) {
-    const repo = await ProblemRepo.create();
+    const repo = await getGlobalProblemRepo();
     let action: IAction = { command: 'default', options: {} };
     program.version('0.0.1');
     program.command('find [tags...]')

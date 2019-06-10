@@ -28,36 +28,9 @@ class DbClient {
         });
     }
 
-    /**
-     * Disconnect from the DB if connected. Returns false if this instance was
-     * not connected and true otherwise.
-     */
-    public disconnect(): boolean {
-        if (!this._client) return false;
-        try {
-            this._client.close();
-        }
-        finally {
-            this._client = null;
-            return true;
-        }
-    }
-
-    public db(name: string = ''): Promise<Db> {
+    public db(): Promise<Db> {
         return this.getClient()
-        .then(client => {
-            const db = client.db(name);
-            // If reconnection failed then we need to disconnect and try again later.
-            db.on('error', () => {
-                console.log('reconnectFailed has fired');
-                this.disconnect()
-            });
-            return db;
-        })
-        .catch(err => {
-            this.disconnect();
-            throw err;
-        });
+        .then(client => client.db());
     }
 
     public collection(collectionName: string) : Promise<Collection<any>> {
@@ -71,7 +44,6 @@ class DbClient {
                     });
             })
             .catch(err => {
-                this.disconnect();
                 reject(err);
             });
         });
