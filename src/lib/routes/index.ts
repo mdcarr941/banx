@@ -2,7 +2,7 @@ import * as express from 'express';
 
 import client from '../dbClient';
 import { ProblemRepo } from '../problemRepo';
-import { printError, urlJoin, getGlid } from '../common';
+import { printError as commonPrintError, urlJoin, getGlid } from '../common';
 import { UserRepo, UnknownUserError } from '../userRepo';
 import config from '../config';
 
@@ -11,10 +11,10 @@ let problemRepo: ProblemRepo = null;
 let userRepo: UserRepo = null;
 let repoPromise: Promise<[ProblemRepo, UserRepo]> = null;
 
-function indexError(err: Error, message?: string) {
-  if (!message || 0 == message.length) message = 'An error occured';
+function printError(err: Error, message?: string) {
+  if (!message) message = '';
   message = 'index: ' + message;
-  printError(err, message);
+  commonPrintError(err, message);
 }
 
 function createRepositories(): Promise<[ProblemRepo, UserRepo]> {
@@ -62,7 +62,7 @@ function doResponse(problemRepo: ProblemRepo, userRepo: UserRepo, req: any, res:
     .catch(err => {
       if (err instanceof UnknownUserError) res.sendStatus(403);
       else {
-        indexError(err, `An unkown error occured while looking up user '${glid}'`);
+        printError(err, `An unkown error occured while looking up user '${glid}'`);
         userRepo = null;
         client.disconnect();
         next(err);
@@ -70,7 +70,7 @@ function doResponse(problemRepo: ProblemRepo, userRepo: UserRepo, req: any, res:
     });
   })
   .catch(err => {
-    indexError(err, 'Failed to get problem index');
+    printError(err, 'Failed to get problem index');
     problemRepo = null;
     client.disconnect();
     next(err);
@@ -86,13 +86,13 @@ router.get('*', (req, res, next) => {
   repoPromise
   .then(result => doResponse(result[0], result[1], req, res, next))
   .catch(err => {
-    indexError(err, 'Failed to get repositories');
+    printError(err, 'Failed to get repositories');
     next(err);
   });
 });
 
 createRepositories()
 .then(() => console.log('index: Now connected to the database.'))
-.catch(err => indexError(err, 'Failed to get repositories'));
+.catch(err => printError(err, 'Failed to get repositories'));
 
 export default router;

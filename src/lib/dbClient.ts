@@ -1,22 +1,31 @@
 import { MongoClient, Db, Collection } from "mongodb";
+
 import config from "./config";
 
 export class NonExistantCollectionError extends Error { }
 
 class DbClient {
+    static readonly connectOptions = Object.freeze({
+        useNewUrlParser: true,
+        // We will attempt to reconnect indefinitely, but reject
+        // requests immediately if we are not connected.
+        reconnectTries: Number.MAX_VALUE,
+        reconnectInterval: 250,
+        bufferMaxEntries: 0
+    });
     private _client: MongoClient;
 
     constructor(
         readonly uri: string = config.mongoUri,
     ) { }
 
-    private get client(): Promise<MongoClient> {
-        if (this._client) return new Promise(resolve => resolve(this._client));
-        return MongoClient.connect(this.uri, {useNewUrlParser: true})
-            .then(client => {
-                this._client = client;
-                return client;
-            });
+    private getClient(): Promise<MongoClient> {
+        if (this._client) return Promise.resolve(this._client);
+        return MongoClient.connect(this.uri, DbClient.connectOptions)
+        .then(client => {
+            this._client = client;
+            return client;
+        });
     }
 
     /**
@@ -34,30 +43,37 @@ class DbClient {
         }
     }
 
-    public async db(name: string = ''): Promise<Db> {
-        return this.client
-            .then(client => client.db(name))
-            .catch(err => {
-                console.error(`DbClient: Unable to get the db object:\n${err.message}`);
-                this.disconnect();
-                throw err;
+    public db(name: string = ''): Promise<Db> {
+        return this.getClient()
+        .then(client => {
+            const db = client.db(name);
+            // If reconnection failed then we need to disconnect and try again later.
+            db.on('error', () => {
+                console.log('reconnectFailed has fired');
+                this.disconnect()
             });
+            return db;
+        })
+        .catch(err => {
+            this.disconnect();
+            throw err;
+        });
     }
 
-    public async collection(collectionName: string) : Promise<Collection<any>> {
+    public collection(collectionName: string) : Promise<Collection<any>> {
         const promise: Promise<Collection<any>> = new Promise((resolve, reject) => {
-            this.client
-                .then(client => {
-                    client.db().collection(collectionName, {strict: true},
-                        (err, collection) => {
-                            if (err) reject(new NonExistantCollectionError(err.message));
-                            else resolve(collection);
-                        });
-                })
-                .catch(err => {
-                    this.disconnect();
-                    reject(err);
-                });
+            this.getClient()
+            .then(client => {
+                client.db().collection(collectionName, {strict: true},
+                    (err, collection) => {
+                        if (err) reject(new NonExistantCollectionError(err.message));
+                        else resolve(collection);
+                    });
+            })
+            .catch(err => {
+                this.disconnect();
+                reject(err);
+            });
         });
         return promise;
     }

@@ -2,11 +2,12 @@ import * as express from 'express';
 import * as nodemailer from 'nodemailer';
 
 import { ProblemRepo } from '../problemRepo';
-import { getGlobalUserRepo, UserRepo }from '../userRepo';
+import { UserRepo }from '../userRepo';
 import { getGlid, makePairs, printError as commonPrintError } from '../common';
 import { GlobalProblemGenerator } from '../problemGenerator';
 import { Problem, IProblem, BanxUser } from '../schema';
 import config from '../config';
+import { NonExistantCollectionError } from 'dbClient';
 
 class UnauthorizedError extends Error {}
 
@@ -30,7 +31,8 @@ const transporter = nodemailer.createTransport({
 });
 
 function printError(err: Error, message?: string) {
-    if (message && message.length > 0) message = `API controller: ${message}`;
+    if (!message) message = '';
+    message = 'API controller: ' + message;
     commonPrintError(err, message);
 }
 
@@ -96,7 +98,7 @@ router.get('/problems', (req, res) => {
     });
 });
 
-router.get('/instance/:problemId', (req, res) => {
+router.get('/instance/:problemId', (req, res, next) => {
     const problemId: string = req.params['problemId'];
     const numInstances: number = req.query.numInstances;
     if (numInstances == 1) {
@@ -104,21 +106,21 @@ router.get('/instance/:problemId', (req, res) => {
             .then(problem => res.send(problem))
             .catch(err => {
                 printError(err, `an error occured while calling getInstance(${problemId})`);
-                res.sendStatus(500)
+                next(err);
             });
     } else if (numInstances > 1) {
         GlobalProblemGenerator.getInstances(problemId, numInstances)
             .then(instances => res.send(instances))
             .catch(err => {
                 printError(err, `an error occured while calling getInstances(${problemId}, ${numInstances})`);
-                res.sendStatus(500);
+                next(err);
             });
     } else {
         res.sendStatus(400);
     }
 });
 
-router.post('/submission', (req, res) => {
+router.post('/submission', (req, res, next) => {
     const problems: Problem[] = req.body.map((p: IProblem) => new Problem(p));
     const content = problems.map(p => p.toString()).join('\n');
     transporter.sendMail({
@@ -128,31 +130,37 @@ router.post('/submission', (req, res) => {
         }]
     })
     .then(info => res.send({info: info}))
-    .catch(() => res.sendStatus(500));
+    .catch(err => {
+        printError(err, 'sendMail failed');
+        next(err);
+    });
 });
 
-function respondIfAdmin(req: any, res: any, next: any): Promise<UserRepo> {
-    return getGlobalUserRepo()
-    .then(userRepo => {
-        const glid = getGlid(req);
-        return userRepo.get(glid)
-        .then(user => {
-            if (!user.isAdmin()) {
-                throw new UnauthorizedError();
-            }
-            return userRepo;
-        })
-        .catch(err => {
-            printError(err, `couldn't find user with glid '${glid}'`);
-            res.sendStatus(404);
-            return err;
-        });
-    })
-    .catch(err => {
-        printError(err, 'failed to get the global user repository');
+async function respondIfAdmin(req: any, res: any, next: any): Promise<UserRepo> {
+    let userRepo: UserRepo;
+    try {
+        userRepo = await UserRepo.create();
+    }
+    catch (err) {
         next(err);
-        return err;
-    });
+        throw new Error('failed to create a user repository. ' + err.message);
+    }
+
+    const glid = getGlid(req);
+    let user;
+    try {
+        user = await userRepo.get(glid);
+    }
+    catch (err) {
+        res.sendStatus(403);
+        throw new Error(`couldn't find user with glid '${glid}' ` + err.message);
+    }
+
+    if (!user.isAdmin) {
+        res.sendStatus(403);
+        throw new UnauthorizedError();
+    }
+    return userRepo;
 }
 
 router.get('/users', (req, res, next) => {
@@ -165,32 +173,28 @@ router.get('/users', (req, res, next) => {
             next(err);
         });
     })
-    .catch(err => {
-        if (err instanceof UnauthorizedError) res.sendStatus(403);
-    });
+    .catch(err => printError(err));
 });
 
 router.post('/users', (req, res, next) => {
-    const user = new BanxUser(req.body);
-    if (!user.glid || user.glid.length == 0) {
+    const newUser = new BanxUser(req.body);
+    if (!newUser.glid || newUser.glid.length == 0) {
         res.sendStatus(400);
         return;
     }
     respondIfAdmin(req, res, next)
     .then(userRepo => {
-        userRepo.insert(user)
+        userRepo.insert(newUser)
         .then(result => {
-            user._id = result.insertedId;
-            res.send(user);
+            newUser._id = result.insertedId;
+            res.send(newUser);
         })
         .catch(err => {
-            printError(err, `failed to insert a user with glid '${user.glid}'`);
+            printError(err, `failed to insert user with glid '${newUser.glid}'`);
             next(err);
         })
     })
-    .catch(err => {
-        if (err instanceof UnauthorizedError) res.sendStatus(403);
-    });
+    .catch(err => printError(err));
 });
 
 router.delete('/users/:glid', (req, res, next) => {
@@ -208,9 +212,7 @@ router.delete('/users/:glid', (req, res, next) => {
             next(err);
         })
     })
-    .catch(err => {
-        if (err instanceof UnauthorizedError) res.sendStatus(403);
-    })
+    .catch(err => printError(err));
 });
 
 export default router;

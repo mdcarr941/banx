@@ -31,17 +31,17 @@ export class UserRepo {
         });
     }
 
-    public async get(glid: string): Promise<BanxUser> {
+    public get(glid: string): Promise<BanxUser> {
         return this.userCollection.findOne({glid: glid})
-            .then(iuser => {
-                if (iuser) return new BanxUser(iuser);
-                throw new UnknownUserError(glid);
-            });
+        .then(iuser => {
+            if (iuser) return new BanxUser(iuser);
+            throw new UnknownUserError(glid);
+        });
     }
 
-    public async del(glid: string): Promise<boolean> {
+    public del(glid: string): Promise<boolean> {
         return this.userCollection.deleteOne({glid: glid})
-            .then(result => result.deletedCount > 0);
+        .then(result => result.deletedCount > 0);
     }
 
     public insert(user: BanxUser): Promise<InsertOneWriteOpResult> {
@@ -51,12 +51,4 @@ export class UserRepo {
     public list(): Cursor<BanxUser> {
         return this.userCollection.find({}).map(ibanx => new BanxUser(ibanx));
     }
-}
-
-export async function getGlobalUserRepo(): Promise<UserRepo> {
-    let globalUserRepo: UserRepo;
-    if (!globalUserRepo) {
-        globalUserRepo = await UserRepo.create();
-    }
-    return globalUserRepo;
 }

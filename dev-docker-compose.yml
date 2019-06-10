@@ -8,6 +8,8 @@ volumes:
 services:
   mongo:
     image: mongo:4.1.11-bionic
+    ports:
+      - "127.0.0.1:27018:27017"
     networks:
       - webnet
     volumes:
@@ -22,7 +24,7 @@ services:
     networks:
       - webnet
     volumes:
-      - "/tmp/banx/src:/banx"
+      - "/home/banx/banx/src:/banx"
     depends_on:
       - mongo
     deploy:

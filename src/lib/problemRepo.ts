@@ -13,41 +13,111 @@ export class ProblemRepo {
 
     public static create() : Promise<ProblemRepo> {
         return Promise.all([client.collection('problems'), client.collection('problemIndex') ])
-            .then(results => {
-                const problemCollection: Collection<IProblem> = results[0];
-                const problemIndex: Collection<ProblemIndex> = results[1];
-                return new ProblemRepo(problemCollection, problemIndex);
-            });
+        .then(results => {
+            const problemCollection: Collection<IProblem> = results[0];
+            const problemIndex: Collection<ProblemIndex> = results[1];
+            return new ProblemRepo(problemCollection, problemIndex);
+        });
     }
 
-    public async getProblem(id: string): Promise<Problem> {
+    public getProblem(id: string): Promise<Problem> {
         return this.collection.findOne({_id: ObjectID.createFromHexString(id)})
-            .then(p => p ? new Problem(p) : null)
-            .catch(err => {
-                console.error(`ProblemRepo: error during getProblem(${id}):`);
-                console.error(err);
-                return null;
-            })
+        .then(p => p ? new Problem(p) : null);
     }
 
     public getProblems(ids: string[]): Cursor<Problem> {
         const oids = ids.map(id => ObjectID.createFromHexString(id));
         return this.collection.find({_id: {$in: oids}})
-            .map(p => new Problem(p));
+        .map(p => new Problem(p));
     }
 
-    public async getProblemIndex(): Promise<ProblemIndex> {
-        return this.indexCollection.findOne({}).then(problemIndex => {
+    public getProblemIndex(): Promise<ProblemIndex> {
+        return this.indexCollection.findOne({})
+        .then(problemIndex => {
             if (!problemIndex) problemIndex = {_id: undefined, index: {}};
             return problemIndex;
         });
     }
 
-    public async updateProblemIndex(problemIndex: ProblemIndex) {
+    public updateProblemIndex(problemIndex: ProblemIndex) {
         const query: any = {};
         if (problemIndex._id) query._id = problemIndex._id;
         return this.indexCollection.findOneAndReplace(query, problemIndex, {upsert: true})
-            .then(result => result.value);
+        .then(result => result.value);
+    }
+
+    public async insertOne(problem: Problem): Promise<InsertOneWriteOpResult> {
+        return this.collection.insertOne(problem)
+        .then(result =>
+            this.updateIndexOnInsert(result.ops.map(p => new Problem(p)))
+            .then(() => result)
+        );
+    }
+
+    public async insertMany(problems: Problem[]): Promise<InsertWriteOpResult> {
+        return this.collection.insertMany(problems)
+        .then(result =>
+            this.updateIndexOnInsert(result.ops.map(p => new Problem(p)))
+            .then(() => result)
+        );
+    }
+
+    public find(pairs: KeyValPair[]): Cursor<Problem> {
+        return this.collection.find(this.makeQuery(pairs)).map(p => new Problem(p));
+    }
+
+    public deleteOne(id: ObjectID): Promise<Problem> {
+        return this.collection.findOneAndDelete({_id: id})
+            .then(result =>
+                this.updateIndexOnDelete([new Problem(result.value)])
+                .then(problems => problems[0])
+            );
+    }
+
+    public deleteMany(ids: ObjectID[]): Promise<Problem[]> {
+        return Promise.all(ids.map(id =>
+                this.collection.findOneAndDelete({_id: id}).then(result => new Problem(result.value))
+            ))
+            .then(problems => this.updateIndexOnDelete(problems));
+    }
+
+    public deleteAll(): Promise<any> {
+        const problemPromise = this.collection.deleteMany({});
+        const indexPromise = this.indexCollection.deleteMany({});
+        return Promise.all([problemPromise, indexPromise]);
+    }
+
+    public getAllValues(key: string): Promise<string[]> {
+        const result: AggregationCursor<any> = this.collection.aggregate([
+            // Only consider documents with the tag requested.
+            { $match: { "tags.key": key } },
+            // Filter those documents' tags so that only the tag requested remains.
+            { $project: { tags: { $filter: {
+                input: "$tags",
+                as: "tag",
+                cond: { $eq: ["$$tag.key", key] }
+            }}}},
+            // Project each tag so that only its value remains.
+            { $project: { values: { $map: {
+                input: "$tags",
+                as: "tag",
+                in: "$$tag.value"
+            }}}},
+            // Group all documents together and add each array of values to the set of all values.
+            { $group: { _id: null, values: { $addToSet: "$values" }}},
+            // Concatenate the arrays in values so that a single array is returned.
+            { $project: { _id: 0, values: { $reduce: {
+                input: "$values",
+                initialValue: [],
+                in: { $concatArrays: ["$$value", "$$this"] }
+            }}}}
+        ]);
+        return new Promise((resolve, reject) => {
+            result.toArray((err: any, results: any[]) => {
+                if (err) reject(err);
+                resolve(results[0].values);
+            });
+        });
     }
 
     private async updateIndexOnInsert(problems: Problem[]): Promise<Problem[]> {
@@ -117,16 +187,6 @@ export class ProblemRepo {
         return problems;
     }
 
-    public async insertOne(problem: Problem): Promise<InsertOneWriteOpResult> {
-        return this.collection.insertOne(problem)
-            .then( result => this.updateIndexOnInsert(result.ops.map(p => new Problem(p))).then(() => result) );
-    }
-
-    public async insertMany(problems: Problem[]): Promise<InsertWriteOpResult> {
-        return this.collection.insertMany(problems)
-            .then(result => this.updateIndexOnInsert(result.ops.map(p => new Problem(p))).then(() => result) );
-    }
-
     private makeQuery(pairs: KeyValPair[]): FilterQuery<Problem> {
         if (pairs.length > 0) {
             return {
@@ -136,58 +196,5 @@ export class ProblemRepo {
             };
         }
         return {};
-    }
-
-    public find(pairs: KeyValPair[]): Cursor<Problem> {
-        return this.collection.find(this.makeQuery(pairs)).map(p => new Problem(p));
-    }
-
-    public async deleteOne(id: ObjectID): Promise<Problem> {
-        return this.collection.findOneAndDelete({_id: id})
-            .then(result => this.updateIndexOnDelete([new Problem(result.value)]).then(problems => problems[0]));
-    }
-
-    public async deleteMany(ids: ObjectID[]): Promise<Problem[]> {
-        return Promise.all(ids.map( id => this.collection.findOneAndDelete({_id: id}).then(result => new Problem(result.value)) ))
-            .then(problems => this.updateIndexOnDelete(problems));
-    }
-
-    public async deleteAll(): Promise<any> {
-        const problemPromise = this.collection.deleteMany({});
-        const indexPromise = this.indexCollection.deleteMany({});
-        return Promise.all([problemPromise, indexPromise]);
-    }
-
-    public getAllValues(key: string): Promise<string[]> {
-        const result: AggregationCursor<any> = this.collection.aggregate([
-            // Only consider documents with the tag requested.
-            { $match: { "tags.key": key } },
-            // Filter those documents' tags so that only the tag requested remains.
-            { $project: { tags: { $filter: {
-                input: "$tags",
-                as: "tag",
-                cond: { $eq: ["$$tag.key", key] }
-            }}}},
-            // Project each tag so that only its value remains.
-            { $project: { values: { $map: {
-                input: "$tags",
-                as: "tag",
-                in: "$$tag.value"
-            }}}},
-            // Group all documents together and add each array of values to the set of all values.
-            { $group: { _id: null, values: { $addToSet: "$values" }}},
-            // Concatenate the arrays in values so that a single array is returned.
-            { $project: { _id: 0, values: { $reduce: {
-                input: "$values",
-                initialValue: [],
-                in: { $concatArrays: ["$$value", "$$this"] }
-            }}}}
-        ]);
-        return new Promise((resolve, reject) => {
-            result.toArray((err: any, results: any[]) => {
-                if (err) reject(err);
-                resolve(results[0].values);
-            });
-        });
     }
 }
