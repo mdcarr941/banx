@@ -27,3 +27,7 @@ ul {
 .margin-right {
   margin-right: 5px;
 }
+
+.inline {
+  display: inline;
+}
