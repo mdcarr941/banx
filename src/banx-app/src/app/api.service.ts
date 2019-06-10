@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-import { IProblem, Problem, IBanxUser, BanxUser } from '../../../lib/schema';
+import { IProblem, Problem, IBanxUser, BanxUser, UserRole } from '../../../lib/schema';
 import { urlJoin } from '../../../lib/common';
 
 @Injectable({
@@ -42,8 +42,13 @@ export class ApiService {
       .pipe(map(response => new BanxUser(response)));
   }
 
-  deleteUser(user: BanxUser): Observable<Boolean> {
-    return this.http.delete<any>(this.getUrl(`/users/${user.glid}`))
+  deleteUser(glid: string): Observable<Boolean> {
+    return this.http.delete<any>(this.getUrl(`/users/${glid}`))
       .pipe(map(response => response.deleteSucceeded));
+  }
+
+  modifyUser(glid: string, roles: UserRole[]): Observable<Boolean> {
+    return this.http.post<any>(this.getUrl(`/users/${glid}`), roles)
+      .pipe(map(response => response.result));
   }
 }

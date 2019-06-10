@@ -1,8 +1,10 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
-import { BanxUser } from '../../../../lib/schema';
+import { BanxUser, UserRole } from '../../../../lib/schema';
 import { ApiService } from '../api.service';
+
+declare const $: Function;
 
 @Component({
   selector: 'app-admin',
@@ -11,6 +13,7 @@ import { ApiService } from '../api.service';
 })
 export class AdminComponent implements OnInit {
   users$: BehaviorSubject<BanxUser[]> = new BehaviorSubject<BanxUser[]>([]);
+  selectedUser: BanxUser;
 
   constructor(private api: ApiService) { }
 
@@ -35,7 +38,7 @@ export class AdminComponent implements OnInit {
     if (!confirm(`Are you sure you want to delete ${user.glid}? This action cannot be undone.`)) {
       return;
     }
-    this.api.deleteUser(user)
+    this.api.deleteUser(user.glid)
     .subscribe(deleteSucceeded => {
       if (!deleteSucceeded) {
         alert('Failed to delete the user.');
@@ -48,6 +51,35 @@ export class AdminComponent implements OnInit {
       }
       this.users$.value.splice(index, 1);
       this.users$.next(this.users$.value);
+    });
+  }
+
+  modifyUser(user: BanxUser): void {
+    this.selectedUser = user;
+    $('#modifyUserModal').modal('show');
+  }
+
+  @ViewChild('adminCheckbox') adminCheckbox;
+  @ViewChild('authorCheckbox') authorCheckbox;
+
+  submitUserModifications(): void {
+    const user = this.selectedUser;
+    const roles: UserRole[] = [];
+    if (this.adminCheckbox.nativeElement.checked) roles.push(UserRole.Admin);
+    if (this.authorCheckbox.nativeElement.checked) roles.push(UserRole.Author);
+    this.api.modifyUser(user.glid, roles)
+    .subscribe(
+    result => {
+      if (result) {
+        alert(`Successfully modified ${user.glid}.`);
+        user.roles = roles;
+      }
+      else alert(`Failed to modify ${user.glid}.`);
+      $('#modifyUserModal').modal('hide');
+    },
+    err => {
+      alert(`An error occured while modifying ${user.glid}.`);
+      $('#modifyUserModal').modal('hide');
     });
   }
 }

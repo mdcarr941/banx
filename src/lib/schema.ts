@@ -1,5 +1,7 @@
 import { ObjectID } from 'mongodb';
 
+import { invert } from './common';
+
 export interface KeyValPair {
     key: string;
     value: string;
@@ -80,6 +82,8 @@ export enum UserRole {
     Author = 'Author'
 }
 
+export const UserRoleInverse: {[userRoleName: string]: UserRole} = invert(UserRole);
+
 export interface IBanxUser extends IMongoObject {
     glid: string;
     roles: UserRole[];
@@ -99,6 +103,10 @@ export class BanxUser {
 
     public isAdmin(): boolean {
         return this.roles.indexOf(UserRole.Admin) >= 0;
+    }
+
+    public isAuthor(): boolean {
+        return this.roles.indexOf(UserRole.Author) >= 0;
     }
 
     public toString(): string {

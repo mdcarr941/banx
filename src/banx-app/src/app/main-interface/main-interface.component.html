@@ -70,7 +70,10 @@
     <ng-template #instancesList>
       <div *ngFor="let instance of instances">
         <pre>{{instance.content}}</pre>
-        <button class="btn btn-secondary" (click)="selectInstance(instance)">Include</button>
+        <div>
+          <input type="checkbox" (click)="toggleInstance(instance)">
+          <span> Include</span>
+        </div>
         <hr>
       </div>
     </ng-template>

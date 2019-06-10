@@ -46,3 +46,12 @@ export function urlJoin(...args: string[]) {
 export function getGlid(req: any): string {
     return req.headers.ufshib_glid;
 }
+
+export function invert(object: any): any {
+    const inverse: any = {};
+    for (let key in object) {
+        if (!object.hasOwnProperty(key)) continue;
+        inverse[object[key]] = key;
+    }
+    return inverse;
+}

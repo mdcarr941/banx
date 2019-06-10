@@ -151,8 +151,14 @@ export class MainInterfaceComponent implements OnInit {
       })
   }
 
-  selectInstance(instance: Problem) {
-    this.instanceService.select(instance);
+  toggleInstance(instance: Problem) {
+    const index = this.instanceService.instances.indexOf(instance);
+    if (index < 0) {
+      this.instanceService.instances.push(instance);
+    }
+    else {
+      this.instanceService.instances.splice(index, 1);
+    }
   }
 
   deselectInstance(instance: Problem) {

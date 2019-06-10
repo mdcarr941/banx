@@ -5,9 +5,9 @@ import * as readline from 'readline';
 const repl = require('repl');
 
 import { ProblemRepo, getGlobalProblemRepo } from './problemRepo';
-import { UserRepo, UnknownUserError, getGlobalUserRepo } from './userRepo';
+import { UnknownUserError, getGlobalUserRepo } from './userRepo';
 import { ProblemParser } from './problemParser';
-import { Problem, BanxUser, UserRole } from './schema';
+import { Problem, BanxUser, UserRole, UserRoleInverse } from './schema';
 import { makePairs, printError } from './common';
 import { GlobalSageServer } from './sageServer';
 
@@ -152,6 +152,16 @@ async function userInfo(glid: string): Promise<void> {
     .catch(err => printError(err));
 }
 
+function userModify(glid: string, roles: UserRole[]): Promise<void> {
+    return getGlobalUserRepo()
+    .then(repo => {
+        return repo.setRoles(glid, roles)
+        .then(result => console.log(result ? `Successfully updated ${glid}.` : `Failed to update ${glid}.`))
+        .catch(err => printError(err, `An error occured while trying to update ${glid}`));
+    })
+    .catch(err => printError(err, 'Failed to get the global user repo'));
+}
+
 type IOptions = {[key: string]: any};
 
 interface IAction {
@@ -203,6 +213,14 @@ async function main(argv: string[]) {
         .action((glid: string) => {
             action = { command: 'userInfo', options: {glid: glid}};
         });
+    program.command('userModify <glid> [roles...]')
+        .description('Set the roles of the given user.')
+        .action((glid: string, roles: string[]) => {
+            action = { command: 'userModify', options: {
+                glid: glid,
+                roles: roles.map(role => UserRoleInverse[role])
+            }};
+        });
     program.parse(argv);
     switch (action.command) {
         case 'insert':
@@ -228,6 +246,9 @@ async function main(argv: string[]) {
             break;
         case 'userInfo':
             await userInfo(action.options.glid);
+            break;
+        case 'userModify':
+            await userModify(action.options.glid, action.options.roles);
             break;
         default:
             throw new Error('unknown command');

@@ -2,7 +2,7 @@ import { Collection, Cursor, InsertOneWriteOpResult } from 'mongodb';
 
 import client from './dbClient';
 import { NonExistantCollectionError } from './dbClient';
-import { IBanxUser, BanxUser } from './schema';
+import { IBanxUser, BanxUser, UserRole } from './schema';
 
 export class UnknownUserError extends Error { }
 
@@ -32,6 +32,11 @@ export class UserRepo {
 
     public list(): Cursor<BanxUser> {
         return this.userCollection.find({}).map(ibanx => new BanxUser(ibanx));
+    }
+
+    public setRoles(glid: string, roles: UserRole[]): Promise<boolean> {
+        return this.userCollection.updateOne({glid: glid}, {$set: {roles: roles}})
+        .then(result => result.modifiedCount > 0);
     }
 }
 
