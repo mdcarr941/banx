@@ -1,7 +1,8 @@
 <div class="row pad-top">
   <h3 class="col">Problem Query</h3>
   <div class="col text-center">
-    <span class="font-weight-bold">Selected Problem Instances: </span><span>{{this.instanceService.instances.length}}</span>
+    <span class="font-weight-bold">Selected Problem Instances: </span>
+    <span>{{this.instanceService.instances.length}}</span>
   </div>
   <div class="col text-right">
     <a class="btn btn-link" [class.disabled]="this.instanceService.instances.length == 0"
@@ -54,29 +55,25 @@
   </div>
 
   <div class="col-md-9">
-    <ng-container *ngIf="problems.length > 0; then problemsList; else instancesList"></ng-container>
+    <div *ngFor="let problem of problems">
+      <app-problem [problem]="problem">
+        <ng-container *ngIf="showingProblems; then problemContent; else instanceContent"></ng-container>
 
-    <ng-template #problemsList>
-      <div *ngFor="let problem of problems">
-        <div>{{problem.formatTags()}}</div>
-        <pre>{{problem.content}}</pre>
-        <button class="btn btn-secondary" (click)="getInstances(problem._id)">
-          Get Instances
-        </button>
-        <hr>
-      </div>
-    </ng-template>
+        <ng-template #problemContent>
+          <button class="btn btn-secondary" (click)="getInstances(problem._id)">
+            Get Instances
+          </button>
+        </ng-template>
 
-    <ng-template #instancesList>
-      <div *ngFor="let instance of instances">
-        <pre>{{instance.content}}</pre>
-        <div>
-          <input type="checkbox" (click)="toggleInstance(instance)">
-          <span> Include</span>
-        </div>
-        <hr>
-      </div>
-    </ng-template>
+        <ng-template #instanceContent>
+          <div>
+            <input type="checkbox" (click)="toggleInstance(problem)">
+            <span> Include</span>
+          </div>
+        </ng-template>
+      </app-problem>
+      <hr>
+    </div>
   </div>
 
 </div>

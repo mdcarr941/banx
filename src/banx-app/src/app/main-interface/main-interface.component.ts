@@ -21,7 +21,7 @@ interface StringBag {
 export class MainInterfaceComponent implements OnInit {
   private problemIndex: ProblemIndex;
   private problems: Problem[] = [];
-  private instances: Problem[] = [];
+  private showingProblems: boolean = true;
   private query: StringBag = {};
   // This class uses query to keep track of
   // which Problem Query selections have been made.
@@ -123,17 +123,21 @@ export class MainInterfaceComponent implements OnInit {
 
   @ViewChild('resultCounter') resultCounter;
 
+  private showResultCounter() {
+    this.resultCounter.nativeElement.classList.remove('invisible');
+  }
+
+  private hideResultCounter() {
+    this.resultCounter.nativeElement.classList.add('invisible');
+  }
+
   getProblems() {
     this.api.getProblems(this.selectAllProblems())
       .subscribe(problems => {
-        this.instances = [];
         this.problems = problems;
-        if (this.problems.length > 0) {
-          this.resultCounter.nativeElement.classList.remove('invisible');
-        }
-        else {
-          this.resultCounter.nativeElement.classList.add('invisible');
-        }
+        this.showingProblems = true;
+        if (this.problems.length > 0) this.showResultCounter();
+        else this.hideResultCounter();
       });
   }
 
@@ -142,10 +146,11 @@ export class MainInterfaceComponent implements OnInit {
   getInstances(problemId: string) {
     this.api.getInstances(problemId)
       .subscribe(instances => {
-        this.problems = [];
-        this.instances = instances;
+        this.problems = instances;
+        this.showingProblems = false;
+        this.hideResultCounter();
         // Re-typeset mathematics on the page.
-        MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+        //MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
         // Scroll to the top of the page.
         document.body.scrollTop = document.documentElement.scrollTop = 0;
       })
@@ -159,9 +164,5 @@ export class MainInterfaceComponent implements OnInit {
     else {
       this.instanceService.instances.splice(index, 1);
     }
-  }
-
-  deselectInstance(instance: Problem) {
-    this.instanceService.deselect(instance);
   }
 }

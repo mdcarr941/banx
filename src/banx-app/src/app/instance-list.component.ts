@@ -12,15 +12,17 @@ import { InstanceService } from './instance.service';
         <a routerLink="/home" routerLinkActive="active">Back</a>
       </div>
       <div class="col text-right">
-        <a class="btn btn-link" href="#" (click)="submit()" [class.disabled]="this.instanceService.instances.length == 0">Submit</a>
+        <button class="btn btn-link" (click)="submit()" [disabled]="this.instanceService.instances.length == 0">Submit</button>
       </div>
     </div>
     <div class="row" *ngFor="let instance of instanceService.instances">
       <div class="col-md-12">
-        <pre>{{instance.content}}</pre>
-        <button class="btn btn-danger" (click)="instanceService.deselect(instance)">
-          Deselect
-        </button>
+        <app-problem [problem]="instance">
+          <button class="btn btn-danger" (click)="instanceService.deselect(instance)">
+            Deselect
+          </button>
+        </app-problem>
+        <hr>
       </div>
       <hr>
     </div>`

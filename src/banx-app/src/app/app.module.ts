@@ -8,6 +8,7 @@ import { InstanceListComponent } from './instance-list.component';
 import { CollapsibleComponent } from './collapsible.component';
 import { AdminComponent } from './admin/admin.component';
 import { MainInterfaceComponent } from './main-interface/main-interface.component';
+import { ProblemComponent } from './problem/problem.component';
 
 const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full'},
@@ -22,7 +23,8 @@ const routes: Routes = [
     InstanceListComponent,
     CollapsibleComponent,
     AdminComponent,
-    MainInterfaceComponent
+    MainInterfaceComponent,
+    ProblemComponent
   ],
   imports: [
     RouterModule.forRoot(routes),
