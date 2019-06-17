@@ -1,0 +1,9 @@
+<div class="row">
+  <label>Tags: </label>
+  <input type="text" #tagsInput/>
+  <button class="btn btn-primary" (click)="searchTags()">Search</button>
+</div>
+
+<div *ngFor="let problem of problems$ | async" class="row">
+  <app-problem [problem]="problem"></app-problem>
+</div>
