@@ -12,18 +12,13 @@ import { ApiService } from '../api.service';
 export class TagQueryComponent {
   @ViewChild('tagsInput') private tagsInput;
   private problems$ = new BehaviorSubject<Problem[]>([]);
-  static readonly notWhiteSpaceRgx = /[^\s]+/g;
+  static readonly whiteSpaceRgx = /[\s]+/;
 
   constructor(private api: ApiService) { }
 
-  searchTags() {
-    const queryInput = this.tagsInput.nativeElement.value;
-    const query: string[] = [];
-    let match = TagQueryComponent.notWhiteSpaceRgx.exec(queryInput);
-    while (match) {
-      query.push(match[0]);
-      match = TagQueryComponent.notWhiteSpaceRgx.exec(queryInput);
-    }
-    console.log(query);
+  private searchTags() {
+    const queryInput: string = this.tagsInput.nativeElement.value;
+    this.api.findProblems(queryInput.split(TagQueryComponent.whiteSpaceRgx))
+      .subscribe(problems => this.problems$.next(problems));
   }
 }

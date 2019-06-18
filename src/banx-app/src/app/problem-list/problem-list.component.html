@@ -1,0 +1,19 @@
+<ng-container *ngFor="let problem of problems$ | async">
+  <app-problem [problem]="problem">
+    <ng-container *ngIf="problemsShown$ | async; then problemContent; else instanceContent"></ng-container>
+
+    <ng-template #problemContent>
+      <button class="btn btn-secondary" (click)="getInstances(problem._id)">
+        Get Instances
+      </button>
+    </ng-template>
+
+    <ng-template #instanceContent>
+      <div>
+        <input type="checkbox" (click)="this.instanceService.toggle(problem)">
+        <span> Include</span>
+      </div>
+    </ng-template>
+  </app-problem>
+  <hr>
+</ng-container>

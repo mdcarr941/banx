@@ -1,13 +1,13 @@
-import { Component, OnInit, ViewChild, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 
 import { ApiService } from '../api.service';
 import { InstanceService } from '../instance.service';
 import { ProblemIndex, KeyValPair, Problem } from '../../../../lib/schema';
+import { BehaviorSubject } from 'rxjs';
 
 // this is rendered into the index template
 declare const problemIndexInitial: ProblemIndex
-declare const MathJax: any // MathJax global object.
-declare const $: any // Jquery
+//declare const MathJax: any // MathJax global object.
 
 interface StringBag {
   [key: string]: StringBag
@@ -19,12 +19,11 @@ interface StringBag {
   styleUrls: ['./main-interface.component.css']
 })
 export class MainInterfaceComponent implements OnInit {
+  private problems$ = new BehaviorSubject<Problem[]>([]);
   private problemIndex: ProblemIndex;
-  private problems: Problem[] = [];
-  private showingProblems: boolean = true;
   private query: StringBag = {};
   // This class uses query to keep track of
-  // which Problem Query selections have been made.
+  // which `Problem Query` selections have been made.
   // It looks like this:
   // query = {
   //   [topic: string]: {
@@ -45,7 +44,7 @@ export class MainInterfaceComponent implements OnInit {
     this.problemIndex = problemIndexInitial;
   }
 
-  _toggle(superState: StringBag, args: string[]): void {
+  private _toggle(superState: StringBag, args: string[]): void {
     const arg = args[0];
     if (1 == args.length) {
       if (arg in superState) delete superState[arg];
@@ -63,7 +62,7 @@ export class MainInterfaceComponent implements OnInit {
 
   @ViewChild('queryButton') queryButton;
 
-  toggleQueryButton(query: StringBag): void {
+  private toggleQueryButton(query: StringBag): void {
     // The query is ready if there is at least one (topic, subtopic) pair.
     for (let topic in query) {
       const subtopic = query[topic];
@@ -77,7 +76,7 @@ export class MainInterfaceComponent implements OnInit {
     this.queryButton.nativeElement.disabled = true;
   }
 
-  toggle(...args: string[]) {
+  private toggle(...args: string[]) {
     this._toggle(this.query, args);
     this.toggleQueryButton(this.query);
     return;
@@ -88,7 +87,7 @@ export class MainInterfaceComponent implements OnInit {
    * @param problemTags tag array to check
    * @param queryTags: The tags which must all be present in the query.
    */
-  containsAllTags(problemTags: KeyValPair[], queryTags: StringBag): boolean {
+  private containsAllTags(problemTags: KeyValPair[], queryTags: StringBag): boolean {
     for (let queryKey in queryTags) {
       for (let queryValue in queryTags[queryKey]) {
         const index = problemTags.findIndex(problemTag => {
@@ -100,7 +99,7 @@ export class MainInterfaceComponent implements OnInit {
     return true;
   }
 
-  selectProblemsWhere(topic: string, subtopic: string, tags: StringBag): string[] {
+  private selectProblemsWhere(topic: string, subtopic: string, tags: StringBag): string[] {
     const problems = this.problemIndex.index[topic][subtopic].problems;
     const selection: string[] = [];
     for (let problemId in problems) {
@@ -109,7 +108,7 @@ export class MainInterfaceComponent implements OnInit {
     return selection;
   }
 
-  selectAllProblems(): string[] {
+  private selectAllProblems(): string[] {
     const selection: string[] = [];
     for (let topic in this.query) {
       const subtopics = this.query[topic];
@@ -131,38 +130,19 @@ export class MainInterfaceComponent implements OnInit {
     this.resultCounter.nativeElement.classList.add('invisible');
   }
 
-  getProblems() {
+  private getProblems() {
     this.api.getProblems(this.selectAllProblems())
       .subscribe(problems => {
-        this.problems = problems;
-        this.showingProblems = true;
-        if (this.problems.length > 0) this.showResultCounter();
+        this.problems$.next(problems);
+        if (problems.length > 0) this.showResultCounter();
         else this.hideResultCounter();
       });
   }
 
-  @ViewChild('instanceDiv') instanceDiv;
-
-  getInstances(problemId: string) {
-    this.api.getInstances(problemId)
-      .subscribe(instances => {
-        this.problems = instances;
-        this.showingProblems = false;
-        this.hideResultCounter();
-        // Re-typeset mathematics on the page.
-        //MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
-        // Scroll to the top of the page.
-        document.body.scrollTop = document.documentElement.scrollTop = 0;
-      })
-  }
-
-  toggleInstance(instance: Problem) {
-    const index = this.instanceService.instances.indexOf(instance);
-    if (index < 0) {
-      this.instanceService.instances.push(instance);
-    }
-    else {
-      this.instanceService.instances.splice(index, 1);
-    }
+  private onProblemsShown(problemsShown: boolean) {
+    if (!problemsShown) this.hideResultCounter();
+    // Re-typeset mathematics on the page.
+    //MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+    // Scroll to the top of the page.
   }
 }

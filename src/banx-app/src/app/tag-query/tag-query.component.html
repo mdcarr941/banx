@@ -1,9 +1,9 @@
 <div class="row">
-  <label>Tags: </label>
-  <input type="text" #tagsInput/>
-  <button class="btn btn-primary" (click)="searchTags()">Search</button>
+  <h5 class="inline col-1">Tags</h5>
+  <input class="col-9" type="text" #tagsInput/>
+  <div class="col-2">
+      <button class="btn btn-primary" (click)="searchTags()">Search</button>
+  </div>
 </div>
-
-<div *ngFor="let problem of problems$ | async" class="row">
-  <app-problem [problem]="problem"></app-problem>
-</div>
+<hr>
+<app-problem-list [problems$]="problems$"></app-problem-list>

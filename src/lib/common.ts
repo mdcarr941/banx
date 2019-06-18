@@ -23,6 +23,10 @@ export function makePairs(tags: string[]): KeyValPair[] {
     });
 }
 
+export function joinPairs(pairs: KeyValPair[]): string[] {
+    return pairs.map(p => p.key + '@' + p.value);
+}
+
 export function printError(err: Error, message?: string) {
     if (!message || 0 == message.length) message = "An error occured";
     console.error(`${message}\n${err.message}`);

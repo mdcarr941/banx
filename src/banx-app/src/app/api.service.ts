@@ -3,8 +3,9 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-import { IProblem, Problem, IBanxUser, BanxUser, UserRole } from '../../../lib/schema';
-import { urlJoin } from '../../../lib/common';
+import { IProblem, Problem, IBanxUser, BanxUser,
+         UserRole, KeyValPair } from '../../../lib/schema';
+import { urlJoin, joinPairs } from '../../../lib/common';
 
 @Injectable({
   providedIn: 'root'
@@ -21,6 +22,13 @@ export class ApiService {
   getProblems(ids: string[]): Observable<Problem[]> {
     return this.http.post<IProblem[]>(this.getUrl('/problems'), ids)
       .pipe(map(response => response.map(p => new Problem(p))));
+  }
+
+  // Query problems by providing a list of `<tag name>@<tag value>` strings.
+  findProblems(tags: string[]): Observable<Problem[]> {
+    const tagsQuery = tags.map(s => 'tags=' + s).join('&');
+    return this.http.get<IProblem[]>(this.getUrl('/problems?' + tagsQuery))
+      .pipe(map(response => response.map(iproblem => new Problem(iproblem))));
   }
 
   getInstances(id: string, numInstances: number = 10): Observable<Problem[]> {

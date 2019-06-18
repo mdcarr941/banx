@@ -1,0 +1,24 @@
+<div class="row">
+    <div class="col">
+        <a routerLink="/home" routerLinkActive="active">Back</a>
+    </div>
+    <div class="col text-center">
+        <button class="btn btn-link" (click)="clearSelection()">Clear Selection</button>
+    </div>
+    <div class="col text-right">
+        <button class="btn btn-link" (click)="submit()" [disabled]="this.instanceService.instances$.value.length == 0">
+            Submit
+        </button>
+    </div>
+</div>
+<div class="row" *ngFor="let instance of this.instanceService.instances$ | async">
+    <div class="col-md-12">
+        <app-problem [problem]="instance">
+            <button class="btn btn-danger" (click)="this.instanceService.deselect(instance)">
+                Deselect
+            </button>
+        </app-problem>
+        <hr>
+    </div>
+    <hr>
+</div>

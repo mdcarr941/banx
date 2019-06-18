@@ -2,10 +2,10 @@
   <h3 class="col">Problem Query</h3>
   <div class="col text-center">
     <span class="font-weight-bold">Selected Problem Instances: </span>
-    <span>{{this.instanceService.instances.length}}</span>
+    <span>{{this.instanceService.instances$.value.length}}</span>
   </div>
   <div class="col text-right">
-    <a class="btn btn-link" [class.disabled]="this.instanceService.instances.length == 0"
+    <a class="btn btn-link" [class.disabled]="this.instanceService.instances$.value.length == 0"
        routerLink="../instances" routerLinkActive="active">
       Review and Submit Selection
     </a>
@@ -50,30 +50,12 @@
     </nav>
     <div class="invisible" #resultCounter>
       <span class="font-weight-bold">Problems Found: </span>
-      <span>{{problems.length}}</span>
+      <span *ngIf="problems$ | async as problems">{{problems.length}}</span>
     </div>
   </div>
 
   <div class="col-md-9">
-    <div *ngFor="let problem of problems">
-      <app-problem [problem]="problem">
-        <ng-container *ngIf="showingProblems; then problemContent; else instanceContent"></ng-container>
-
-        <ng-template #problemContent>
-          <button class="btn btn-secondary" (click)="getInstances(problem._id)">
-            Get Instances
-          </button>
-        </ng-template>
-
-        <ng-template #instanceContent>
-          <div>
-            <input type="checkbox" (click)="toggleInstance(problem)">
-            <span> Include</span>
-          </div>
-        </ng-template>
-      </app-problem>
-      <hr>
-    </div>
+    <app-problem-list [problems$]="problems$" (problemsShown$)="onProblemsShown($event)"></app-problem-list>
   </div>
 
 </div>

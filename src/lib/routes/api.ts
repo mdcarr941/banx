@@ -65,7 +65,7 @@ router.post('/problems', async (req, res, next) => {
 router.get('/problems', async (req, res, next) => {
     const repo = await getProblemRepo(next);
     let tags = req.query.tags;
-    if (!(req.query.tags instanceof Array)) tags = [tags];
+    if (!(tags instanceof Array)) tags = [tags];
     const query = makePairs(tags);
     repo.find(query).toArray()
     .then(problems => res.send(problems))
