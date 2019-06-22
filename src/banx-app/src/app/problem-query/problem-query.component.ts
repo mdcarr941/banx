@@ -14,11 +14,11 @@ interface StringBag {
 }
 
 @Component({
-  selector: 'app-main-interface',
-  templateUrl: './main-interface.component.html',
-  styleUrls: ['./main-interface.component.css']
+  selector: 'app-problem-query',
+  templateUrl: './problem-query.component.html',
+  styleUrls: ['./problem-query.component.css']
 })
-export class MainInterfaceComponent implements OnInit {
+export class ProblemQueryComponent implements OnInit {
   private problems$ = new BehaviorSubject<Problem[]>([]);
   private problemIndex: ProblemIndex;
   private query: StringBag = {};
@@ -120,29 +120,8 @@ export class MainInterfaceComponent implements OnInit {
     return selection;
   }
 
-  @ViewChild('resultCounter') resultCounter;
-
-  private showResultCounter() {
-    this.resultCounter.nativeElement.classList.remove('invisible');
-  }
-
-  private hideResultCounter() {
-    this.resultCounter.nativeElement.classList.add('invisible');
-  }
-
   private getProblems() {
     this.api.getProblems(this.selectAllProblems())
-      .subscribe(problems => {
-        this.problems$.next(problems);
-        if (problems.length > 0) this.showResultCounter();
-        else this.hideResultCounter();
-      });
-  }
-
-  private onProblemsShown(problemsShown: boolean) {
-    if (!problemsShown) this.hideResultCounter();
-    // Re-typeset mathematics on the page.
-    //MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
-    // Scroll to the top of the page.
+      .subscribe(problems => this.problems$.next(problems));
   }
 }

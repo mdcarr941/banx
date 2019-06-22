@@ -1,9 +1,12 @@
-<div class="row">
-  <h5 class="inline col-1">Tags</h5>
-  <input class="col-9" type="text" #tagsInput/>
-  <div class="col-2">
-      <button class="btn btn-primary" (click)="searchTags()">Search</button>
+<app-query [title]="'Tag Query'" [problems$]="problems$">
+  <p>
+    Enter a space separated list of tags below then click Search to find
+    all the problems with those tags.
+  </p>
+  <div>
+    <input type="text" #tagsInput/>
   </div>
-</div>
-<hr>
-<app-problem-list [problems$]="problems$"></app-problem-list>
+  <div>
+    <button class="btn btn-primary" (click)="searchTags()">Search</button>
+  </div>
+</app-query>

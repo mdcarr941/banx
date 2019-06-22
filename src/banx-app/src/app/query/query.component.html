@@ -1,0 +1,31 @@
+<div class="row pad-top">
+  <h3 class="col">{{this.title}}</h3>
+  <ng-container *ngIf="this.instanceService.instances$ | async as instances">
+    <div class="col text-center">
+      <span class="font-weight-bold">Selected Problem Instances: </span>
+      <span>{{instances.length}}</span>
+    </div>
+    <div class="col text-right">
+      <a class="btn btn-link" [class.disabled]="instances.length == 0"
+        routerLink="../instances" routerLinkActive="active">
+        Review and Submit Selection
+      </a>
+    </div>
+  </ng-container>
+</div>
+
+<div class="row">
+
+  <div class="col-md-3">
+    <ng-content></ng-content>
+    <div class="invisible" #resultCounter>
+      <span class="font-weight-bold">Problems Found: </span>
+      <span *ngIf="problems$ | async as problems">{{problems.length}}</span>
+    </div>
+  </div>
+
+  <div class="col-md-9">
+    <app-problem-list [problems$]="problems$" (problemsShown$)="onProblemsShown($event)" #problemList></app-problem-list>
+  </div>
+
+</div>
