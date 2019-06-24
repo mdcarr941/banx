@@ -3,9 +3,10 @@ import * as nodemailer from 'nodemailer';
 
 import { ProblemRepo, getGlobalProblemRepo } from '../problemRepo';
 import { UserRepo, getGlobalUserRepo }from '../userRepo';
-import { getGlid, makePairs, printError as commonPrintError } from '../common';
+import { makePairs, printError as commonPrintError } from '../common';
 import { GlobalProblemGenerator } from '../problemGenerator';
 import { Problem, IProblem, BanxUser, UserRoleInverse } from '../schema';
+import { getGlid } from '../app';
 import config from '../config';
 
 const router = express.Router();
@@ -35,7 +36,7 @@ function printError(err: Error, message?: string) {
 
 async function getProblemRepo(next: Function): Promise<ProblemRepo> {
     try {
-        return getGlobalProblemRepo();
+        return await getGlobalProblemRepo();
     }
     catch (err) {
         next(err);

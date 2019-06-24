@@ -4,7 +4,7 @@
     all the problems with those tags.
   </p>
   <div>
-    <input type="text" #tagsInput/>
+    <input type="text" (keyup)="onKeyUp($event)" #tagsInput/>
   </div>
   <div>
     <button class="btn btn-primary" (click)="searchTags()">Search</button>

@@ -7,6 +7,10 @@ import * as logger from 'morgan';
 //import usersRouter from './routes/users';
 import indexRouter from './routes/index';
 import apiRouter from './routes/api';
+import { printError } from './common';
+import { BanxUser } from './schema';
+import { UnknownUserError, getGlobalUserRepo } from './userRepo';
+import config from './config';
 
 export const app = express();
 
@@ -19,11 +23,55 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-// Router setup.
-//app.use('/', indexRouter);
+export function getGlid(req: any): string {
+    return req.headers.ufshib_glid;
+}
+
+export class BanxContext {
+  remoteUser: BanxUser = null;
+
+  constructor() {}
+}
+
+declare global {
+  namespace Express {
+    interface Request {
+      banxContext: BanxContext
+    }
+  }
+}
+
+// Initialize the context.
+app.use((req, res, next) => {
+  req.banxContext = new BanxContext();
+  next();
+})
+
+// Only allow users who are in the database to access the app.
+app.use(async (req, res, next) => {
+  const glid = getGlid(req);
+  try {
+    const userRepo = await getGlobalUserRepo();
+    req.banxContext.remoteUser = await userRepo.get(glid);
+    next();
+  }
+  catch (err) {
+    if (err instanceof UnknownUserError) res.sendStatus(403);
+    else {
+      printError(err, `An unkown error occured while looking up user '${glid}'`);
+      next(err);
+    }
+  }
+});
+
+// The index router handles all requests with the /app prefix and requests
+// which have no path are redirected to /app.
 app.use('/app', indexRouter);
-app.get('/', (req, res) => res.redirect('app'));
+app.use(new RegExp(`^/${config.banxPrefix}$`), (req, res) => res.redirect('app'));
+
 //app.use('/users', usersRouter);
+
+// The apiRouter handles all requests prefixed by /api.
 app.use('/api', apiRouter);
 
 // Static file setup.

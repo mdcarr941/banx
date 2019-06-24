@@ -47,10 +47,6 @@ export function urlJoin(...args: string[]) {
     .join('/');
 }
 
-export function getGlid(req: any): string {
-    return req.headers.ufshib_glid;
-}
-
 export function invert(object: any): any {
     const inverse: any = {};
     for (let key in object) {
