@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 
-import { ApiService } from '../api.service';
+import { ProblemsService } from '../problems.service';
 import { InstanceService } from '../instance.service';
 
 @Component({
@@ -10,7 +10,7 @@ import { InstanceService } from '../instance.service';
 })
 export class InstanceListComponent {
   constructor(
-    private api: ApiService,
+    private api: ProblemsService,
     private instanceService: InstanceService
   ) {}
 

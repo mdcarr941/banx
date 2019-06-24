@@ -2,7 +2,7 @@ import { Component, Output, Input } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
 import { Problem } from '../../../../lib/schema';
-import { ApiService } from '../api.service';
+import { ProblemsService } from '../problems.service';
 import { InstanceService } from '../instance.service';
 
 @Component({
@@ -15,7 +15,7 @@ export class ProblemListComponent {
   @Output() problemsShown$ = new BehaviorSubject<boolean>(true);
 
   constructor(
-    private api: ApiService,
+    private api: ProblemsService,
     private instanceService: InstanceService
   ) { }
 

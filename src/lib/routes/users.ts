@@ -15,15 +15,8 @@ const router = express.Router();
 
 // Only admin users are allowed to access this router.
 router.use(async (req, res, next) => {
-    const user = req.banxContext.remoteUser;
-    if (user.isAdmin) {
-        next();
-        return
-    }
-    else {
-        res.sendStatus(403);
-        printError(new Error(`user ${user.glid} is not an admin`));
-    }
+    if (req.banxContext.remoteUser.isAdmin()) next();
+    else res.sendStatus(403);
 });
 
 router.get('/', (req, res, next) => {
@@ -52,6 +45,9 @@ router.post('/', (req, res, next) => {
     });
 });
 
+// Get the requested user from the DB and check that they are not
+// an admin. Admin user are not modifiable nor deletable throught the
+// web interface.
 router.use('/:glid', async (req, res, next) => {
   const glid: string = req.params['glid'];
   if (!glid || glid.length == 0) {
@@ -61,10 +57,8 @@ router.use('/:glid', async (req, res, next) => {
 
   try {
     req.banxContext.requestedUser = await req.banxContext.userRepo.get(glid);
-    if (req.banxContext.requestedUser.isAdmin) {
-        res.sendStatus(403);
-        next(new Error('An attempt was made to modify an admin.'));
-    }
+    if (!req.banxContext.requestedUser.isAdmin()) next();
+    else res.sendStatus(403);
   }
   catch(err) {
       printError(err);
@@ -83,8 +77,9 @@ router.delete('/:glid', (req, res, next) => {
 });
 
 router.post('/:glid', (req, res, next) => {
-    const glid = req.banxContext.remoteUser.glid;
-    req.banxContext.userRepo.setRoles(glid, req.body.map((roleName: string) => UserRoleInverse[roleName]))
+    const glid = req.banxContext.requestedUser.glid;
+    const roles = req.body.map((roleName: string) => UserRoleInverse[roleName]);
+    req.banxContext.userRepo.setRoles(glid, roles)
     .then(result => res.send({result: result}))
     .catch(err => {
         printError(err, `Failed to set roles on user ${glid}`);

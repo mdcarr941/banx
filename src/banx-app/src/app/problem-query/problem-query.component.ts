@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 
-import { ApiService } from '../api.service';
+import { ProblemsService } from '../problems.service';
 import { InstanceService } from '../instance.service';
 import { ProblemIndex, KeyValPair, Problem } from '../../../../lib/schema';
 import { BehaviorSubject } from 'rxjs';
@@ -36,7 +36,7 @@ export class ProblemQueryComponent implements OnInit {
   // };
 
   constructor(
-    private api: ApiService,
+    private problems: ProblemsService,
     private instanceService: InstanceService
   ) { }
 
@@ -121,7 +121,7 @@ export class ProblemQueryComponent implements OnInit {
   }
 
   private getProblems() {
-    this.api.getProblems(this.selectAllProblems())
+    this.problems.get(this.selectAllProblems())
       .subscribe(problems => this.problems$.next(problems));
   }
 }

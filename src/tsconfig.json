@@ -10,7 +10,7 @@
         "baseUrl": "./lib"
     },
     "include": [
-        "lib/**/*.ts"
+        "lib/**/*.ts", "banx-app/src/app/problems.service.spec.ts", "banx-app/src/app/problems.service.ts"
     ],
     "exclude": [
         "banx-app/*"

@@ -6,11 +6,12 @@ import * as logger from 'morgan';
 
 import usersRouter from './routes/users';
 import indexRouter from './routes/index';
-import apiRouter from './routes/api';
+import problemsRouter from './routes/problems';
 import { printError } from './common';
 import { BanxUser } from './schema';
 import { UnknownUserError, getGlobalUserRepo, UserRepo } from './userRepo';
 import config from './config';
+import { ProblemRepo } from 'problemRepo';
 
 export const app = express();
 
@@ -23,13 +24,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-export function getGlid(req: any): string {
-    return req.headers.ufshib_glid;
-}
-
 export interface BanxContext {
   remoteUser?: BanxUser;
   userRepo?: UserRepo;
+  problemRepo?: ProblemRepo;
   requestedUser?: BanxUser;
 }
 
@@ -39,6 +37,10 @@ declare global {
       banxContext: BanxContext;
     }
   }
+}
+
+export function getGlid(req: any): string {
+    return req.headers.ufshib_glid;
 }
 
 // Only allow users who are in the database to access the app.
@@ -63,12 +65,12 @@ app.use(async (req, res, next) => {
 // The index router handles all requests with the /app prefix and requests
 // which have no path are redirected to /app.
 app.use('/app', indexRouter);
-app.use(new RegExp(`^/${config.banxPrefix}$`), (req, res) => res.redirect('app'));
+app.use(new RegExp(`^/?${config.banxPrefix}$`), (req, res) => res.redirect('app'));
 
 app.use('/users', usersRouter);
 
-// The apiRouter handles all requests prefixed by /api.
-app.use('/api', apiRouter);
+// The problemsRouter handles all requests prefixed by /api.
+app.use('/problems', problemsRouter);
 
 // Static file setup.
 app.use('/public', express.static(path.join(__dirname, '../public')));

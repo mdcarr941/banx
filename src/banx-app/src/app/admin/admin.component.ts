@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
 import { BanxUser, UserRole } from '../../../../lib/schema';
-import { ApiService } from '../api.service';
+import { UsersService } from '../users.service';
 
 declare const $: Function;
 
@@ -15,10 +15,10 @@ export class AdminComponent implements OnInit {
   users$: BehaviorSubject<BanxUser[]> = new BehaviorSubject<BanxUser[]>([]);
   selectedUser: BanxUser;
 
-  constructor(private api: ApiService) { }
+  constructor(private users: UsersService) { }
 
   ngOnInit() {
-    this.api.listUsers().subscribe(this.users$);
+    this.users.list().subscribe(this.users$);
   }
 
   @ViewChild('userGlidInput') userGlidInput;
@@ -26,7 +26,7 @@ export class AdminComponent implements OnInit {
   addUser(): void {
     const glid: string = this.userGlidInput.nativeElement.value;
     if (!glid || glid.length == 0) return;
-    this.api.insertUser(new BanxUser({glid: glid, roles: []}))
+    this.users.insert(new BanxUser({glid: glid, roles: []}))
     .subscribe(user => {
       this.users$.value.push(user);
       this.users$.next(this.users$.value);
@@ -38,7 +38,7 @@ export class AdminComponent implements OnInit {
     if (!confirm(`Are you sure you want to delete ${user.glid}? This action cannot be undone.`)) {
       return;
     }
-    this.api.deleteUser(user.glid)
+    this.users.delete(user.glid)
     .subscribe(deleteSucceeded => {
       if (!deleteSucceeded) {
         alert('Failed to delete the user.');
@@ -67,7 +67,7 @@ export class AdminComponent implements OnInit {
     const roles: UserRole[] = [];
     if (this.adminCheckbox.nativeElement.checked) roles.push(UserRole.Admin);
     if (this.authorCheckbox.nativeElement.checked) roles.push(UserRole.Author);
-    this.api.modifyUser(user.glid, roles)
+    this.users.modify(user.glid, roles)
     .subscribe(
     result => {
       if (result) {
