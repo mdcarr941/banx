@@ -2,11 +2,9 @@ import * as express from 'express';
 import * as nodemailer from 'nodemailer';
 
 import { ProblemRepo, getGlobalProblemRepo } from '../problemRepo';
-import { UserRepo, getGlobalUserRepo }from '../userRepo';
 import { makePairs, printError as commonPrintError } from '../common';
 import { GlobalProblemGenerator } from '../problemGenerator';
-import { Problem, IProblem, BanxUser, UserRoleInverse } from '../schema';
-import { getGlid } from '../app';
+import { Problem, IProblem } from '../schema';
 import config from '../config';
 
 const router = express.Router();
@@ -112,126 +110,6 @@ router.post('/submission', (req, res, next) => {
         printError(err, 'sendMail failed');
         next(err);
     });
-});
-
-async function respondIfAdmin(req: any, res: any, next: any): Promise<UserRepo> {
-    let userRepo: UserRepo;
-    try {
-        userRepo = await getGlobalUserRepo();
-    }
-    catch (err) {
-        next(err);
-        throw new Error('failed to create a user repository. ' + err.message);
-    }
-
-    const glid = getGlid(req);
-    let user;
-    try {
-        user = await userRepo.get(glid);
-    }
-    catch (err) {
-        res.sendStatus(403);
-        throw new Error(`couldn't find user with glid '${glid}' ` + err.message);
-    }
-
-    if (!user.isAdmin) {
-        res.sendStatus(403);
-        throw new Error(`user ${glid} is not an admin`);
-    }
-    return userRepo;
-}
-
-router.get('/users', (req, res, next) => {
-    respondIfAdmin(req, res, next)
-    .then(userRepo => {
-        userRepo.list().toArray()
-        .then(users => res.send(users))
-        .catch(err => {
-            printError(err, 'failed to list users');
-            next(err);
-        });
-    })
-    .catch(err => printError(err));
-});
-
-router.post('/users', (req, res, next) => {
-    const newUser = new BanxUser(req.body);
-    if (!newUser.glid || newUser.glid.length == 0) {
-        res.sendStatus(400);
-        return;
-    }
-    respondIfAdmin(req, res, next)
-    .then(userRepo => {
-        userRepo.insert(newUser)
-        .then(result => {
-            newUser._id = result.insertedId;
-            res.send(newUser);
-        })
-        .catch(err => {
-            printError(err, `failed to insert user with glid '${newUser.glid}'`);
-            next(err);
-        })
-    })
-    .catch(err => printError(err));
-});
-
-function getGlidParam(req: any, res: any): string {
-    const glid: string = req.params['glid'];
-    if (!glid || glid.length == 0) {
-        res.sendStatus(400);
-        return null;
-    }
-    return glid;
-}
-
-router.delete('/users/:glid', (req, res, next) => {
-    const glid = getGlidParam(req, res);
-    if (!glid) return;
-    respondIfAdmin(req, res, next)
-    .then(userRepo => {
-        return userRepo.get(glid)
-        .then(user => {
-            if (user.isAdmin()) {
-                res.sendStatus(403);
-                throw new Error('An attempt was made to delete an admin.');
-            }
-            return userRepo;
-        })
-    })
-    .then(userRepo => {
-        userRepo.del(glid)
-        .then(deleteSucceeded => res.send({deleteSucceeded: deleteSucceeded}))
-        .catch(err => {
-            printError(err, `failed to delete user with glid '${glid}'`);
-            next(err);
-        });
-    })
-    .catch(err => printError(err));
-});
-
-router.post('/users/:glid', (req, res, next) => {
-    const glid = getGlidParam(req, res);
-    if (!glid) return;
-    respondIfAdmin(req, res, next)
-    .then(userRepo => {
-        return userRepo.get(glid)
-        .then(user => {
-            if (user.isAdmin()) {
-                res.sendStatus(403);
-                throw new Error('An attempt was made to modify an Admin\'s roles.');
-            }
-            return userRepo;
-        })
-    })
-    .then(userRepo => {
-        userRepo.setRoles(glid, req.body.map((roleName: string) => UserRoleInverse[roleName]))
-        .then(result => res.send({result: result}))
-        .catch(err => {
-            printError(err, `Failed to set roles on user ${glid}`);
-            next(err);
-        })
-    })
-    .catch(err => printError(err));
 });
 
 export default router;

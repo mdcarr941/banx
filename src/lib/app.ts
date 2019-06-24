@@ -4,12 +4,12 @@ import * as path from 'path';
 import * as cookieParser from 'cookie-parser';
 import * as logger from 'morgan';
 
-//import usersRouter from './routes/users';
+import usersRouter from './routes/users';
 import indexRouter from './routes/index';
 import apiRouter from './routes/api';
 import { printError } from './common';
 import { BanxUser } from './schema';
-import { UnknownUserError, getGlobalUserRepo } from './userRepo';
+import { UnknownUserError, getGlobalUserRepo, UserRepo } from './userRepo';
 import config from './config';
 
 export const app = express();
@@ -27,32 +27,28 @@ export function getGlid(req: any): string {
     return req.headers.ufshib_glid;
 }
 
-export class BanxContext {
-  remoteUser: BanxUser = null;
-
-  constructor() {}
+export interface BanxContext {
+  remoteUser?: BanxUser;
+  userRepo?: UserRepo;
+  requestedUser?: BanxUser;
 }
 
 declare global {
   namespace Express {
     interface Request {
-      banxContext: BanxContext
+      banxContext: BanxContext;
     }
   }
 }
 
-// Initialize the context.
-app.use((req, res, next) => {
-  req.banxContext = new BanxContext();
-  next();
-})
-
 // Only allow users who are in the database to access the app.
 app.use(async (req, res, next) => {
+  // Initialize the BanxContext.
+  req.banxContext = {};
   const glid = getGlid(req);
   try {
-    const userRepo = await getGlobalUserRepo();
-    req.banxContext.remoteUser = await userRepo.get(glid);
+    req.banxContext.userRepo = await getGlobalUserRepo();
+    req.banxContext.remoteUser = await req.banxContext.userRepo.get(glid);
     next();
   }
   catch (err) {
@@ -69,7 +65,7 @@ app.use(async (req, res, next) => {
 app.use('/app', indexRouter);
 app.use(new RegExp(`^/${config.banxPrefix}$`), (req, res) => res.redirect('app'));
 
-//app.use('/users', usersRouter);
+app.use('/users', usersRouter);
 
 // The apiRouter handles all requests prefixed by /api.
 app.use('/api', apiRouter);

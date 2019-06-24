@@ -41,22 +41,22 @@ export class ApiService {
   }
 
   listUsers(): Observable<BanxUser[]> {
-    return this.http.get<IBanxUser[]>(this.getUrl('/users'))
+    return this.http.get<IBanxUser[]>('users')
       .pipe(map(response => response.map(iuser => new BanxUser(iuser))));
   }
 
   insertUser(user: BanxUser): Observable<BanxUser> {
-    return this.http.post<BanxUser>(this.getUrl('/users'), user)
+    return this.http.post<BanxUser>('users', user)
       .pipe(map(response => new BanxUser(response)));
   }
 
   deleteUser(glid: string): Observable<Boolean> {
-    return this.http.delete<any>(this.getUrl(`/users/${glid}`))
+    return this.http.delete<any>(`users/${glid}`)
       .pipe(map(response => response.deleteSucceeded));
   }
 
   modifyUser(glid: string, roles: UserRole[]): Observable<Boolean> {
-    return this.http.post<any>(this.getUrl(`/users/${glid}`), roles)
+    return this.http.post<any>(`users/${glid}`, roles)
       .pipe(map(response => response.result));
   }
 }
