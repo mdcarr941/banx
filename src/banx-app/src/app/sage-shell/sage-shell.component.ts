@@ -1,4 +1,5 @@
 import { Component, ViewChild } from '@angular/core';
+import { AngularMonacoEditorComponent } from 'angular-monaco-editor';
 import * as $ from 'jquery';
 
 import { SageShellService } from '../sage-shell.service';
@@ -12,11 +13,15 @@ import { SageVariables } from '../../../../lib/sageServer';
 export class SageShellComponent {
   constructor(private sageShellService: SageShellService) { }
 
-  @ViewChild('codeInput') codeInput;
-  @ViewChild('result') result;
+  readonly editorOptions = Object.freeze({
+    theme: 'vs',
+    language: 'python',
+  });
+
+  @ViewChild('resultTbody') resultTbody;
 
   private displayResult(response: SageVariables) {
-    const elem: HTMLTableSectionElement = this.result.nativeElement;
+    const elem: HTMLTableSectionElement = this.resultTbody.nativeElement;
     $(elem).empty();
     let row: HTMLTableRowElement;
     let data: HTMLTableDataCellElement;
@@ -32,14 +37,14 @@ export class SageShellComponent {
     }
   }
 
-  @ViewChild('resultDiv') resultDiv;
+  @ViewChild('codeInput') codeInput: AngularMonacoEditorComponent;
 
   private execute() {
-    const code = this.codeInput.nativeElement.value;
+    const code = this.codeInput.value;
     this.sageShellService.execute(code)
     .subscribe(
       response => this.displayResult(response),
-      err => this.resultDiv.nativeElement.innerText = 'Error: ' + err.message
+      err => console.error(err)
     );
   }
 }

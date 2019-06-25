@@ -10,3 +10,4 @@ src/public/popper.js
 src/public/mathjax
 build.sh
 npm-debug.log
+src/public/monaco

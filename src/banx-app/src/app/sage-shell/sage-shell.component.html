@@ -1,21 +1,33 @@
 <div class="row">
-  <div class="col-2">
-    <button (click)="execute()">Execute</button>
-  </div>
+  <h3>Sage Shell</h3>
+  <p>
+    Enter sage code into the editor below then click Execute. The varibles
+    which are in scope at the end of the script will be displayed on the right.
+    These are the varibles which can be referenced in your latex code.
+  </p>
 </div>
 
 <div class="row">
+  <div class="col-2">
+    <button class="btn btn-primary" (click)="execute()">Execute</button>
+  </div>
+</div>
+
+<div class="row" style="height:60vh;">
   <div class="col">
-    <textarea #codeInput></textarea>
+    <angular-monaco-editor class="col customMonacoEditor" [options]="editorOptions" #codeInput>
+    </angular-monaco-editor>
   </div>
 
-  <div class="col" #resultDiv>
-    <table>
+  <div class="col">
+    <table class="table">
       <thead>
-        <th>Name</th>
-        <th>Value</th>
+        <tr>
+          <th>Name</th>
+          <th>Value</th>
+        </tr>
       </thead>
-      <tbody #result>
+      <tbody #resultTbody>
       </tbody>
     </table>
   </div>

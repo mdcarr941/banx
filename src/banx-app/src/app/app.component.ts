@@ -2,6 +2,8 @@ import { Component } from '@angular/core';
 
 import { BanxUser, IBanxUser } from '../../../lib/schema';
 
+export const enterKeyCode = 13; // The key code of the enter key.
+
 declare const remoteUser: IBanxUser;
 
 @Component({

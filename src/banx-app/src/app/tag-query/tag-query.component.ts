@@ -4,8 +4,7 @@ import { BehaviorSubject } from 'rxjs';
 import { Problem } from '../../../../lib/schema';
 import { ProblemsService } from '../problems.service';
 import { QueryComponent } from '../query/query.component';
-
-const enterKeyCode = 13; // The key code of the enter key.
+import { enterKeyCode } from '../app.component';
 
 @Component({
   selector: 'app-tag-query',
