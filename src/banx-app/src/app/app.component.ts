@@ -1,13 +1,14 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 
-declare const isAdmin: Boolean;
+import { BanxUser, IBanxUser } from '../../../lib/schema';
+
+declare const remoteUser: IBanxUser;
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent implements OnInit {
-  private isAdmin: Boolean = isAdmin;
-  ngOnInit() {}
+export class AppComponent {
+  private remoteUser = new BanxUser(remoteUser);
 }

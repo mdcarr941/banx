@@ -1,9 +1,8 @@
 import * as express from 'express';
 
-import { UserRepo, getGlobalUserRepo }from '../userRepo';
 import { BanxUser, UserRoleInverse } from '../schema';
-import { getGlid } from '../app';
 import { printError as commonPrintError } from '../common';
+import { onlyAllowAdmin } from '../middleware';
 
 function printError(err: Error, message?: string) {
     if (!message) message = '';
@@ -14,10 +13,7 @@ function printError(err: Error, message?: string) {
 const router = express.Router();
 
 // Only admin users are allowed to access this router.
-router.use(async (req, res, next) => {
-    if (req.banxContext.remoteUser.isAdmin()) next();
-    else res.sendStatus(403);
-});
+router.use(onlyAllowAdmin);
 
 router.get('/', (req, res, next) => {
     req.banxContext.userRepo.list().toArray()

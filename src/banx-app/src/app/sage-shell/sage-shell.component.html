@@ -1,0 +1,22 @@
+<div class="row">
+  <div class="col-2">
+    <button (click)="execute()">Execute</button>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col">
+    <textarea #codeInput></textarea>
+  </div>
+
+  <div class="col" #resultDiv>
+    <table>
+      <thead>
+        <th>Name</th>
+        <th>Value</th>
+      </thead>
+      <tbody #result>
+      </tbody>
+    </table>
+  </div>
+</div>

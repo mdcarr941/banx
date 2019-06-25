@@ -4,19 +4,16 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { IBanxUser, BanxUser, UserRole } from '../../../lib/schema';
-import { urlJoin } from '../../../lib/common';
+import { BaseService } from './base.service';
 
 @Injectable({
     providedIn: 'root'
 })
-export class UsersService {
-    static readonly endpoint = 'users';
+export class UsersService extends BaseService {
+    protected readonly endpoint = 'users';
 
-    constructor(private http: HttpClient) { }
-
-    private getUrl(end?: string) {
-        if (!end) end = '';
-        return urlJoin(UsersService.endpoint, end);
+    constructor(private http: HttpClient) {
+      super();
     }
 
     list(): Observable<BanxUser[]> {

@@ -37,8 +37,7 @@ router.get('*', async (req, res, next) => {
   res.render('index', {
     title: 'Banx',
     problemIndexStr: JSON.stringify(problemIndex),
-    userGlid: req.banxContext.remoteUser.glid,
-    isAdmin: req.banxContext.remoteUser.isAdmin(),
+    remoteUser: JSON.stringify(req.banxContext.remoteUser),
     baseHref: urlJoin('/', config.banxPrefix, 'app'),
   });
 });

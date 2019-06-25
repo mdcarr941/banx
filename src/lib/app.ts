@@ -6,12 +6,12 @@ import * as logger from 'morgan';
 
 import usersRouter from './routes/users';
 import indexRouter from './routes/index';
+import sageShellRouter from './routes/sageShell';
 import problemsRouter from './routes/problems';
 import { printError } from './common';
-import { BanxUser } from './schema';
-import { UnknownUserError, getGlobalUserRepo, UserRepo } from './userRepo';
+import { UnknownUserError, getGlobalUserRepo } from './userRepo';
 import config from './config';
-import { ProblemRepo } from 'problemRepo';
+import { getGlid } from './middleware';
 
 export const app = express();
 
@@ -23,25 +23,6 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-
-export interface BanxContext {
-  remoteUser?: BanxUser;
-  userRepo?: UserRepo;
-  problemRepo?: ProblemRepo;
-  requestedUser?: BanxUser;
-}
-
-declare global {
-  namespace Express {
-    interface Request {
-      banxContext: BanxContext;
-    }
-  }
-}
-
-export function getGlid(req: any): string {
-    return req.headers.ufshib_glid;
-}
 
 // Only allow users who are in the database to access the app.
 app.use(async (req, res, next) => {
@@ -69,8 +50,10 @@ app.use(new RegExp(`^/?${config.banxPrefix}$`), (req, res) => res.redirect('app'
 
 app.use('/users', usersRouter);
 
-// The problemsRouter handles all requests prefixed by /api.
+// The problemsRouter handles all requests prefixed by `/problems`.
 app.use('/problems', problemsRouter);
+
+app.use('/sageshell', sageShellRouter);
 
 // Static file setup.
 app.use('/public', express.static(path.join(__dirname, '../public')));

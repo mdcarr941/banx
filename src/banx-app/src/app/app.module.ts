@@ -12,13 +12,15 @@ import { ProblemComponent } from './problem/problem.component';
 import { TagQueryComponent } from './tag-query/tag-query.component';
 import { ProblemListComponent } from './problem-list/problem-list.component';
 import { QueryComponent } from './query/query.component';
+import { SageShellComponent } from './sage-shell/sage-shell.component';
 
 const routes: Routes = [
   { path: '', redirectTo: '/problemquery', pathMatch: 'full'},
   { path: 'problemquery', component: ProblemQueryComponent },
   { path: 'instances', component: InstanceListComponent },
   { path: 'admin', component: AdminComponent },
-  { path: 'tagquery', component: TagQueryComponent }
+  { path: 'tagquery', component: TagQueryComponent },
+  { path: 'sageshell', component: SageShellComponent }
 ];
 
 @NgModule({
@@ -31,7 +33,8 @@ const routes: Routes = [
     ProblemComponent,
     TagQueryComponent,
     ProblemListComponent,
-    QueryComponent
+    QueryComponent,
+    SageShellComponent
   ],
   imports: [
     RouterModule.forRoot(routes),

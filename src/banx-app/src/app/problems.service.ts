@@ -4,19 +4,16 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { IProblem, Problem } from '../../../lib/schema';
-import { urlJoin } from '../../../lib/common';
+import { BaseService } from './base.service';
 
 @Injectable({
   providedIn: 'root'
 })
-export class ProblemsService {
-  static readonly apiEndpoint: string = 'problems';
+export class ProblemsService extends BaseService {
+  protected readonly endpoint = 'problems';
 
-  constructor(private http: HttpClient) { }
-
-  private getUrl(end?: string) {
-    if (!end) end = '';
-    return urlJoin(ProblemsService.apiEndpoint, end);
+  constructor(private http: HttpClient) {
+    super();
   }
 
   // Query problems by providing a list of `<tag name>@<tag value>` strings.
