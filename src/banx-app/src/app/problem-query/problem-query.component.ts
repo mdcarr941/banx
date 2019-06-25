@@ -4,6 +4,7 @@ import { ProblemsService } from '../problems.service';
 import { InstanceService } from '../instance.service';
 import { ProblemIndex, KeyValPair, Problem } from '../../../../lib/schema';
 import { BehaviorSubject } from 'rxjs';
+import { QueryComponent } from '../query/query.component';
 
 // this is rendered into the index template
 declare const problemIndexInitial: ProblemIndex
@@ -120,8 +121,13 @@ export class ProblemQueryComponent implements OnInit {
     return selection;
   }
 
+  @ViewChild('queryComponent') queryComponent: QueryComponent;
+
   private getProblems() {
     this.problems.get(this.selectAllProblems())
-      .subscribe(problems => this.problems$.next(problems));
+      .subscribe(problems => {
+        this.problems$.next(problems);
+        this.queryComponent.problemsShown$.next(true);
+      });
   }
 }

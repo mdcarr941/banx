@@ -3,6 +3,7 @@ import { BehaviorSubject } from 'rxjs';
 
 import { Problem } from '../../../../lib/schema';
 import { ProblemsService } from '../problems.service';
+import { QueryComponent } from '../query/query.component';
 
 const enterKeyCode = 13; // The key code of the enter key.
 
@@ -18,10 +19,15 @@ export class TagQueryComponent {
 
   constructor(private problems: ProblemsService) { }
 
+  @ViewChild('queryComponent') queryComponent: QueryComponent;
+
   private searchTags() {
     const queryInput: string = this.tagsInput.nativeElement.value;
     this.problems.find(queryInput.split(TagQueryComponent.whiteSpaceRgx))
-      .subscribe(problems => this.problems$.next(problems));
+      .subscribe(problems => {
+        this.problems$.next(problems);
+        this.queryComponent.problemsShown$.next(true);
+      });
   }
 
   private onKeyUp(event: any) {

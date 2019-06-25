@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild, Output, Input, OnDestroy } from '@angular/core';
-import { Observable, Subscription } from 'rxjs';
+import { Observable, Subscription, BehaviorSubject } from 'rxjs';
 
 import { InstanceService } from '../instance.service';
 import { ProblemListComponent } from '../problem-list/problem-list.component';
@@ -14,7 +14,7 @@ export class QueryComponent implements OnInit, OnDestroy {
   @Input() title = "Query Component";
   @Input() problems$: Observable<Problem[]>;
   @ViewChild('problemList') problemList: ProblemListComponent;
-  @Output() problemsShown$ = new Observable<boolean>();
+  @Output() problemsShown$: BehaviorSubject<boolean>;
 
   private problemSub: Subscription;
 
