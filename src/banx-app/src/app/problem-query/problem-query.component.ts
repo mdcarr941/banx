@@ -5,6 +5,7 @@ import { InstanceService } from '../instance.service';
 import { ProblemIndex, KeyValPair, Problem } from '../../../../lib/schema';
 import { BehaviorSubject } from 'rxjs';
 import { QueryComponent } from '../query/query.component';
+import { NotificationService } from '../notification.service';
 
 // this is rendered into the index template
 declare const problemIndexInitial: ProblemIndex
@@ -38,7 +39,8 @@ export class ProblemQueryComponent implements OnInit {
 
   constructor(
     private problems: ProblemsService,
-    private instanceService: InstanceService
+    private instanceService: InstanceService,
+    private notificationService: NotificationService
   ) { }
 
   ngOnInit() {
@@ -124,10 +126,15 @@ export class ProblemQueryComponent implements OnInit {
   @ViewChild('queryComponent') queryComponent: QueryComponent;
 
   private getProblems() {
+    this.notificationService.showInfo('Getting problems.');
     this.problems.get(this.selectAllProblems())
       .subscribe(problems => {
+        this.notificationService.showSuccess('Finished gettings problems.');
         this.problems$.next(problems);
         this.queryComponent.problemsShown$.next(true);
+      }, err => {
+        this.notificationService.showError('Failed to get problems.');
+        console.error(err);
       });
   }
 }

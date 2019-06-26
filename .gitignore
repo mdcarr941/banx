@@ -11,3 +11,4 @@ src/public/mathjax
 build.sh
 npm-debug.log
 src/public/monaco
+src/public/open-iconic

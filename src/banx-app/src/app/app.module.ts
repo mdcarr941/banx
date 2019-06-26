@@ -1,4 +1,5 @@
 import { BrowserModule } from '@angular/platform-browser';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
@@ -15,6 +16,7 @@ import { TagQueryComponent } from './tag-query/tag-query.component';
 import { ProblemListComponent } from './problem-list/problem-list.component';
 import { QueryComponent } from './query/query.component';
 import { SageShellComponent } from './sage-shell/sage-shell.component';
+import { NotificationComponent } from './notification/notification.component';
 
 const routes: Routes = [
   { path: '', redirectTo: '/problemquery', pathMatch: 'full'},
@@ -36,11 +38,13 @@ const routes: Routes = [
     TagQueryComponent,
     ProblemListComponent,
     QueryComponent,
-    SageShellComponent
+    SageShellComponent,
+    NotificationComponent
   ],
   imports: [
     RouterModule.forRoot(routes),
     BrowserModule,
+    BrowserAnimationsModule,
     HttpClientModule,
     FormsModule,
     AngularMonacoEditorModule.forRoot()
