@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
 import * as $ from 'jquery';
 
-import { NotificationService, NotificationType } from '../notification.service';
+import { NotificationService, NotificationType, Notification } from '../notification.service';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -11,6 +11,7 @@ import { Subscription } from 'rxjs';
 })
 export class NotificationComponent implements OnInit, OnDestroy {
   private readonly NotificationTimeout = 3000;
+  private readonly prevNotifications: Notification[] = [];
 
   constructor(private notificationService: NotificationService) { }
 
@@ -23,23 +24,22 @@ export class NotificationComponent implements OnInit, OnDestroy {
     $('#' + icon).show();
   }
 
-  private showIconForType(type: NotificationType) {
-    switch(type) {
+  private getIdAndPrefixMessage(notification: Notification): {iconId: string, message: string} {
+    switch(notification.type) {
       case NotificationType.Error: {
-        this.showIcon('error-icon');
-        break;
+        return {iconId: 'error-icon', message: 'Error: ' + notification.message};
       }
       case NotificationType.Warning: {
-        this.showIcon('warning-icon');
-        break;
+        return {iconId: 'warning-icon', message: 'Warning: ' + notification.message};
       }
       case NotificationType.Success: {
-        this.showIcon('success-icon');
-        break;
+        return {iconId: 'success-icon', message: 'Success: ' + notification.message};
       }
       case NotificationType.Info: {
-        this.showIcon('info-icon');
-        break;
+        return {iconId: 'info-icon', message: notification.message};
+      }
+      case NotificationType.Loading: {
+        return {iconId: 'load-icon', message: 'Loading: ' + notification.message};
       }
     }
   }
@@ -56,10 +56,15 @@ export class NotificationComponent implements OnInit, OnDestroy {
   private currentTimeout: NodeJS.Timer = null;
 
   ngOnInit() {
+    $('.notification-icon').hide();
     this.sub = this.notificationService.notifications$.subscribe(notification => {
+      this.prevNotifications.push(notification);
+
+      const params = this.getIdAndPrefixMessage(notification);
+      this.showIcon(params.iconId);
+      this.showMessage(params.message);
+
       if (this.currentTimeout) clearTimeout(this.currentTimeout);
-      this.showIconForType(notification.type);
-      this.showMessage(notification.message);
       $(this.notifications.nativeElement).show();
       this.currentTimeout = setTimeout(
         () => $(this.notifications.nativeElement).hide(),

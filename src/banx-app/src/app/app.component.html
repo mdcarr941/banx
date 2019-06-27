@@ -1,10 +1,10 @@
 <div class="container-fluid">
+    <app-notification></app-notification>
     <ul class="nav nav-tabs">
         <li class="nav-item"><a class="nav-link" routerLink="/problemquery" routerLinkActive="active">Problem Query</a></li>
         <li class="nav-item"><a class="nav-link" routerLink="/tagquery" routerLinkActive="active">Tag Query</a></li>
         <li class="nav-item"><a *ngIf="remoteUser.isAuthor() || remoteUser.isAdmin()" class="nav-link" routerLink="/sageshell" routerLinkActive="active">Sage Shell</a></li>
         <li class="nav-item"><a *ngIf="remoteUser.isAdmin()" class="nav-link"  routerLink="/admin" routerLinkActive="active">Admin Dashboard</a></li>
     </ul>
-    <app-notification></app-notification>
     <router-outlet></router-outlet>
 </div>

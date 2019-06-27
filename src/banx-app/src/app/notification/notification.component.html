@@ -1,7 +1,14 @@
+<div>
+  <button class="btn btn-secondary">
+    <img src="public/open-iconic/svg/menu.svg" alt="menu">
+    Notifications
+  </button>
+</div>
 <div class="notification-area" #notifications>
-  <img class="notification-icon" src="public/open-iconic/svg/x.svg" alt="error" id="error-icon">
-  <img class="notification-icon" src="public/open-iconic/svg/warning.svg" alt="warning" id="warning-icon">
-  <img class="notification-icon" src="public/open-iconic/svg/check.svg" alt="success" id="success-icon">
-  <img class="notification-icon" src="public/open-iconic/svg/info.svg" alt="info" id="info-icon">
-  <span #messageSpan></span>
+  <img class="notification-icon notification-image" src="public/open-iconic/svg/x.svg" alt="error" id="error-icon">
+  <img class="notification-icon notification-image" src="public/open-iconic/svg/warning.svg" alt="warning" id="warning-icon">
+  <img class="notification-icon notification-image" src="public/open-iconic/svg/check.svg" alt="success" id="success-icon">
+  <img class="notification-icon notification-image" src="public/open-iconic/svg/info.svg" alt="info" id="info-icon">
+  <span class="spinner-border spinner-border-sm notification-icon" id="load-icon"></span>
+  <span style="margin-left:10px;" #messageSpan></span>
 </div>

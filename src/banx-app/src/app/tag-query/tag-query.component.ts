@@ -5,6 +5,7 @@ import { Problem } from '../../../../lib/schema';
 import { ProblemsService } from '../problems.service';
 import { QueryComponent } from '../query/query.component';
 import { enterKeyCode } from '../app.component';
+import { NotificationService } from '../notification.service';
 
 @Component({
   selector: 'app-tag-query',
@@ -16,16 +17,27 @@ export class TagQueryComponent {
   private problems$ = new BehaviorSubject<Problem[]>([]);
   static readonly whiteSpaceRgx = /[\s]+/;
 
-  constructor(private problems: ProblemsService) { }
+  constructor(
+    private problems: ProblemsService,
+    private notifcations: NotificationService
+  ) { }
 
   @ViewChild('queryComponent') queryComponent: QueryComponent;
 
   private searchTags() {
     const queryInput: string = this.tagsInput.nativeElement.value;
+    if (queryInput.length == 0) return;
+
+    this.notifcations.showLoading('Getting problems.');
     this.problems.find(queryInput.split(TagQueryComponent.whiteSpaceRgx))
       .subscribe(problems => {
+        this.notifcations.showSuccess('Finished getting problems.');
         this.problems$.next(problems);
         this.queryComponent.problemsShown$.next(true);
+      },
+      err => {
+        this.notifcations.showError('Failed to get problems.');
+        console.error(err);
       });
   }
 

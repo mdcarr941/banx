@@ -3,9 +3,7 @@
     Enter a space separated list of tags below then click Search to find
     all the problems with those tags.
   </p>
-  <div>
-    <input type="text" (keyup)="onKeyUp($event)" #tagsInput/>
-  </div>
+  <input class="col" type="text" (keyup)="onKeyUp($event)" #tagsInput/>
   <div>
     <button class="btn btn-primary" (click)="searchTags()">Search</button>
   </div>

@@ -5,7 +5,8 @@ export enum NotificationType {
   Error,
   Warning,
   Success,
-  Info
+  Info,
+  Loading
 }
 
 export interface Notification {
@@ -44,5 +45,9 @@ export class NotificationService {
 
   public showInfo(message: string): void {
     this.showNotification(NotificationType.Info, message);
+  }
+
+  public showLoading(message: string): void {
+    this.showNotification(NotificationType.Loading, message);
   }
 }

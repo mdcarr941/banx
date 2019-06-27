@@ -4,6 +4,7 @@ import * as $ from 'jquery';
 
 import { SageShellService } from '../sage-shell.service';
 import { SageVariables } from '../../../../lib/sageServer';
+import { NotificationService } from '../notification.service';
 
 @Component({
   selector: 'app-sage-shell',
@@ -11,7 +12,10 @@ import { SageVariables } from '../../../../lib/sageServer';
   styleUrls: ['./sage-shell.component.css']
 })
 export class SageShellComponent {
-  constructor(private sageShellService: SageShellService) { }
+  constructor(
+    private sageShellService: SageShellService,
+    private notifications: NotificationService
+  ) { }
 
   readonly editorOptions = Object.freeze({
     theme: 'vs',
@@ -41,10 +45,19 @@ export class SageShellComponent {
 
   private execute() {
     const code = this.codeInput.value;
+    if (0 == code.length) return;
+
+    this.notifications.showLoading('Executing your code.');
     this.sageShellService.execute(code)
     .subscribe(
-      response => this.displayResult(response),
-      err => console.error(err)
+      response => {
+        this.notifications.showSuccess('Code execution complete.');
+        this.displayResult(response)
+      },
+      err => {
+        this.notifications.showError('Failed to excute your code. Check the console for a stack trace.');
+        console.error(err)
+      }
     );
   }
 }

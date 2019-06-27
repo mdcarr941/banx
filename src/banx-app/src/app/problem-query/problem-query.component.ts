@@ -126,7 +126,7 @@ export class ProblemQueryComponent implements OnInit {
   @ViewChild('queryComponent') queryComponent: QueryComponent;
 
   private getProblems() {
-    this.notificationService.showInfo('Getting problems.');
+    this.notificationService.showLoading('Getting problems.');
     this.problems.get(this.selectAllProblems())
       .subscribe(problems => {
         this.notificationService.showSuccess('Finished gettings problems.');

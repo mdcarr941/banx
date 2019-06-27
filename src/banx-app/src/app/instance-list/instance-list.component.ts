@@ -3,6 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 
 import { ProblemsService } from '../problems.service';
 import { InstanceService } from '../instance.service';
+import { NotificationService } from '../notification.service';
 
 @Component({
   selector: 'app-instance-list',
@@ -11,7 +12,8 @@ import { InstanceService } from '../instance.service';
 export class InstanceListComponent {
   constructor(
     private api: ProblemsService,
-    private instanceService: InstanceService
+    private instanceService: InstanceService,
+    private notifications: NotificationService
   ) {}
 
   private clearSelection() {
@@ -23,6 +25,8 @@ export class InstanceListComponent {
       alert('Select at least one instance before submitting.');
       return;
     }
+
+    this.notifications.showLoading('Submitting your assignment.');
     this.api.submit(this.instanceService.instances$.value).subscribe(
       (response: any) => this.onSubmissionSuccess(response),
       (err: HttpErrorResponse) => this.onSubmissionFailure(err)
@@ -30,12 +34,12 @@ export class InstanceListComponent {
   }
 
   private onSubmissionSuccess(response: any) {
-    alert('Submission Successful');
+    this.notifications.showSuccess('Problems submitted.');
     this.clearSelection();
   }
 
   private onSubmissionFailure(err: HttpErrorResponse) {
+    this.notifications.showError('Submission failed.');
     console.error(err);
-    alert(`Submission Failed:\n${err.error}`);
   }
 }
