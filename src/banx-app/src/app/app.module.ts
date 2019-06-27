@@ -17,6 +17,8 @@ import { ProblemListComponent } from './problem-list/problem-list.component';
 import { QueryComponent } from './query/query.component';
 import { SageShellComponent } from './sage-shell/sage-shell.component';
 import { NotificationComponent } from './notification/notification.component';
+import { ModalComponent } from './modal/modal.component';
+import { NotificationViewComponent } from './notification-view/notification-view.component';
 
 const routes: Routes = [
   { path: '', redirectTo: '/problemquery', pathMatch: 'full'},
@@ -39,7 +41,9 @@ const routes: Routes = [
     ProblemListComponent,
     QueryComponent,
     SageShellComponent,
-    NotificationComponent
+    NotificationComponent,
+    ModalComponent,
+    NotificationViewComponent
   ],
   imports: [
     RouterModule.forRoot(routes),

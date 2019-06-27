@@ -1,14 +1,26 @@
 <div>
-  <button class="btn btn-secondary">
+  <button class="btn btn-secondary" (click)="showModal()">
     <img src="public/open-iconic/svg/menu.svg" alt="menu">
     Notifications
   </button>
 </div>
+
+<app-modal [title]="'Notifications'" #notificationsModal>
+  <ng-container body *ngIf="notifications$ | async as notifications">
+    <div *ngIf="notifications.length > 0; else noNotifications">
+        <app-notification-view *ngFor="let notification of notifications"
+                               [notification$]="makeObservable(notification)">
+        </app-notification-view>
+    </div>
+    <ng-template #noNotifications>
+      <span>No notifications.</span>
+    </ng-template>
+  </ng-container>
+  <ng-container footer>
+    <button class="btn btn-secondary" (click)="hideModal()">Close</button>
+  </ng-container>
+</app-modal>
+
 <div class="notification-area" #notifications>
-  <img class="notification-icon notification-image" src="public/open-iconic/svg/x.svg" alt="error" id="error-icon">
-  <img class="notification-icon notification-image" src="public/open-iconic/svg/warning.svg" alt="warning" id="warning-icon">
-  <img class="notification-icon notification-image" src="public/open-iconic/svg/check.svg" alt="success" id="success-icon">
-  <img class="notification-icon notification-image" src="public/open-iconic/svg/info.svg" alt="info" id="info-icon">
-  <span class="spinner-border spinner-border-sm notification-icon" id="load-icon"></span>
-  <span style="margin-left:10px;" #messageSpan></span>
+  <app-notification-view [notification$]="displayedNotification$"></app-notification-view>
 </div>

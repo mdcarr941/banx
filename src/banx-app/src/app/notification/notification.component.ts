@@ -1,8 +1,9 @@
-import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
+import { Component, OnInit, ViewChild, OnDestroy, EventEmitter } from '@angular/core';
 import * as $ from 'jquery';
 
-import { NotificationService, NotificationType, Notification } from '../notification.service';
-import { Subscription } from 'rxjs';
+import { NotificationService, Notification } from '../notification.service';
+import { Subscription, BehaviorSubject, Observable } from 'rxjs';
+import { ModalComponent } from '../modal/modal.component';
 
 @Component({
   selector: 'app-notification',
@@ -10,44 +11,26 @@ import { Subscription } from 'rxjs';
   styleUrls: ['./notification.component.css']
 })
 export class NotificationComponent implements OnInit, OnDestroy {
-  private readonly NotificationTimeout = 3000;
-  private readonly prevNotifications: Notification[] = [];
+  private static readonly maxNotifications = 64;
+  private static readonly purgeNum = NotificationComponent.maxNotifications / 4;
+  private static readonly NotificationTimeout = 3000;
+
+  private readonly notifications$ = new BehaviorSubject<Notification[]>([]);
 
   constructor(private notificationService: NotificationService) { }
 
-  private hideAllIcons(): void {
-    $('.notification-icon').hide();
+  private makeObservable<T>(arg: T): Observable<T> {
+    return new BehaviorSubject(arg);
   }
 
-  private showIcon(icon: string): void {
-    this.hideAllIcons();
-    $('#' + icon).show();
+  @ViewChild('notificationsModal') notificationsModal: ModalComponent;
+
+  private showModal(): void {
+    this.notificationsModal.show();
   }
 
-  private getIdAndPrefixMessage(notification: Notification): {iconId: string, message: string} {
-    switch(notification.type) {
-      case NotificationType.Error: {
-        return {iconId: 'error-icon', message: 'Error: ' + notification.message};
-      }
-      case NotificationType.Warning: {
-        return {iconId: 'warning-icon', message: 'Warning: ' + notification.message};
-      }
-      case NotificationType.Success: {
-        return {iconId: 'success-icon', message: 'Success: ' + notification.message};
-      }
-      case NotificationType.Info: {
-        return {iconId: 'info-icon', message: notification.message};
-      }
-      case NotificationType.Loading: {
-        return {iconId: 'load-icon', message: 'Loading: ' + notification.message};
-      }
-    }
-  }
-
-  @ViewChild('messageSpan') messageSpan;
-
-  private showMessage(message: string): void {
-    this.messageSpan.nativeElement.innerText = message;    
+  private hideModal(): void {
+    this.notificationsModal.hide();
   }
 
   @ViewChild('notifications') notifications;
@@ -55,20 +38,29 @@ export class NotificationComponent implements OnInit, OnDestroy {
   private sub: Subscription;
   private currentTimeout: NodeJS.Timer = null;
 
+  private saveNotification(notification: Notification): void {
+    const notifications = this.notifications$.value;
+    notifications.push(notification);
+
+    if (notifications.length > NotificationComponent.maxNotifications) {
+      notifications.splice(0, NotificationComponent.purgeNum);
+    }
+    this.notifications$.next(notifications);
+  }
+
+  private displayedNotification$ = new EventEmitter<Notification>();
+
   ngOnInit() {
     $('.notification-icon').hide();
     this.sub = this.notificationService.notifications$.subscribe(notification => {
-      this.prevNotifications.push(notification);
-
-      const params = this.getIdAndPrefixMessage(notification);
-      this.showIcon(params.iconId);
-      this.showMessage(params.message);
+      this.saveNotification(notification);
+      this.displayedNotification$.next(notification);
 
       if (this.currentTimeout) clearTimeout(this.currentTimeout);
       $(this.notifications.nativeElement).show();
       this.currentTimeout = setTimeout(
         () => $(this.notifications.nativeElement).hide(),
-        this.NotificationTimeout
+        NotificationComponent.NotificationTimeout
       );
     });
   }
