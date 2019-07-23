@@ -9,5 +9,10 @@ import { Problem } from '../../../../lib/schema';
 export class ProblemComponent {
   @Input() problem: Problem;
 
+  private editorOptions = Object.freeze({
+    language: 'latex',
+    readonly: true
+  })
+
   constructor() { }
 }

@@ -1,6 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import * as $ from 'jquery';
 
 import { BanxUser, UserRole } from '../../../../lib/schema';
 import { UsersService } from '../users.service';

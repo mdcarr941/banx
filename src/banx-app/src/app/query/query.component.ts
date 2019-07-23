@@ -1,9 +1,11 @@
 import { Component, OnInit, ViewChild, Output, Input, OnDestroy } from '@angular/core';
-import { Observable, Subscription, BehaviorSubject } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 
 import { InstanceService } from '../instance.service';
 import { ProblemListComponent } from '../problem-list/problem-list.component';
 import { Problem } from '../../../../lib/schema';
+
+declare let MathJax: any;
 
 @Component({
   selector: 'app-query',
@@ -13,8 +15,8 @@ import { Problem } from '../../../../lib/schema';
 export class QueryComponent implements OnInit, OnDestroy {
   @Input() title = "Query Component";
   @Input() problems$: Observable<Problem[]>;
+  @Output() problemsShown$: Observable<boolean>;
   @ViewChild('problemList') problemList: ProblemListComponent;
-  @Output() problemsShown$: BehaviorSubject<boolean>;
 
   private problemSub: Subscription;
 
@@ -49,7 +51,12 @@ export class QueryComponent implements OnInit, OnDestroy {
   private onProblemsShown(problemsShown: boolean) {
     if (!problemsShown) this.hideResultCounter();
     // Re-typeset mathematics on the page.
-    //MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
-    // Scroll to the top of the page.
+    try {
+      MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+    }
+    catch {
+      // When MathJax is not loaded, just return.
+      return;
+    }
   }
 }

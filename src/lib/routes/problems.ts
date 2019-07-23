@@ -74,11 +74,26 @@ const problemIdRgx = '[0-9a-fA-F]{24}';
 
 // A GET to a problem id returns that problem.
 router.get(`/:problemId(${problemIdRgx})`, async (req, res, next) => {
-    console.log('the wrong function was called');
     req.banxContext.problemRepo.getProblem(req.params['problemId'])
     .then(problem => res.send(problem))
     .catch(err => {
         printError(err, 'getProblem rejected its promise');
+        next(err);
+    });
+});
+
+// A POST to a problem id modifies that problem.
+router.post(`/:problemId(${problemIdRgx})`, async (req, res, next) => {
+    if (!req.banxContext.remoteUser.isAuthor()) {
+        res.sendStatus(403);
+        return;
+    }
+
+    const problem = new Problem(req.body);
+    req.banxContext.problemRepo.upsertProblem(problem)
+    .then(newProblem => res.send(newProblem))
+    .catch(err => {
+        printError(err, 'an error occured while called upsertProblem');
         next(err);
     });
 });
