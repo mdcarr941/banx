@@ -1,5 +1,5 @@
-import { Component, Output, Input } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { Component, Output, Input, EventEmitter } from '@angular/core';
+import { Observable } from 'rxjs';
 
 import { Problem } from '../../../../lib/schema';
 import { ProblemsService } from '../problems.service';
@@ -12,8 +12,11 @@ import { NotificationService } from '../notification.service';
   styleUrls: ['./problem-list.component.css']
 })
 export class ProblemListComponent {
-  @Input() problems$: BehaviorSubject<Problem[]>;
-  @Output() problemsShown$ = new BehaviorSubject<boolean>(true);
+  @Input() problems$: EventEmitter<Problem[]>;
+
+  private _problemsShown$ = new EventEmitter<boolean>();
+
+  @Output() problemsShown$: Observable<boolean> = this._problemsShown$;
 
   constructor(
     private api: ProblemsService,
@@ -27,7 +30,7 @@ export class ProblemListComponent {
       .subscribe(instances => {
         this.notifications.showSuccess('Finished getting instances.');
         this.problems$.next(instances);
-        this.problemsShown$.next(false);
+        this._problemsShown$.next(false);
         document.body.scrollTop = document.documentElement.scrollTop = 0;
       }, err => {
         this.notifications.showError('Failed to get instances.');

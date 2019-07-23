@@ -16,6 +16,15 @@ export class ProblemRepo {
         .then(p => p ? new Problem(p) : null);
     }
 
+    public upsertProblem(problem: Problem): Promise<Problem> {
+        return this.collection
+        .findOneAndReplace({_id: problem._id}, problem, {upsert: true})
+        .then(result => {
+            if (1 == result.ok) return new Problem(result.value);
+            else throw new Error('upsertProblem failed');
+        });
+    }
+
     public getProblems(ids: string[]): Cursor<Problem> {
         const oids = ids.map(id => ObjectID.createFromHexString(id));
         return this.collection.find({_id: {$in: oids}})

@@ -1,8 +1,22 @@
 <ng-container>
-  <div>
-    <span class="font-weight-bold pad-bottom">Tags: </span>
+  <div class="row">
+    <span class="font-weight-bold">ID: </span>
+    <span *ngIf="problem._id; else noId">{{problem._id}}</span>
+    <ng-template #noId>(not assigned)</ng-template>
+  </div>
+  <div class="row">
+    <span class="font-weight-bold">Tags: </span>
     <span>{{problem.formatTags()}}</span>
   </div>
-  <pre>{{problem.content}}</pre>
-  <ng-content></ng-content>
+  <div>$\int_0^\infty x\, dx$</div>
+  <angular-monaco-editor class="col customMonacoEditor" [options]="editorOptions" #codeInput>
+  </angular-monaco-editor>
+  <div class="row justify-content-between">
+    <div class="col-4">
+      <ng-content></ng-content>
+    </div>
+    <div class="col-2">
+      <button class="btn btn-primary">Edit</button>
+    </div>
+  </div>
 </ng-container>
