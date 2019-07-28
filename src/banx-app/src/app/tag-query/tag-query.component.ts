@@ -33,7 +33,6 @@ export class TagQueryComponent {
       .subscribe(problems => {
         this.notifcations.showSuccess('Finished getting problems.');
         this.problems$.next(problems);
-        this.queryComponent.problemsShown$.next(true);
       },
       err => {
         this.notifcations.showError('Failed to get problems.');

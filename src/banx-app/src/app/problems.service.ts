@@ -38,7 +38,7 @@ export class ProblemsService extends BaseService {
   }
 
   upsert(problem: Problem): Observable<Problem> {
-    return this.http.post<IProblem>(this.getUrl(problem._id.toHexString()), problem)
+    return this.http.post<IProblem>(this.getUrl(problem.idStr), problem)
       .pipe(map(iproblem => new Problem(iproblem)));
   }
 }

@@ -1,3 +1,5 @@
+import { ObjectID } from 'mongodb';
+
 import { Problem } from './schema';
 import { GlobalSageServer, SageVariables } from './sageServer';
 import { ProblemRepo, getGlobalProblemRepo } from './problemRepo';
@@ -19,7 +21,7 @@ export class ProblemGenerator {
 
     private async getProblem(problemId: string): Promise<Problem> {
         const repo = await this.getRepo();
-        const problem = await repo.getProblem(problemId);
+        const problem = await repo.getProblem(ObjectID.createFromHexString(problemId));
         return problem;
     }
 

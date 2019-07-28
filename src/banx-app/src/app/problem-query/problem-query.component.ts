@@ -131,7 +131,6 @@ export class ProblemQueryComponent implements OnInit {
       .subscribe(problems => {
         this.notificationService.showSuccess('Finished gettings problems.');
         this.problems$.next(problems);
-        this.queryComponent.problemsShown$.next(true);
       }, err => {
         this.notificationService.showError('Failed to get problems.');
         console.error(err);

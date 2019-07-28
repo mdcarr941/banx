@@ -1,6 +1,6 @@
 import { Collection, Cursor, InsertOneWriteOpResult,
          InsertWriteOpResult,
-         FilterQuery, AggregationCursor, ObjectID } from 'mongodb';
+         FilterQuery, AggregationCursor, ObjectID, ObjectId } from 'mongodb';
 
 import client from './dbClient';
 import { Problem, IProblem, KeyValPair, ProblemIndex } from './schema';
@@ -11,23 +11,22 @@ export class ProblemRepo {
         private indexCollection: Collection<ProblemIndex>
     ) { }
 
-    public getProblem(id: string): Promise<Problem> {
-        return this.collection.findOne({_id: ObjectID.createFromHexString(id)})
+    public getProblem(id: ObjectID): Promise<Problem> {
+        return this.collection.findOne({_id: id})
         .then(p => p ? new Problem(p) : null);
     }
 
     public upsertProblem(problem: Problem): Promise<Problem> {
         return this.collection
-        .findOneAndReplace({_id: problem._id}, problem, {upsert: true})
+        .findOneAndReplace({_id: problem._id}, problem, {upsert: true, returnOriginal: false})
         .then(result => {
             if (1 == result.ok) return new Problem(result.value);
             else throw new Error('upsertProblem failed');
         });
     }
 
-    public getProblems(ids: string[]): Cursor<Problem> {
-        const oids = ids.map(id => ObjectID.createFromHexString(id));
-        return this.collection.find({_id: {$in: oids}})
+    public getProblems(ids: ObjectID[]): Cursor<Problem> {
+        return this.collection.find({_id: {$in: ids}})
         .map(p => new Problem(p));
     }
 

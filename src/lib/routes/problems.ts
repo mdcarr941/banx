@@ -1,5 +1,6 @@
 import * as express from 'express';
 import * as nodemailer from 'nodemailer';
+import { ObjectID } from 'mongodb';
 
 import { getGlobalProblemRepo } from '../problemRepo';
 import { makePairs, printError as commonPrintError } from '../common';
@@ -47,7 +48,6 @@ router.use(async (req, res, next) => {
 // A GET to the root of this router will use the values of the
 // `tags` query parameter to select problems from the database.
 router.get('/', async (req, res, next) => {
-    console.log('the right function was called');
     let tags = req.query.tags;
     if (!(tags instanceof Array)) tags = [tags];
     const query = makePairs(tags);
@@ -62,7 +62,9 @@ router.get('/', async (req, res, next) => {
 // A POST to the root of this router uses the array of problem
 // ids in the request body to select a list of problems.
 router.post('/', async (req, res, next) => {
-    req.banxContext.problemRepo.getProblems(req.body).toArray()
+    const ids: string[] = req.body;
+    const oids = ids.map(id => ObjectID.createFromHexString(id));
+    req.banxContext.problemRepo.getProblems(oids).toArray()
     .then(problems => res.send(problems))
     .catch(err => {
         printError(err, 'getProblems.toArray() threw an error');
@@ -84,12 +86,15 @@ router.get(`/:problemId(${problemIdRgx})`, async (req, res, next) => {
 
 // A POST to a problem id modifies that problem.
 router.post(`/:problemId(${problemIdRgx})`, async (req, res, next) => {
-    if (!req.banxContext.remoteUser.isAuthor()) {
+    if (!req.banxContext.remoteUser.isAuthor() && !req.banxContext.remoteUser.isAdmin()) {
         res.sendStatus(403);
         return;
     }
 
     const problem = new Problem(req.body);
+    // The client doesn't know anything about Mongo ObjectIDs, so we
+    // have to create one from a given hex string.
+    problem._id = ObjectID.createFromHexString(problem.idStr);
     req.banxContext.problemRepo.upsertProblem(problem)
     .then(newProblem => res.send(newProblem))
     .catch(err => {

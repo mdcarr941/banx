@@ -9,6 +9,7 @@ export interface KeyValPair {
 
 export interface IMongoObject {
     _id?: ObjectID;
+    idStr?: string;
 }
 
 export interface IProblem extends IMongoObject {
@@ -17,14 +18,17 @@ export interface IProblem extends IMongoObject {
 }
 
 export class Problem implements IProblem {
-    public _id: ObjectID;
+    public _id: ObjectID = null; // This should always be set on the server.
+    public idStr: string = null; // This should always be set on the client.
     public tags: KeyValPair[] = [];
     public content: string;
 
     constructor(obj?: IProblem) {
         if (!obj) return;
         this._id = obj._id;
-        this.tags = obj.tags;
+        this.idStr = obj.idStr;
+        this.tags = [];
+        this.tags.push(...obj.tags);
         this.content = obj.content;
     }
 
@@ -52,6 +56,19 @@ export class Problem implements IProblem {
 %%\\taged{${this.formatTags()}}{
 ${this.content}
 %}`;
+    }
+
+    public copy(): Problem {
+        return new Problem(this);
+    }
+
+    public toJSON(): object {
+        const idStr = this._id ? this._id.toHexString() : this.idStr;
+        return {
+            idStr: idStr,
+            tags: this.tags,
+            content: this.content
+        };
     }
 }
 
@@ -90,13 +107,15 @@ export interface IBanxUser extends IMongoObject {
 }
 
 export class BanxUser {
-    public _id?: ObjectID;
+    public _id: ObjectID = null;
+    public idStr: string = null;
     public glid: string;
     public roles: UserRole[];
 
     constructor(obj?: IBanxUser) {
         if (!obj) return;
-        this._id = obj._id || null;
+        if (typeof(obj._id) === 'string') this.idStr = obj._id;
+        else this._id = obj._id;
         this.glid = obj.glid || "";
         this.roles = obj.roles || [];
     }
