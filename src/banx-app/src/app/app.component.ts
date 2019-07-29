@@ -1,10 +1,9 @@
 import { Component } from '@angular/core';
 
-import { BanxUser, IBanxUser } from '../../../lib/schema';
+import { RemoteUserService } from './remote-user.service';
+import { BanxUser } from '../../../lib/schema';
 
 export const enterKeyCode = 13; // The key code of the enter key.
-
-declare const remoteUser: IBanxUser;
 
 @Component({
   selector: 'app-root',
@@ -12,5 +11,9 @@ declare const remoteUser: IBanxUser;
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  private remoteUser = new BanxUser(remoteUser);
+  private remoteUser: BanxUser;
+
+  constructor(private remoteUserService: RemoteUserService) {
+    this.remoteUser = remoteUserService.remoteUser;
+  }
 }

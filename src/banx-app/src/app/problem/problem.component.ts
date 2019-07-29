@@ -4,7 +4,9 @@ import { BehaviorSubject } from 'rxjs';
 
 import { ProblemsService } from '../problems.service';
 import { NotificationService } from '../notification.service';
+import { RemoteUserService } from '../remote-user.service';
 import { Problem } from '../../../../lib/schema';
+import { parseTagString } from '../../../../lib/common';
 
 @Component({
   selector: 'app-problem',
@@ -24,7 +26,8 @@ export class ProblemComponent {
 
   constructor(
     private problemsService: ProblemsService,
-    private notifications: NotificationService
+    private notifications: NotificationService,
+    private remoteUserService: RemoteUserService
   ) { }
 
   @ViewChild('codeInput') private codeInput: AngularMonacoEditorComponent;
@@ -38,17 +41,20 @@ export class ProblemComponent {
     this.editMode$.next(true);
   }
 
+  @ViewChild('newTagsInput') private newTagsInput;
+
   private saveChanges() {
+    this.problem.tags = parseTagString(this.newTagsInput.nativeElement.value);
     this.notifications.showLoading('Saving problem...');
     this.problemsService.upsert(this.problem)
       .subscribe(problem => {
         this.problem = problem;
         this.notifications.showSuccess('Problem saved successfully.');
+        this.editMode$.next(false);
       }, err => {
         console.error(err);
         this.notifications.showError('An error occured while trying to save a problem.');
       });
-    this.editMode$.next(false);
   }
 
   private cancelChanges() {

@@ -86,14 +86,14 @@ router.get(`/:problemId(${problemIdRgx})`, async (req, res, next) => {
 
 // A POST to a problem id modifies that problem.
 router.post(`/:problemId(${problemIdRgx})`, async (req, res, next) => {
-    if (!req.banxContext.remoteUser.isAuthor() && !req.banxContext.remoteUser.isAdmin()) {
+    if (!req.banxContext.remoteUser.canEdit()) {
         res.sendStatus(403);
         return;
     }
 
     const problem = new Problem(req.body);
     // The client doesn't know anything about Mongo ObjectIDs, so we
-    // have to create one from a given hex string.
+    // have to create one from its hex representation.
     problem._id = ObjectID.createFromHexString(problem.idStr);
     req.banxContext.problemRepo.upsertProblem(problem)
     .then(newProblem => res.send(newProblem))

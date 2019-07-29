@@ -23,6 +23,12 @@ export function makePairs(tags: string[]): KeyValPair[] {
     });
 }
 
+const sepRgx = /,[ \t]*|[ \t]+/g;
+
+export function parseTagString(tagString: string): KeyValPair[] {
+    return makePairs(tagString.split(sepRgx));
+}
+
 export function joinPairs(pairs: KeyValPair[]): string[] {
     return pairs.map(p => p.key + '@' + p.value);
 }

@@ -1,12 +1,13 @@
+<div class="row">
+  <span class="col-1 font-weight-bold">ID: </span>
+  <span class="col-11" *ngIf="problem.idStr; else noId">{{problem.idStr}}</span>
+  <ng-template #noId>(not assigned)</ng-template>
+</div>
+
 <ng-container *ngIf="!(editMode$ | async); else editorContainer">
   <div class="row">
-    <span class="font-weight-bold">ID: </span>
-    <span *ngIf="problem.idStr; else noId">{{problem.idStr}}</span>
-    <ng-template #noId>(not assigned)</ng-template>
-  </div>
-  <div class="row">
-    <span class="font-weight-bold">Tags: </span>
-    <span>{{problem.formatTags()}}</span>
+    <span class="col-1 font-weight-bold">Tags: </span>
+    <span class="col-11">{{problem.formatTags()}}</span>
   </div>
   <div class="row">
     {{problem.content}}
@@ -15,13 +16,17 @@
     <div class="col-4">
       <ng-content></ng-content>
     </div>
-    <div class="col-2">
+    <div class="col-2" *ngIf="remoteUserService.remoteUser.canEdit()">
       <button class="btn btn-primary" (click)="showEditor()">Edit</button>
     </div>
   </div>
 </ng-container>
 
 <ng-template #editorContainer>
+    <div class="row">
+      <span class="col-1 font-weight-bold">Tags: </span>
+      <input class="col-11" value="{{problem.formatTags()}}" #newTagsInput />
+    </div>
     <div class="row">
       <angular-monaco-editor class="col customMonacoEditor" [options]="editorOptions"
                               [(ngModel)]="problem.content" (onInit)="onEditorInit($event)" #codeInput>

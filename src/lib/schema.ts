@@ -48,7 +48,7 @@ export class Problem implements IProblem {
     }
 
     public formatTags(): string {
-        return this.tags.map(kv => `${kv.key}@${kv.value}`).join(', ');
+        return this.tags.map(kv => `${kv.key}@${kv.value}`).join(' ');
     }
 
     public toString(): string {
@@ -126,6 +126,10 @@ export class BanxUser {
 
     public isAuthor(): boolean {
         return this.roles.indexOf(UserRole.Author) >= 0;
+    }
+
+    public canEdit(): boolean {
+        return this.isAdmin() || this.isAuthor();
     }
 
     public toString(): string {
