@@ -1,4 +1,4 @@
-import { Component, Input, ViewChild, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input, ViewChild, OnInit, OnDestroy, DoCheck } from '@angular/core';
 import { AngularMonacoEditorComponent } from 'angular-monaco-editor';
 import { BehaviorSubject, Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -16,13 +16,13 @@ declare const MathJax: any;
   templateUrl: './problem.component.html',
   styleUrls: ['./problem.component.css']
 })
-export class ProblemComponent implements OnInit, OnDestroy {
+export class ProblemComponent implements OnInit {
   @Input() problem: Problem;
 
   private editMode$ = new BehaviorSubject(false);
 
   private editorOptions = Object.freeze({
-    language: 'latex',
+    language: 'LaTeX',
     minimap: { enabled: false }
   });
 
@@ -33,8 +33,8 @@ export class ProblemComponent implements OnInit, OnDestroy {
   ) { }
 
   private renderMath() {
-    console.log('renderMath called');
-    MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+    // BADBAD: Using setTimeout is an ugly hack.
+    setTimeout(() => MathJax.Hub.Queue(["Typeset", MathJax.Hub]), 200);
   }
 
   private problem$: BehaviorSubject<Problem>;
@@ -44,6 +44,10 @@ export class ProblemComponent implements OnInit, OnDestroy {
     this.renderMath();
   }
 
+  ngOnDestroy() {
+    this.problem$.complete();
+  }
+
   private static readonly sageCodeRgx = /\\begin{sagesilent}[\s\S]*\\end{sagesilent}/;
 
   private isStatic(problem: Problem): boolean {
@@ -51,21 +55,11 @@ export class ProblemComponent implements OnInit, OnDestroy {
   }
 
   private static readonly problemContentRgx = /\\begin{problem}([\s\S]*)\\end{problem}/m;
-  private problemSub: Subscription = null;
 
   private cleanContent(content: string): string {
-    if (!this.problemSub) {
-      console.log('subscribing');
-      this.problemSub = this.problem$.subscribe(() => this.renderMath());
-    }
-
     const match = ProblemComponent.problemContentRgx.exec(content);
     if (!match) return content;
     return match[1];
-  }
-
-  ngOnDestroy() {
-    if (this.problemSub) this.problemSub.unsubscribe();
   }
 
   @ViewChild('codeInput') private codeInput: AngularMonacoEditorComponent;
@@ -74,7 +68,12 @@ export class ProblemComponent implements OnInit, OnDestroy {
     /* Place any code that needs to run after the monaco editor is loaded here. */
   }
 
+  private problemSub: Subscription;
+
   private showEditor() {
+    if (!this.problemSub) {
+      this.problemSub = this.problem$.subscribe(() => this.renderMath());
+    }
     this.editMode$.next(true);
   }
 
@@ -84,19 +83,15 @@ export class ProblemComponent implements OnInit, OnDestroy {
     const problem = this.problem$.value;
     problem.tags = parseTagString(this.newTagsInput.nativeElement.value);
 
-    const sub = this.problem$.subscribe(() => this.renderMath());
-
     this.notifications.showLoading('Saving problem...');
     this.problemsService.upsert(problem)
       .subscribe(problem => {
         this.notifications.showSuccess('Problem saved successfully.');
         this.problem$.next(problem);
         this.editMode$.next(false);
-        sub.unsubscribe();
       }, err => {
         this.notifications.showError('An error occured while trying to save a problem.');
         console.error(err);
-        sub.unsubscribe();
       });
   }
 

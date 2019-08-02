@@ -1,19 +1,6 @@
-<ng-container *ngIf="problem$ | async as problem">
-  <div class="row">
-    <span class="col-1 font-weight-bold">ID: </span>
-    <span class="col-11" *ngIf="problem.idStr; else noId">{{problem.idStr}}</span>
-    <ng-template #noId>(not assigned)</ng-template>
-  </div>
+<ng-container *ngIf="problem$ | async as prob">
 
   <ng-container *ngIf="!(editMode$ | async); else editorContainer">
-    <div class="row">
-      <span class="col-1 font-weight-bold">Tags: </span>
-      <span class="col-11">{{problem.formatTags()}}</span>
-    </div>
-    <div class="row">
-      <ng-container *ngIf="isStatic(problem); else dynamicContent">{{cleanContent(problem.content)}}</ng-container>
-      <ng-template #dynamicContent><pre>{{problem.content}}</pre></ng-template>
-    </div>
     <div class="row justify-content-between">
       <div class="col-4">
         <ng-content></ng-content>
@@ -22,18 +9,22 @@
         <button class="btn btn-primary" (click)="showEditor()">Edit</button>
       </div>
     </div>
+    <div class="row">
+      <span class="col-1 font-weight-bold">ID: </span>
+      <span class="col-11" *ngIf="prob.idStr; else noId">{{prob.idStr}}</span>
+      <ng-template #noId>(not assigned)</ng-template>
+    </div>
+    <div class="row">
+      <span class="col-1 font-weight-bold">Tags: </span>
+      <span class="col-11">{{prob.formatTags()}}</span>
+    </div>
+    <div class="row">
+      <div *ngIf="isStatic(prob); else dynamicContent">{{cleanContent(prob.content)}}</div>
+      <ng-template #dynamicContent><pre>{{prob.content}}</pre></ng-template>
+    </div>
   </ng-container>
 
   <ng-template #editorContainer>
-      <div class="row">
-        <span class="col-1 font-weight-bold">Tags: </span>
-        <input class="col-11" value="{{problem.formatTags()}}" #newTagsInput />
-      </div>
-      <div class="row">
-        <angular-monaco-editor class="col customMonacoEditor" [options]="editorOptions"
-                                [(ngModel)]="problem.content" (onInit)="onEditorInit($event)" #codeInput>
-        </angular-monaco-editor>
-      </div>
       <div class="row justify-content-between">
         <div class="col-2">
           <button class="btn btn-primary" (click)="saveChanges()">Save</button>
@@ -41,6 +32,20 @@
         <div class="col-2">
           <button class="btn btn-danger" (click)="cancelChanges()">Cancel</button>
         </div>
+      </div>
+      <div class="row">
+        <span class="col-1 font-weight-bold">ID: </span>
+        <span class="col-11" *ngIf="prob.idStr; else noId">{{prob.idStr}}</span>
+        <ng-template #noId>(not assigned)</ng-template>
+      </div>
+      <div class="row">
+        <span class="col-1 font-weight-bold">Tags: </span>
+        <input class="col-11" value="{{prob.formatTags()}}" #newTagsInput />
+      </div>
+      <div class="row">
+        <angular-monaco-editor class="col customMonacoEditor" [options]="editorOptions"
+                                [(ngModel)]="prob.content" (onInit)="onEditorInit($event)" #codeInput>
+        </angular-monaco-editor>
       </div>
   </ng-template>
 </ng-container>
