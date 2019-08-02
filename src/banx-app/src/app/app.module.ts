@@ -19,6 +19,7 @@ import { SageShellComponent } from './sage-shell/sage-shell.component';
 import { NotificationComponent } from './notification/notification.component';
 import { ModalComponent } from './modal/modal.component';
 import { NotificationViewComponent } from './notification-view/notification-view.component';
+import { UploadProblemsComponent } from './upload-problems/upload-problems.component';
 
 const routes: Routes = [
   { path: '', redirectTo: '/problemquery', pathMatch: 'full'},
@@ -26,7 +27,8 @@ const routes: Routes = [
   { path: 'instances', component: InstanceListComponent },
   { path: 'admin', component: AdminComponent },
   { path: 'tagquery', component: TagQueryComponent },
-  { path: 'sageshell', component: SageShellComponent }
+  { path: 'sageshell', component: SageShellComponent },
+  { path: 'uploadproblems', component: UploadProblemsComponent }
 ];
 
 @NgModule({
@@ -43,7 +45,8 @@ const routes: Routes = [
     SageShellComponent,
     NotificationComponent,
     ModalComponent,
-    NotificationViewComponent
+    NotificationViewComponent,
+    UploadProblemsComponent
   ],
   imports: [
     RouterModule.forRoot(routes),
