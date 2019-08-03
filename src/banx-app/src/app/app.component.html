@@ -1,6 +1,6 @@
 <div class="container-fluid">
     <app-notification></app-notification>
-    <ul class="nav nav-tabs">
+    <ul class="nav nav-tabs pad-top">
         <li class="nav-item"><a class="nav-link" routerLink="/problemquery" routerLinkActive="active">Problem Query</a></li>
         <li class="nav-item"><a class="nav-link" routerLink="/tagquery" routerLinkActive="active">Tag Query</a></li>
         <li *ngIf="remoteUser.canEdit()" class="nav-item"><a class="nav-link" routerLink="/authorproblems" routerLinkActive="active">Author Problems</a></li>

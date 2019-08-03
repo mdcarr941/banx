@@ -1,14 +1,28 @@
 <div class="row">
-  <div class="col">
-    <button class="btn btn-primary" (click)="submitProblems()">Submit</button>
+  <h3 class="col">Author Problems</h3>
+</div>
+<div class="row">
+  <p class="col">
+    Enter the tags and the content of the problem below. Then, click 'Submit'
+    to save your problem on the server.
+  </p>
+</div>
+
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <button class="btn btn-primary" (click)="submitProblem()">Submit</button>
+    </div>
   </div>
-</div>
-<div class="row">
-  <label class="col-2">Tags:</label>
-  <input class="col-10" type="text" [(ngModel)]="tagsString" />
-</div>
-<div class="row">
-  <angular-monaco-editor class="col customMonacoEditor" [options]="editorOptions"
-    [(ngModel)]="problem.content">
-  </angular-monaco-editor>
+  <div class="row">
+    <div class="col-1">
+      <label>Tags:</label>
+    </div>
+    <input class="col-10" type="text" [(ngModel)]="tagsString" />
+  </div>
+  <div class="row">
+    <angular-monaco-editor class="col customMonacoEditor" [options]="editorOptions"
+      [(ngModel)]="problem.content">
+    </angular-monaco-editor>
+  </div>
 </div>

@@ -25,7 +25,7 @@ export class AuthorProblemsComponent {
 
   private tagsString: string = "";
 
-  private submitProblems() {
+  private submitProblem() {
     if (!this.problem.content || this.problem.content.length <= 0) {
       this.notificationService.showError('Please add content to the problem before submitting it.');
       return;
