@@ -20,6 +20,7 @@ import { NotificationComponent } from './notification/notification.component';
 import { ModalComponent } from './modal/modal.component';
 import { NotificationViewComponent } from './notification-view/notification-view.component';
 import { UploadProblemsComponent } from './upload-problems/upload-problems.component';
+import { AuthorProblemsComponent } from './author-problems/author-problems.component';
 
 const routes: Routes = [
   { path: '', redirectTo: '/problemquery', pathMatch: 'full'},
@@ -28,7 +29,8 @@ const routes: Routes = [
   { path: 'admin', component: AdminComponent },
   { path: 'tagquery', component: TagQueryComponent },
   { path: 'sageshell', component: SageShellComponent },
-  { path: 'uploadproblems', component: UploadProblemsComponent }
+  { path: 'uploadproblems', component: UploadProblemsComponent },
+  { path: 'authorproblems', component: AuthorProblemsComponent }
 ];
 
 @NgModule({
@@ -46,7 +48,8 @@ const routes: Routes = [
     NotificationComponent,
     ModalComponent,
     NotificationViewComponent,
-    UploadProblemsComponent
+    UploadProblemsComponent,
+    AuthorProblemsComponent
   ],
   imports: [
     RouterModule.forRoot(routes),

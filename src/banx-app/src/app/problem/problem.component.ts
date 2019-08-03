@@ -21,7 +21,7 @@ export class ProblemComponent implements OnInit {
 
   private editMode$ = new BehaviorSubject(false);
 
-  private editorOptions = Object.freeze({
+  private readonly editorOptions = Object.freeze({
     language: 'LaTeX',
     minimap: { enabled: false }
   });

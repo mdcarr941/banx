@@ -19,7 +19,6 @@ export class UploadProblemsComponent {
 
   private uploadFiles() {
     const files: FileList = (<any>this.fileInput.nativeElement).files;
-    console.log(`Uploading ${files.length} files`);
     for (let k = 0, numFiles = files.length; k < numFiles; ++k) {
       const reader = new FileReader();
       reader.addEventListener('load', async () => {
@@ -32,6 +31,7 @@ export class UploadProblemsComponent {
           }
           catch (err) {
             this.notificationService.showError(`An error occured while uploading ${files[k].name}`);
+            console.error(err);
             noError = false;
             break;
           }

@@ -1,0 +1,14 @@
+<div class="row">
+  <div class="col">
+    <button class="btn btn-primary" (click)="submitProblems()">Submit</button>
+  </div>
+</div>
+<div class="row">
+  <label class="col-2">Tags:</label>
+  <input class="col-10" type="text" [(ngModel)]="tagsString" />
+</div>
+<div class="row">
+  <angular-monaco-editor class="col customMonacoEditor" [options]="editorOptions"
+    [(ngModel)]="problem.content">
+  </angular-monaco-editor>
+</div>
