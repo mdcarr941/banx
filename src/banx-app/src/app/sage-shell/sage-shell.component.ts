@@ -56,7 +56,7 @@ export class SageShellComponent {
       },
       err => {
         this.notifications.showError('Failed to excute your code. Check the console for a stack trace.');
-        console.error(err)
+        console.error(err.error)
       }
     );
   }

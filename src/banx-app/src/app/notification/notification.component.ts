@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewChild, OnDestroy, EventEmitter } from '@angular/core';
 import * as $ from 'jquery';
 
-import { NotificationService, Notification } from '../notification.service';
+import { NotificationService, Notification, NotificationType } from '../notification.service';
 import { Subscription, BehaviorSubject, Observable } from 'rxjs';
 import { ModalComponent } from '../modal/modal.component';
 
@@ -36,6 +36,8 @@ export class NotificationComponent implements OnInit, OnDestroy {
   @ViewChild('notifications') notifications;
 
   private sub: Subscription;
+  // Even though this code runs in the browser, NodeJS.Timer seems
+  // roughly equivalent to the return value of `setTimeout`.
   private currentTimeout: NodeJS.Timer = null;
 
   private saveNotification(notification: Notification): void {
@@ -58,6 +60,8 @@ export class NotificationComponent implements OnInit, OnDestroy {
 
       if (this.currentTimeout) clearTimeout(this.currentTimeout);
       $(this.notifications.nativeElement).show();
+      // If the notification type is `Loading` then we should show it indefinitely.
+      if (notification.type == NotificationType.Loading) return;
       this.currentTimeout = setTimeout(
         () => $(this.notifications.nativeElement).hide(),
         NotificationComponent.NotificationTimeout

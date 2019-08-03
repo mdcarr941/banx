@@ -1,5 +1,5 @@
 import { Component, Output, Input, EventEmitter } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
 
 import { Problem } from '../../../../lib/schema';
 import { ProblemsService } from '../problems.service';
@@ -14,7 +14,7 @@ import { NotificationService } from '../notification.service';
 export class ProblemListComponent {
   @Input() problems$: EventEmitter<Problem[]>;
 
-  private _problemsShown$ = new EventEmitter<boolean>();
+  private readonly _problemsShown$ = new BehaviorSubject(true);
 
   @Output() problemsShown$: Observable<boolean> = this._problemsShown$;
 

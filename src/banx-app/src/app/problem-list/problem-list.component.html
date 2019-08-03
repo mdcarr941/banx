@@ -3,7 +3,7 @@
     <ng-container *ngIf="problemsShown$ | async; then problemContent; else instanceContent"></ng-container>
 
     <ng-template #problemContent>
-      <button class="btn btn-secondary" (click)="getInstances(problem._id)">
+      <button class="btn btn-secondary" (click)="getInstances(problem.idStr)">
         Get Instances
       </button>
     </ng-template>
