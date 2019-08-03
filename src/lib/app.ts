@@ -46,7 +46,7 @@ app.use(async (req, res, next) => {
 // The index router handles all requests with the /app prefix and requests
 // which have no path are redirected to /app.
 app.use('/app', indexRouter);
-app.use(new RegExp('^/?$'), (req, res) => res.redirect('app'));
+app.use(new RegExp('^\/?$'), (req, res) => res.redirect('app'));
 
 app.use('/users', usersRouter);
 
