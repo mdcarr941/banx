@@ -1,7 +1,5 @@
 import { ObjectID } from 'mongodb';
 
-import { invert } from './common';
-
 export interface KeyValPair {
     key: string;
     value: string;
@@ -27,7 +25,6 @@ export class Problem implements IProblem {
         if (!obj) return;
         this._id = obj._id;
         this.idStr = obj.idStr;
-        this.tags = [];
         this.tags.push(...obj.tags);
         this.content = obj.content;
     }
@@ -93,6 +90,15 @@ export interface ProblemIndex {
     }
 }
 // Note that a problemId will appear once for each (topic, subtopic) defined on it.
+
+export function invert(object: any): any {
+    const inverse: any = {};
+    for (let key in object) {
+        if (!object.hasOwnProperty(key)) continue;
+        inverse[object[key]] = key;
+    }
+    return inverse;
+}
 
 export enum UserRole {
     Admin = 'Admin',

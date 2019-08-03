@@ -141,4 +141,20 @@ router.post('/submit', (req, res, next) => {
     });
 });
 
+// A post to `create` creates a new problem.
+router.post('/create', (req, res, next) => {
+    const iproblem = <IProblem>req.body;
+    // The request must have a `content` and a `tags` entry but must
+    // have neither an `idStr` nor an `_id` entry.
+    if (!iproblem.content || !iproblem.tags || iproblem.idStr || iproblem._id) {
+        res.sendStatus(400)
+    }
+    req.banxContext.problemRepo.insertOne(new Problem(iproblem))
+    .then(problem => res.send(problem))
+    .catch(err => {
+        printError(err, 'Failed to create a new problem.');
+        next(err);
+    })
+})
+
 export default router;

@@ -1,8 +1,8 @@
 <div class="row justify-content-between">
   <div class="col-6">
-    <input type="file" name="files[]" multiple (change)="onFileInputChange($event)"/>
+    <input type="file" multiple #fileInput/>
   </div>
   <div class="col-6">
-    <button class="btn btn-primary">Upload</button>
+    <button class="btn btn-primary" (click)="uploadFiles()">Upload</button>
   </div>
 </div>

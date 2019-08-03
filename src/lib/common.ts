@@ -1,4 +1,4 @@
-import { KeyValPair } from './schema';
+import { KeyValPair, Problem } from './schema';
 import config from './config';
 
 interface IIndexable {
@@ -53,11 +53,36 @@ export function urlJoin(...args: string[]) {
     .join('/');
 }
 
-export function invert(object: any): any {
-    const inverse: any = {};
-    for (let key in object) {
-        if (!object.hasOwnProperty(key)) continue;
-        inverse[object[key]] = key;
+const startRgx = /%+\s*\\tagged{([^}]+)}\s*{/;
+const endRgx = /%\s*}/;
+const lineSepRgx = /\n|\r\n|\r/;
+
+export function problemStringParser(block: string): Problem[] {
+    const lines = block.split(lineSepRgx);
+
+    let current: Problem;
+    let result: RegExpExecArray;
+    const problems: Problem[] = [];
+    for (let line of lines) {
+        /* If current is not null or undefined, then we are looking for the closing
+         * bracket of the tag. */
+        if (current) {
+            if ( (result = endRgx.exec(line)) ) {
+                current.content += '\n' + line.slice(0, result.index);
+                problems.push(current);
+                current = null;
+            } else {
+                current.content += '\n' + line;
+            }
+        /* Otherwise we have not yet found the opening bracket of a tagged question. */
+        } else {
+            if ( (result = startRgx.exec(line)) ) {
+                let tags = result[1].split(/,\s*/).map(t => t.split('@')).map(p => {
+                    return { key: p[0], value: p[1] };
+                });
+                current = new Problem({tags: tags, content: ''});
+            }
+        }
     }
-    return inverse;
+    return problems;
 }
