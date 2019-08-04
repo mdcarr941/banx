@@ -46,4 +46,9 @@ export class ProblemsService extends BaseService {
     return this.http.post<IProblem>(this.getUrl('/create'), problem)
       .pipe(map(iproblem => new Problem(iproblem)));
   }
+
+  delete(idStr: string): Observable<Problem> {
+    return this.http.delete<IProblem>(this.getUrl(idStr))
+      .pipe(map(iproblem => new Problem(iproblem)));
+  }
 }

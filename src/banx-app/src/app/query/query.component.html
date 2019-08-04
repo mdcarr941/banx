@@ -25,7 +25,8 @@
   </div>
 
   <div class="col-md-9">
-    <app-problem-list [problems$]="problems$" (problemsShown$)="onProblemsShown($event)" #problemList></app-problem-list>
+    <app-problem-list [problems$]="problems$" #problemList>
+    </app-problem-list>
   </div>
 
 </div>

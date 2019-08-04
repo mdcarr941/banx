@@ -1,13 +1,13 @@
-import { Component, Input, ViewChild, OnInit, OnDestroy, DoCheck } from '@angular/core';
+import { Component, Input, ViewChild, OnInit, Output, EventEmitter } from '@angular/core';
 import { AngularMonacoEditorComponent } from 'angular-monaco-editor';
 import { BehaviorSubject, Subscription } from 'rxjs';
-import { map } from 'rxjs/operators';
 
 import { ProblemsService } from '../problems.service';
 import { NotificationService } from '../notification.service';
 import { RemoteUserService } from '../remote-user.service';
 import { Problem } from '../../../../lib/schema';
 import { parseTagString } from '../../../../lib/common';
+import { ModalComponent } from '../modal/modal.component';
 
 declare const MathJax: any;
 
@@ -18,6 +18,9 @@ declare const MathJax: any;
 })
 export class ProblemComponent implements OnInit {
   @Input() problem: Problem;
+  // When this EventEmitter emits it indicates that this problem
+  // should be removed from which every component it is in.
+  @Output() deleteMe = new EventEmitter<void>();
 
   private editMode$ = new BehaviorSubject(false);
 
@@ -98,5 +101,27 @@ export class ProblemComponent implements OnInit {
   private cancelChanges() {
     this.problem$.next(this.problem$.value);
     this.editMode$.next(false);
+  }
+
+  @ViewChild('confirmModal') private confirmModal: ModalComponent;
+
+  private showConfirmModal() {
+    this.confirmModal.show();
+  }
+
+  private deleteProblem() {
+    const idStr = this.problem$.value.idStr;
+    this.notifications.showLoading(`Deleting problem with id ${idStr}`);
+    this.problemsService.delete(idStr)
+    .subscribe(
+      deletedProblem => {
+        this.notifications.showSuccess('Problem deleted successfully');
+        this.deleteMe.emit();
+      },
+      err => {
+        this.notifications.showError('An error occured while deleting the problem');
+        console.error(err);
+      }
+    );
   }
 }

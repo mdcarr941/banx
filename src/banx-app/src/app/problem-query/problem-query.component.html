@@ -1,4 +1,4 @@
-<app-query [title]="'Problem Query'" [problems$]="problems$" #queryComponent>
+<app-query [title]="'Problem Query'" [problems$]="problems$" (removeProblem$)="removeProblem($event)" #queryComponent>
   <p>
     Select a topic and a subtopic below to form a query.
     Optionally you can add tags to narrow the results.

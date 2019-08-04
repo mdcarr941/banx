@@ -103,6 +103,22 @@ router.post(`/:problemId(${problemIdRgx})`, async (req, res, next) => {
     });
 });
 
+// A DELETE to a problem id deletes that problem.
+router.delete(`/:problemId(${problemIdRgx})`, async (req, res, next) => {
+    if (!req.banxContext.remoteUser.canEdit()) {
+        res.sendStatus(403);
+        return;
+    }
+
+    const id = ObjectID.createFromHexString(req.params['problemId']);
+    req.banxContext.problemRepo.deleteOne(id)
+    .then(deletedProblem => res.send(deletedProblem))
+    .catch(err => {
+        printError(err, 'an error occured while calling deleteOne');
+        next(err);
+    });
+});
+
 router.get(`/instance/:problemId(${problemIdRgx})`, (req, res, next) => {
     const problemId: string = req.params['problemId'];
     const numInstances: number = req.query.numInstances;

@@ -12,11 +12,12 @@ import { NotificationService } from '../notification.service';
   styleUrls: ['./problem-list.component.css']
 })
 export class ProblemListComponent {
-  @Input() problems$: EventEmitter<Problem[]>;
+  @Input() problems$: BehaviorSubject<Problem[]>;
 
   private readonly _problemsShown$ = new BehaviorSubject(true);
 
   @Output() problemsShown$: Observable<boolean> = this._problemsShown$;
+  @Output() removeProblem$ = new EventEmitter<Problem>();
 
   constructor(
     private api: ProblemsService,

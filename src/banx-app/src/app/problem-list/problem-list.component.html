@@ -1,5 +1,5 @@
 <ng-container *ngFor="let problem of problems$ | async">
-  <app-problem [problem]="problem">
+  <app-problem [problem]="problem" (deleteMe)="removeProblem$.emit(problem)">
     <ng-container *ngIf="problemsShown$ | async; then problemContent; else instanceContent"></ng-container>
 
     <ng-template #problemContent>

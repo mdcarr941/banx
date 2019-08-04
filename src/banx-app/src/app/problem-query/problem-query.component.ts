@@ -136,4 +136,8 @@ export class ProblemQueryComponent implements OnInit {
         console.error(err);
       });
   }
+
+  private removeProblem(problem: Problem) {
+    this.problems$.next(this.problems$.value.filter(p => p.idStr !== problem.idStr));
+  }
 }

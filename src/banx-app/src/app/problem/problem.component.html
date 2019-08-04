@@ -30,7 +30,7 @@
           <button class="btn btn-primary" (click)="saveChanges()">Save</button>
         </div>
         <div class="col-2">
-          <button class="btn btn-danger" (click)="deleteProblem()">Delete</button>
+          <button class="btn btn-danger" (click)="showConfirmModal()">Delete</button>
         </div>
         <div class="col-2">
           <button class="btn btn-secondary" (click)="cancelChanges()">Cancel</button>
@@ -52,3 +52,14 @@
       </div>
   </ng-template>
 </ng-container>
+
+
+<app-modal [title]="'Confirm Deletion'" #confirmModal>
+  <ng-container body>
+    This action cannot be undone.
+    Are you sure you want to delete this problem?
+  </ng-container>
+  <ng-container footer>
+    <button class="btn btn-danger" (click)="deleteProblem()">Confirm</button>
+  </ng-container>
+</app-modal>
