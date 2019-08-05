@@ -2,6 +2,7 @@
 
 import * as program from 'commander';
 import * as readline from 'readline';
+import * as os from 'os';
 const repl = require('repl');
 
 import { ProblemRepo, getGlobalProblemRepo } from './problemRepo';
@@ -162,6 +163,28 @@ function userModify(glid: string, roles: UserRole[]): Promise<void> {
     .catch(err => printError(err, 'Failed to get the global user repo'));
 }
 
+function listTagValues(repo: ProblemRepo, tagKey: string, lineLimit: number = 80): Promise<void> {
+    return repo.getAllValues(tagKey)
+    .then(values => {
+        if (values.length > 0) {
+            values = values.map(value => `'${value}'`);
+            let output = '';
+            let line = '[' + values[0];
+            for (let k = 1, value = values[k]; k < values.length; ++k, value = values[k]) {
+                line += ', ' + value;
+                if (line.length >= lineLimit) {
+                    output += line + os.EOL;
+                    line = '';
+                }
+            }
+            output += line + ']';
+            console.log(output);
+        }
+        console.log(`Found ${values.length} values.`);
+    })
+    .catch(err => printError(err, 'An error occured while executing your request'));
+}
+
 type IOptions = {[key: string]: any};
 
 interface IAction {
@@ -178,6 +201,11 @@ async function main(argv: string[]) {
         .action((tags: string[]) => {
             action = { command: 'find', options: {tags: tags} };
         });
+    program.command('listTagValues <tagKey>')
+        .description('List all values of the given tag.')
+        .action((tagKey: string) => {
+            action = {command: 'listTagValues', options: {tagKey: tagKey} };
+        })
     program.command('insert [files...]')
         .description('Insert all problems from each given file.')
         .action((files: string[]) => {
@@ -228,6 +256,9 @@ async function main(argv: string[]) {
             break;
         case 'find':
             await find(repo, action.options.tags);
+            break;
+        case 'listTagValues':
+            await listTagValues(repo, action.options.tagKey);
             break;
         case 'delete':
             await del(repo, action.options.tags);

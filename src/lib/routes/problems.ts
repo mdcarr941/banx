@@ -171,6 +171,17 @@ router.post('/create', (req, res, next) => {
         printError(err, 'Failed to create a new problem.');
         next(err);
     })
-})
+});
+
+router.get('/listTagValues/:tagKey', (req, res, next) => {
+    const tagKey: string = req.params['tagKey'];
+
+    req.banxContext.problemRepo.getAllValues(tagKey)
+    .then(values => res.send(values))
+    .catch(err => {
+        printError(err, `An error occured while getting values for the tag ${tagKey}`);
+        next(err);
+    })
+});
 
 export default router;

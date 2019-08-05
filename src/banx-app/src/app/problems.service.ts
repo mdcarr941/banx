@@ -51,4 +51,8 @@ export class ProblemsService extends BaseService {
     return this.http.delete<IProblem>(this.getUrl(idStr))
       .pipe(map(iproblem => new Problem(iproblem)));
   }
+
+  listTagValues(tagKey: string): Observable<string[]> {
+    return this.http.get<string[]>(this.getUrl(`/listTagValues/${tagKey}`));
+  }
 }

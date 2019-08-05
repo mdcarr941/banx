@@ -102,7 +102,7 @@ export class ProblemRepo {
                 as: "tag",
                 in: "$$tag.value"
             }}}},
-            // Group all documents together and add each array of values to the set of all values.
+            // Group all documents together and add each array of values to a single array.
             { $group: { _id: null, values: { $addToSet: "$values" }}},
             // Concatenate the arrays in values so that a single array is returned.
             { $project: { _id: 0, values: { $reduce: {
@@ -111,12 +111,9 @@ export class ProblemRepo {
                 in: { $concatArrays: ["$$value", "$$this"] }
             }}}}
         ]);
-        return new Promise((resolve, reject) => {
-            result.toArray((err: any, results: any[]) => {
-                if (err) reject(err);
-                resolve(results[0].values);
-            });
-        });
+        return result.toArray().then(results => (<string[]>results[0].values).filter((value, index, self) => {
+            return self.indexOf(value) == index
+        }));
     }
 
     private async updateIndexOnInsert(problems: Problem[]): Promise<Problem[]> {
