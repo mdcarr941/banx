@@ -22,7 +22,7 @@ export class ProblemComponent implements OnInit {
   // should be removed from which every component it is in.
   @Output() deleteMe = new EventEmitter<void>();
 
-  private editMode$ = new BehaviorSubject(false);
+  private editMode$ = new EventEmitter<boolean>();
 
   private readonly editorOptions = Object.freeze({
     language: 'LaTeX',
@@ -44,11 +44,15 @@ export class ProblemComponent implements OnInit {
 
   ngOnInit() {
     this.problem$ = new BehaviorSubject(this.problem);
-    this.renderMath();
+    this.editMode$.subscribe(editing => {
+      if (!editing) this.renderMath();
+    });
+    this.editMode$.next(false);
   }
 
   ngOnDestroy() {
     this.problem$.complete();
+    this.editMode$.complete();
   }
 
   private static readonly sageCodeRgx = /\\begin{sagesilent}[\s\S]*\\end{sagesilent}/;
@@ -71,12 +75,7 @@ export class ProblemComponent implements OnInit {
     /* Place any code that needs to run after the monaco editor is loaded here. */
   }
 
-  private problemSub: Subscription;
-
   private showEditor() {
-    if (!this.problemSub) {
-      this.problemSub = this.problem$.subscribe(() => this.renderMath());
-    }
     this.editMode$.next(true);
   }
 
