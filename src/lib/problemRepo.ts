@@ -61,6 +61,17 @@ export class ProblemRepo {
         );
     }
 
+    private makeQuery(pairs: KeyValPair[]): FilterQuery<Problem> {
+        if (pairs.length > 0) {
+            return {
+                '$and': pairs.map(pair => {
+                    return {'tags.key': pair.key, 'tags.value': pair.value};
+                })
+            };
+        }
+        return {};
+    }
+
     public find(pairs: KeyValPair[]): Cursor<Problem> {
         return this.collection.find(this.makeQuery(pairs)).map(p => new Problem(p));
     }
@@ -86,8 +97,11 @@ export class ProblemRepo {
         return Promise.all([problemPromise, indexPromise]);
     }
 
-    public getAllValues(key: string): Promise<string[]> {
-        const result: AggregationCursor<any> = this.collection.aggregate([
+    public getAllValues(key: string, where: any = null): Promise<string[]> {
+        let stages: any[] = [];
+        // If a filter clause was specified, do it first.
+        if (where) stages.push({ $match: where });
+        stages.push(
             // Only consider documents with the tag requested.
             { $match: { "tags.key": key } },
             // Filter those documents' tags so that only the tag requested remains.
@@ -110,10 +124,34 @@ export class ProblemRepo {
                 initialValue: [],
                 in: { $concatArrays: ["$$value", "$$this"] }
             }}}}
-        ]);
-        return result.toArray().then(results => (<string[]>results[0].values).filter((value, index, self) => {
-            return self.indexOf(value) == index
-        }));
+        );
+        const result: AggregationCursor<any> = this.collection.aggregate(stages);
+        return result.toArray().then(results => {
+            console.log(results);
+            return (<string[]>results[0].values)
+            .filter((value, index, self) => {
+                return self.indexOf(value) == index
+            });
+        });
+    }
+
+    public getSubtopic(topic: string): Promise<string[]> {
+        return this.getAllValues('Subtopic', this.makeQuery([{key: 'Topic', value: topic}]));
+    }
+
+    public getTags(topic: string, subtopic: string): Promise<KeyValPair[]> {
+        return this.find([
+            {key: 'Topic', value: topic},
+            {key: 'Sub', value: subtopic}
+        ])
+        .toArray()
+        .then(problems => {
+            return problems.map(prob => prob.tags)
+            .reduce((tags, all) => {
+                all.push(...tags);
+                return all;
+            }, []);
+        });
     }
 
     private async updateIndexOnInsert(problems: Problem[]): Promise<Problem[]> {
@@ -181,17 +219,6 @@ export class ProblemRepo {
         
         if (madeChanges) await this.updateProblemIndex(problemIndex);
         return problems;
-    }
-
-    private makeQuery(pairs: KeyValPair[]): FilterQuery<Problem> {
-        if (pairs.length > 0) {
-            return {
-                '$and': pairs.map(pair => {
-                    return {'tags.key': pair.key, 'tags.value': pair.value};
-                })
-            };
-        }
-        return {};
     }
 }
 

@@ -24,19 +24,19 @@ router.get('*', async (req, res, next) => {
     return;
   }
 
-  let problemIndex: ProblemIndex;
+  let topics: string[];
   try {
-    problemIndex = await problemRepo.getProblemIndex()
+    topics = await problemRepo.getAllValues('Topic');
   }
   catch (err) {
-    printError(err, 'Failed to get problem index');
+    printError(err, 'Failed to find all topics.');
     next(err);
     return;
   }
 
   res.render('index', {
     title: 'Banx',
-    problemIndexStr: JSON.stringify(problemIndex),
+    topicsStr: JSON.stringify(topics),
     remoteUser: JSON.stringify(req.banxContext.remoteUser),
     baseHref: urlJoin('/', config.banxPrefix, 'app'),
   });

@@ -6,17 +6,17 @@
   <button class="btn btn-primary" (click)="getProblems()" disabled #queryButton>Get Problems</button>
   <nav class="d-none d-md-block bg-light sidebar">
     <div class="sidebar-sticky">
-      <ul class="nav flex-column" *ngIf="problemIndex">
+      <ul class="nav flex-column">
         <h4>Topics</h4>
-        <app-collapsible  *ngFor="let topic of problemIndex.index | keyvalue"
-            [itemName]="topic.key"
-            (toggled)="toggle(topic.key)">
+        <app-collapsible  *ngFor="let topic of topics"
+            [itemName]="topic"
+            (toggled)="toggle(topic)">
           <h5>Subtopics</h5>
-          <app-collapsible *ngFor="let subtopic of topic.value | keyvalue"
-              [itemName]="subtopic.key"
-              (toggled)="toggle(topic.key, subtopic.key)">
+          <app-collapsible *ngFor="let subtopic of getSubtopics(topic) | async"
+              [itemName]="subtopic"
+              (toggled)="toggle(topic, subtopic)">
               <span class="font-weight-bold">Tags</span>
-            <app-collapsible *ngFor="let tag of subtopic.value.tags | keyvalue"
+            <!-- <app-collapsible *ngFor="let tag of subtopic.value.tags | keyvalue"
               [itemName]="tag.key"
               (toggled)="toggle(topic.key, subtopic.key, tag.key)">
               <span  class="font-weight-bold">Tag Values</span>
@@ -26,7 +26,7 @@
                   <input type="checkbox" (click)="toggle(topic.key, subtopic.key, tag.key, value.key)" />
                 </div>
               </li>
-            </app-collapsible>
+            </app-collapsible> -->
           </app-collapsible>
         </app-collapsible>
       </ul>

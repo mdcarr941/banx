@@ -11,6 +11,7 @@ import { ProblemParser } from './problemParser';
 import { Problem, BanxUser, UserRole, UserRoleInverse } from './schema';
 import { makePairs, printError } from './common';
 import { GlobalSageServer } from './sageServer';
+import { response } from 'express';
 
 const bufferLimit = 1000;
 
@@ -170,8 +171,8 @@ function listTagValues(repo: ProblemRepo, tagKey: string, lineLimit: number = 80
             values = values.map(value => `'${value}'`);
             let output = '';
             let line = '[' + values[0];
-            for (let k = 1, value = values[k]; k < values.length; ++k, value = values[k]) {
-                line += ', ' + value;
+            for (let k = 1; k < values.length; k += 1) {
+                line += ', ' + values[k];
                 if (line.length >= lineLimit) {
                     output += line + os.EOL;
                     line = '';
@@ -183,6 +184,15 @@ function listTagValues(repo: ProblemRepo, tagKey: string, lineLimit: number = 80
         console.log(`Found ${values.length} values.`);
     })
     .catch(err => printError(err, 'An error occured while executing your request'));
+}
+
+function getSubtopics(repo: ProblemRepo, topic: string): Promise<void> {
+    return repo.getSubtopic(topic)
+    .then(subtopics => {
+        console.log(subtopics);
+        console.log(`Found ${subtopics.length} subtopic${subtopics.length === 1 ? '' : 's'}`);
+    })
+    .catch(err => printError(err, `Failed to get the subtopics of topic "${topic}".`));
 }
 
 type IOptions = {[key: string]: any};
@@ -249,6 +259,11 @@ async function main(argv: string[]) {
                 roles: roles.map(role => UserRoleInverse[role])
             }};
         });
+    program.command('getSubtopics <topic>')
+        .description('Get all the subtopics of the given topic.')
+        .action((topic: string) => {
+            action = { command: 'getSubtopics', options: { topic: topic }};
+        })
     program.parse(argv);
     switch (action.command) {
         case 'insert':
@@ -280,6 +295,9 @@ async function main(argv: string[]) {
             break;
         case 'userModify':
             await userModify(action.options.glid, action.options.roles);
+            break;
+        case 'getSubtopics':
+            await getSubtopics(repo, action.options.topic);
             break;
         default:
             throw new Error('unknown command');

@@ -1,6 +1,5 @@
 import { Component, Input, Output, EventEmitter, ViewChild } from '@angular/core';
-
-declare const $: Function; // jquery
+import * as $ from 'jquery';
 
 @Component({
   selector: 'app-collapsible',
@@ -18,11 +17,11 @@ export class CollapsibleComponent {
   private collapsed: boolean = true;
   @ViewChild('list') list;
   @Input() itemName: string;
-  @Output() toggled: EventEmitter<null> = new EventEmitter();
+  @Output() toggled = new EventEmitter<boolean>();
 
   toggle() {
     this.collapsed = !this.collapsed;
-    $(this.list.nativeElement).collapse('toggle');
-    this.toggled.next(null);
+    (<any>$(this.list.nativeElement)).collapse('toggle');
+    this.toggled.next(this.collapsed);
   }
 }

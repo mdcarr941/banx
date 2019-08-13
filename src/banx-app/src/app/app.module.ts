@@ -11,9 +11,9 @@ import { InstanceListComponent } from './instance-list/instance-list.component';
 import { CollapsibleComponent } from './collapsible.component';
 import { AdminComponent } from './admin/admin.component';
 import { ProblemQueryComponent } from './problem-query/problem-query.component';
+import { ProblemListComponent} from './problem-list/problem-list.component';
 import { ProblemComponent } from './problem/problem.component';
 import { TagQueryComponent } from './tag-query/tag-query.component';
-import { ProblemListComponent } from './problem-list/problem-list.component';
 import { QueryComponent } from './query/query.component';
 import { SageShellComponent } from './sage-shell/sage-shell.component';
 import { NotificationComponent } from './notification/notification.component';
@@ -40,9 +40,9 @@ const routes: Routes = [
     CollapsibleComponent,
     AdminComponent,
     ProblemQueryComponent,
+    ProblemListComponent,
     ProblemComponent,
     TagQueryComponent,
-    ProblemListComponent,
     QueryComponent,
     SageShellComponent,
     NotificationComponent,

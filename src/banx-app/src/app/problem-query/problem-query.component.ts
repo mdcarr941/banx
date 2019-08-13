@@ -3,13 +3,13 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { ProblemsService } from '../problems.service';
 import { InstanceService } from '../instance.service';
 import { ProblemIndex, KeyValPair, Problem } from '../../../../lib/schema';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { QueryComponent } from '../query/query.component';
 import { NotificationService } from '../notification.service';
 
 // this is rendered into the index template
-declare const problemIndexInitial: ProblemIndex
-//declare const MathJax: any // MathJax global object.
+//declare const problemIndexInitial: ProblemIndex
+declare const topics: string[];
 
 interface StringBag {
   [key: string]: StringBag
@@ -23,6 +23,7 @@ interface StringBag {
 export class ProblemQueryComponent implements OnInit {
   private problems$ = new BehaviorSubject<Problem[]>([]);
   private problemIndex: ProblemIndex;
+  private topics: string[] = topics;
   private query: StringBag = {};
   // This class uses query to keep track of
   // which `Problem Query` selections have been made.
@@ -44,7 +45,7 @@ export class ProblemQueryComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    this.problemIndex = problemIndexInitial;
+    //this.problemIndex = problemIndexInitial;
   }
 
   private _toggle(superState: StringBag, args: string[]): void {
@@ -139,5 +140,9 @@ export class ProblemQueryComponent implements OnInit {
 
   private removeProblem(problem: Problem) {
     this.problems$.next(this.problems$.value.filter(p => p.idStr !== problem.idStr));
+  }
+
+  private getSubtopics(topic: string): Observable<string[]> {
+    return null;
   }
 }
