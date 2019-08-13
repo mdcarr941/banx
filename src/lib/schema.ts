@@ -69,28 +69,6 @@ ${this.content}
     }
 }
 
-export interface ProblemIndex {
-    _id: ObjectID,
-    index: {
-        [topic: string]: {
-            [sub: string]: {
-                tags: {
-                    [key: string]: {
-                        // value points to the number of times that value was used.
-                        // This allows for easy updating of this data structure.
-                        [value: string]: number
-                    }
-                },
-                problems: {
-                    // Each problem ID points to the KV pairs of its tags.
-                    [problemId: string]: KeyValPair[]
-                }
-            }
-        }
-    }
-}
-// Note that a problemId will appear once for each (topic, subtopic) defined on it.
-
 export function invert(object: any): any {
     const inverse: any = {};
     for (let key in object) {

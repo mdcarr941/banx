@@ -11,7 +11,7 @@ export function forEach(obj: IIndexable, callback: (key: any, val: any) => any):
 }
 
 export function mapObj(obj: IIndexable, callback: (key: string, val: any, obj: any) => any): any[] {
-    const output = [];
+    const output: any[] = [];
     forEach(obj, (key, val) => output.push(callback(key, val, this)));
     return output;
 }

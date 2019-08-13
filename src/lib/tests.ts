@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
 import * as assert from 'assert';
-import { DeleteWriteOpResultObject, InsertWriteOpResult, ObjectID } from 'mongodb';
+import { DeleteWriteOpResultObject, InsertWriteOpResult } from 'mongodb';
 
 import { ProblemRepo, getGlobalProblemRepo } from './problemRepo';
-import { Problem, ProblemIndex } from './schema';
+import { Problem } from './schema';
 import { GlobalProblemGenerator } from './problemGenerator';
 
 function insertDocuments(repo: ProblemRepo): Promise<InsertWriteOpResult> {
@@ -66,10 +66,6 @@ function deleteAllDocuments(repo: ProblemRepo): Promise<DeleteWriteOpResultObjec
     return repo.deleteAll();
 }
 
-function getProblemIndex(repo: ProblemRepo): Promise<ProblemIndex> {
-    return repo.getProblemIndex();
-}
-
 async function getInstance(id: string): Promise<void> {
     return GlobalProblemGenerator.getInstance(id)
         .then(problem => console.log(problem.toString()));
@@ -94,10 +90,6 @@ async function main(command: string, tokens: string[]): Promise<void> {
     } else if ('deleteAll' == command) {
         await deleteAllDocuments(repo).then((result) => {
             console.log('Delete finished.');
-        });
-    } else if ('getIndex' == command) {
-        await getProblemIndex(repo).then(index => {
-            console.log(JSON.stringify(index, undefined, 2));
         });
     } else if ('getInstance' == command) {
         await getInstance(tokens[0]).catch(err => {

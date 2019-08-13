@@ -2,13 +2,13 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 
 import { ProblemsService } from '../problems.service';
 import { InstanceService } from '../instance.service';
-import { ProblemIndex, KeyValPair, Problem } from '../../../../lib/schema';
+import { KeyValPair, Problem } from '../../../../lib/schema';
+import { forEach } from '../../../../lib/common';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { QueryComponent } from '../query/query.component';
 import { NotificationService } from '../notification.service';
 
-// this is rendered into the index template
-//declare const problemIndexInitial: ProblemIndex
+// This is rendered into the index template by the index controller.
 declare const topics: string[];
 
 interface StringBag {
@@ -22,7 +22,6 @@ interface StringBag {
 })
 export class ProblemQueryComponent implements OnInit {
   private problems$ = new BehaviorSubject<Problem[]>([]);
-  private problemIndex: ProblemIndex;
   private topics: string[] = topics;
   private query: StringBag = {};
   // This class uses query to keep track of
@@ -44,9 +43,7 @@ export class ProblemQueryComponent implements OnInit {
     private notificationService: NotificationService
   ) { }
 
-  ngOnInit() {
-    //this.problemIndex = problemIndexInitial;
-  }
+  ngOnInit() { }
 
   private _toggle(superState: StringBag, args: string[]): void {
     const arg = args[0];
@@ -86,49 +83,27 @@ export class ProblemQueryComponent implements OnInit {
     return;
   }
 
-  /**
-   * Returns true if and only if every key value pair in queryTags is in problemTags.
-   * @param problemTags tag array to check
-   * @param queryTags: The tags which must all be present in the query.
-   */
-  private containsAllTags(problemTags: KeyValPair[], queryTags: StringBag): boolean {
-    for (let queryKey in queryTags) {
-      for (let queryValue in queryTags[queryKey]) {
-        const index = problemTags.findIndex(problemTag => {
-          return problemTag.key == queryKey && problemTag.value == queryValue
-        });
-        if (index < 0) return false;
-      }
-    }
-    return true;
-  }
-
-  private selectProblemsWhere(topic: string, subtopic: string, tags: StringBag): string[] {
-    const problems = this.problemIndex.index[topic][subtopic].problems;
-    const selection: string[] = [];
-    for (let problemId in problems) {
-      if (this.containsAllTags(problems[problemId], tags)) selection.push(problemId);
-    }
-    return selection;
-  }
-
-  private selectAllProblems(): string[] {
-    const selection: string[] = [];
-    for (let topic in this.query) {
-      const subtopics = this.query[topic];
-      for (let subtopic in subtopics) {
-        const tags = subtopics[subtopic];
-        selection.push(...this.selectProblemsWhere(topic, subtopic, tags));
-      }
-    }
-    return selection;
+  private compileQuery() {
+    const output = [];
+    forEach(this.query, (topic: string, subtopics: StringBag) => {
+      output.push({key: 'Topic', value: topic});
+      forEach(subtopics, (subtopic: string, tags: StringBag) => {
+        output.push({key: 'Sub', value: subtopic});
+        forEach(tags, (tagKey: string, tagValues: StringBag) => {
+          forEach(tagValues, (tagValue: string) => {
+            output.push({key: tagKey, value: tagValue});
+          });
+        }) 
+      });
+    });
+    return output;
   }
 
   @ViewChild('queryComponent') queryComponent: QueryComponent;
 
   private getProblems() {
     this.notificationService.showLoading('Getting problems.');
-    this.problems.get(this.selectAllProblems())
+    this.problems.findKeyValue(this.compileQuery())
       .subscribe(problems => {
         this.notificationService.showSuccess('Finished gettings problems.');
         this.problems$.next(problems);

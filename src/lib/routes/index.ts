@@ -3,7 +3,6 @@ import * as express from 'express';
 import { ProblemRepo, getGlobalProblemRepo } from '../problemRepo';
 import { printError as commonPrintError, urlJoin } from '../common';
 import config from '../config';
-import { ProblemIndex } from 'schema';
 
 const router = express.Router();
 

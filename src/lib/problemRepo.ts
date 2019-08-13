@@ -1,17 +1,16 @@
 import { Collection, Cursor, InsertOneWriteOpResult,
          InsertWriteOpResult,
-         FilterQuery, AggregationCursor, ObjectID } from 'mongodb';
+         FilterQuery, ObjectID } from 'mongodb';
 
 import client from './dbClient';
-import { Problem, IProblem, KeyValPair, ProblemIndex } from './schema';
+import { Problem, IProblem, KeyValPair } from './schema';
 import { mapObj } from './common';
 
 
 
 export class ProblemRepo {
     constructor(
-        private collection: Collection<IProblem>,
-        private indexCollection: Collection<ProblemIndex>
+        private collection: Collection<IProblem>
     ) { }
 
     public getProblem(id: ObjectID): Promise<Problem> {
@@ -33,35 +32,12 @@ export class ProblemRepo {
         .map(p => new Problem(p));
     }
 
-    public getProblemIndex(): Promise<ProblemIndex> {
-        return this.indexCollection.findOne({})
-        .then(problemIndex => {
-            if (!problemIndex) problemIndex = {_id: undefined, index: {}};
-            return problemIndex;
-        });
-    }
-
-    public updateProblemIndex(problemIndex: ProblemIndex) {
-        const query: any = {};
-        if (problemIndex._id) query._id = problemIndex._id;
-        return this.indexCollection.findOneAndReplace(query, problemIndex, {upsert: true})
-        .then(result => result.value);
-    }
-
     public async insertOne(problem: Problem): Promise<InsertOneWriteOpResult> {
-        return this.collection.insertOne(problem)
-        .then(result =>
-            this.updateIndexOnInsert(result.ops.map(p => new Problem(p)))
-            .then(() => result)
-        );
+        return this.collection.insertOne(problem);
     }
 
     public async insertMany(problems: Problem[]): Promise<InsertWriteOpResult> {
-        return this.collection.insertMany(problems)
-        .then(result =>
-            this.updateIndexOnInsert(result.ops.map(p => new Problem(p)))
-            .then(() => result)
-        );
+        return this.collection.insertMany(problems);
     }
 
     private makeQuery(pairs: KeyValPair[]): FilterQuery<Problem> {
@@ -80,24 +56,17 @@ export class ProblemRepo {
     }
 
     public deleteOne(id: ObjectID): Promise<Problem> {
-        return this.collection.findOneAndDelete({_id: id})
-            .then(result =>
-                this.updateIndexOnDelete([new Problem(result.value)])
-                .then(problems => problems[0])
-            );
+        return this.collection.findOneAndDelete({_id: id}).then(r => new Problem(r.value));
     }
 
     public deleteMany(ids: ObjectID[]): Promise<Problem[]> {
         return Promise.all(ids.map(id =>
                 this.collection.findOneAndDelete({_id: id}).then(result => new Problem(result.value))
-            ))
-            .then(problems => this.updateIndexOnDelete(problems));
+            ));
     }
 
     public deleteAll(): Promise<any> {
-        const problemPromise = this.collection.deleteMany({});
-        const indexPromise = this.indexCollection.deleteMany({});
-        return Promise.all([problemPromise, indexPromise]);
+        return this.collection.deleteMany({});
     }
 
     public getAllValues(key: string, where: any = null): Promise<string[]> {
@@ -172,78 +141,10 @@ export class ProblemRepo {
             {key: 'Sub', value: subtopic}
         ]));
     }
-
-    private async updateIndexOnInsert(problems: Problem[]): Promise<Problem[]> {
-        let madeChanges = false;
-        const problemIndex = await this.getProblemIndex();
-        
-        problems.forEach(problem => {
-            problem.tags.filter(tag => tag.key === 'Topic').map(tag => tag.value).forEach(topic => {
-                if (!problemIndex.index[topic]) problemIndex.index[topic] = {};
-                const topicIndex = problemIndex.index[topic];
-                
-                problem.tags.filter(tag => tag.key === 'Sub').map(tag => tag.value).forEach(sub => {
-                    if (!topicIndex[sub]) topicIndex[sub] = {tags: {}, problems: {}};
-                    const subIndex = topicIndex[sub];
-                    const filteredTags = problem.tags.filter(tag => tag.key !== 'Topic' && tag.key !== 'Sub');
-
-                    filteredTags.forEach(tag => {
-                        if (!subIndex.tags[tag.key]) subIndex.tags[tag.key] = {};
-
-                        const keyIndex = subIndex.tags[tag.key];
-                        if (!keyIndex[tag.value]) keyIndex[tag.value] = 1;
-                        else keyIndex[tag.value] += 1;
-                    });
-                    subIndex.problems[problem._id.toHexString()] = filteredTags;
-                    madeChanges = true;
-                });
-            });
-        });
-        
-        if (madeChanges) await this.updateProblemIndex(problemIndex);
-        return problems;
-    }
-
-    private async updateIndexOnDelete(problems: Problem[]): Promise<Problem[]> {
-        let madeChanges = false;
-        const problemIndex = await this.getProblemIndex();
-
-        problems.forEach(problem => {
-            problem.tags.filter(tag => tag.key == 'Topic').map(tag => tag.value).forEach(topic => {
-                const topicIndex = problemIndex.index[topic];
-                problem.tags.filter(tag => tag.key == 'Sub').map(tag => tag.value).forEach(sub => {
-                    const subIndex = topicIndex[sub];
-                    const filteredTags = problem.tags.filter(tag => tag.key !== 'Topic' && tag.key !== 'Sub');
-
-                    filteredTags.forEach(tag => {
-                        const keyIndex = subIndex.tags[tag.key];
-                        keyIndex[tag.value] -= 1;
-                        // If no problem is using this value, then delete it.
-                        if (0 == keyIndex[tag.value]) delete keyIndex[tag.value];
-
-                        // If this keyIndex has no values, then delete it.
-                        if (0 == Object.keys(subIndex.tags[tag.key]).length)
-                            delete subIndex.tags[tag.key];
-                    });
-                    delete subIndex.problems[problem._id.toHexString()];
-                    madeChanges = true;
-
-                    // If only the key "tags" remains, then delete this subIndex.
-                    if (1 === Object.keys(subIndex).length) delete topicIndex[sub];
-                });
-                // If no subIndex remains, delete this topicIndex.
-                if (0 === Object.keys(topicIndex).length) delete problemIndex.index[topic];
-            });
-        });
-        
-        if (madeChanges) await this.updateProblemIndex(problemIndex);
-        return problems;
-    }
 }
 
 function createProblemRepo() : Promise<ProblemRepo> {
-    return Promise.all([client.collection('problems'), client.collection('problemIndex') ])
-    .then(results => new ProblemRepo(results[0], results[1]));
+    return client.collection('problems').then(collection => new ProblemRepo(collection));
 }
 
 let GlobalProblemRepo: ProblemRepo = null;

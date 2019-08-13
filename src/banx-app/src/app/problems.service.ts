@@ -23,6 +23,10 @@ export class ProblemsService extends BaseService {
       .pipe(map(response => response.map(iproblem => new Problem(iproblem))));
   }
 
+  findKeyValue(tags: KeyValPair[]): Observable<Problem[]> {
+    return this.find(tags.map(t => `${t.key}@${t.value}`));
+  }
+
   get(ids: string[]): Observable<Problem[]> {
     return this.http.post<IProblem[]>(this.getUrl(), ids)
       .pipe(map(response => response.map(p => new Problem(p))));
