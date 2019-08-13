@@ -1,9 +1,12 @@
 import { Collection, Cursor, InsertOneWriteOpResult,
          InsertWriteOpResult,
-         FilterQuery, AggregationCursor, ObjectID, ObjectId } from 'mongodb';
+         FilterQuery, AggregationCursor, ObjectID } from 'mongodb';
 
 import client from './dbClient';
 import { Problem, IProblem, KeyValPair, ProblemIndex } from './schema';
+import { mapObj } from './common';
+
+
 
 export class ProblemRepo {
     constructor(
@@ -125,33 +128,49 @@ export class ProblemRepo {
                 in: { $concatArrays: ["$$value", "$$this"] }
             }}}}
         );
-        const result: AggregationCursor<any> = this.collection.aggregate(stages);
-        return result.toArray().then(results => {
-            console.log(results);
+        return this.collection.aggregate(stages).toArray().then((results: any[]) => {
+            if (results.length === 0) return [];
             return (<string[]>results[0].values)
-            .filter((value, index, self) => {
-                return self.indexOf(value) == index
-            });
+                // Remove duplicates.
+                .filter((value, index, self) => {
+                    return self.indexOf(value) == index;
+                });
         });
     }
 
-    public getSubtopic(topic: string): Promise<string[]> {
-        return this.getAllValues('Subtopic', this.makeQuery([{key: 'Topic', value: topic}]));
+    public getSubtopics(topic: string): Promise<string[]> {
+        return this.getAllValues('Sub', this.makeQuery([{key: 'Topic', value: topic}]));
     }
 
-    public getTags(topic: string, subtopic: string): Promise<KeyValPair[]> {
+    public getTags(topic: string, subtopic: string): Promise<Array<{key: string, values: string[]}>> {
         return this.find([
             {key: 'Topic', value: topic},
             {key: 'Sub', value: subtopic}
         ])
         .toArray()
         .then(problems => {
-            return problems.map(prob => prob.tags)
-            .reduce((tags, all) => {
-                all.push(...tags);
+            const obj = problems.map(prob => prob.tags)
+            .reduce((all, tags) => all.concat(tags), [])
+            .filter((tag, index, arr) => {
+                return tag.key !== 'Topic' && tag.key !== 'Sub'
+                    && arr.findIndex(t => t.key === tag.key && t.value === tag.value) === index
+            })
+            .reduce((all: any, tag) => {
+                if (!all[tag.key]) all[tag.key] = [];
+                all[tag.key].push(tag.value);
                 return all;
-            }, []);
+            }, {});
+            return mapObj(obj, (key, val) => {
+                return {key: key, values: val}
+            });
         });
+    }
+
+    public getValues(topic: string, subtopic: string, tag: string): Promise<string[]> {
+        return this.getAllValues(tag, this.makeQuery([
+            {key: 'Topic', value: topic},
+            {key: 'Sub', value: subtopic}
+        ]));
     }
 
     private async updateIndexOnInsert(problems: Problem[]): Promise<Problem[]> {

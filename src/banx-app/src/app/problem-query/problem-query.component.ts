@@ -142,7 +142,22 @@ export class ProblemQueryComponent implements OnInit {
     this.problems$.next(this.problems$.value.filter(p => p.idStr !== problem.idStr));
   }
 
+  private subtopicCache: {[topic: string]: Observable<string[]>} = {};
+
   private getSubtopics(topic: string): Observable<string[]> {
-    return null;
+    if (!this.subtopicCache[topic]) {
+      this.subtopicCache[topic] = this.problems.getSubtopics(topic);
+    }
+    return this.subtopicCache[topic];
+  }
+
+  private tagCache: {[topic: string]: {[subtopic: string]: Observable<KeyValPair[]>} } = {};
+
+  private getTags(topic: string, subtopic: string): Observable<KeyValPair[]> {
+    if (!this.subtopicCache[topic]) (<any>this.subtopicCache[topic]) = {};
+    if (!this.subtopicCache[topic][subtopic]) {
+      this.subtopicCache[topic][subtopic] = this.problems.getTags(topic, subtopic);
+    }
+    return this.subtopicCache[topic][subtopic];
   }
 }

@@ -184,4 +184,25 @@ router.get('/listTagValues/:tagKey', (req, res, next) => {
     })
 });
 
+router.get('/getSubtopics/:topic', (req, res, next) => {
+    const topic: string = req.params['topic'];
+    req.banxContext.problemRepo.getSubtopics(topic)
+    .then(subtopics => res.send(subtopics))
+    .catch(err => {
+        printError(err, `An error occured while getting the subtopics of topic "${topic}."`);
+        next(err);
+    });
+});
+
+router.get('/getTags/:topic/:subtopic', (req, res, next) => {
+    const topic: string = req.params['topic'];
+    const subtopic: string = req.params['subtopic'];
+    req.banxContext.problemRepo.getTags(topic, subtopic)
+    .then(tags => res.send(tags))
+    .catch(err => {
+        printError(err, `An error occured while getting the tags under topic "${topic}" and subtopic "${subtopic}".`);
+        next(err);
+    });
+});
+
 export default router;

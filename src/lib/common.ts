@@ -1,5 +1,4 @@
 import { KeyValPair, Problem } from './schema';
-import config from './config';
 
 interface IIndexable {
     [key: string]: any;
@@ -9,6 +8,12 @@ export function forEach(obj: IIndexable, callback: (key: any, val: any) => any):
     for (let key in obj) {
         if (obj.hasOwnProperty(key)) callback(key, obj[key]);
     }
+}
+
+export function mapObj(obj: IIndexable, callback: (key: string, val: any, obj: any) => any): any[] {
+    const output = [];
+    forEach(obj, (key, val) => output.push(callback(key, val, this)));
+    return output;
 }
 
 export function copyFields(target: IIndexable, source: Object): void {

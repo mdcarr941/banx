@@ -1,5 +1,6 @@
 import { Component, Input, Output, EventEmitter, ViewChild } from '@angular/core';
-import * as $ from 'jquery';
+
+declare const $: any;
 
 @Component({
   selector: 'app-collapsible',
@@ -21,7 +22,7 @@ export class CollapsibleComponent {
 
   toggle() {
     this.collapsed = !this.collapsed;
-    (<any>$(this.list.nativeElement)).collapse('toggle');
+    $(this.list.nativeElement).collapse('toggle');
     this.toggled.next(this.collapsed);
   }
 }

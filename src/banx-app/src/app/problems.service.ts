@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-import { IProblem, Problem } from '../../../lib/schema';
+import { IProblem, Problem, KeyValPair } from '../../../lib/schema';
 import { BaseService } from './base.service';
 
 @Injectable({
@@ -54,5 +54,13 @@ export class ProblemsService extends BaseService {
 
   listTagValues(tagKey: string): Observable<string[]> {
     return this.http.get<string[]>(this.getUrl(`/listTagValues/${tagKey}`));
+  }
+
+  getSubtopics(topic: string): Observable<string[]> {
+    return this.http.get<string[]>(this.getUrl(`/getSubtopics/${topic}`));
+  }
+
+  getTags(topic: string, subtopic: string): Observable<KeyValPair[]> {
+    return this.http.get<KeyValPair[]>(this.getUrl(`/getTags/${topic}/${subtopic}`));
   }
 }

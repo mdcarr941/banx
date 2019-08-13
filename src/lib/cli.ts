@@ -187,12 +187,23 @@ function listTagValues(repo: ProblemRepo, tagKey: string, lineLimit: number = 80
 }
 
 function getSubtopics(repo: ProblemRepo, topic: string): Promise<void> {
-    return repo.getSubtopic(topic)
+    return repo.getSubtopics(topic)
     .then(subtopics => {
         console.log(subtopics);
         console.log(`Found ${subtopics.length} subtopic${subtopics.length === 1 ? '' : 's'}`);
     })
     .catch(err => printError(err, `Failed to get the subtopics of topic "${topic}".`));
+}
+
+function getTags(repo: ProblemRepo, topic: string, subtopic: string): Promise<void> {
+    return repo.getTags(topic, subtopic)
+    .then(tags => {
+        console.log(tags);
+        //console.log(`Found ${tags.length} tag${tags.length === 1 ? '' : 's'}.`);
+    })
+    .catch(err => printError(err,
+        `Failed to get the tags under the topic "${topic}" and the subtopic "${subtopic}".`
+    ));
 }
 
 type IOptions = {[key: string]: any};
@@ -263,7 +274,12 @@ async function main(argv: string[]) {
         .description('Get all the subtopics of the given topic.')
         .action((topic: string) => {
             action = { command: 'getSubtopics', options: { topic: topic }};
-        })
+        });
+    program.command('getTags <topic> <subtopic>')
+        .description('Get all the tags under the given topic and subtopic, excluding "Topic" and "Sub".')
+        .action((topic: string, subtopic: string) => {
+            action = { command: 'getTags', options: { topic: topic, subtopic: subtopic }};
+        });
     program.parse(argv);
     switch (action.command) {
         case 'insert':
@@ -298,6 +314,9 @@ async function main(argv: string[]) {
             break;
         case 'getSubtopics':
             await getSubtopics(repo, action.options.topic);
+            break;
+        case 'getTags':
+            await getTags(repo, action.options.topic, action.options.subtopic);
             break;
         default:
             throw new Error('unknown command');
