@@ -11,10 +11,10 @@ import config from '../config';
 const router = express.Router();
 
 const transporter = nodemailer.createTransport({
-    host: 'smtp.office365.com',
-    port: 587,
-    secure: false, // office365 uses STARTTLS
-    requireTLS: true, // if STARTTLS is not used, don't send messages
+    host: config.smtpHost,
+    port: config.smtpPort,
+    secure: config.smtpSecure,
+    requireTLS: config.smtpRequireTls,
     auth: {
         user: config.smtpUser,
         pass: config.smtpPass
