@@ -25,13 +25,15 @@ const config = Object.freeze({
     'smtpPort': parseInt(process.env.SMTP_PORT || '25'),
     'smtpUser': process.env.SMTP_USER || 'username',
     'smtpPass': process.env.SMTP_PASS || 'password',
-    // Use TLS from the start.
+    /* Use TLS from the start. */
     'smtpSecure': parseBoolString(process.env.SMTP_SECURE || 'false'),
-    // Require that TLS is started at some point (eg STARTTLS)
+    /* Require that TLS is started at some point (eg STARTTLS) */
     'smtpRequireTls': parseBoolString(process.env.SMTP_REQUIRE_TLS || 'true'),
     'emailRecipient': process.env.EMAIL_RECIPIENT || 'email@example.com',
     /* The prefix under which the banx app is served. */
-    'banxPrefix': cleanPrefix(process.env.BANX_PREFIX || '/')
+    'banxPrefix': cleanPrefix(process.env.BANX_PREFIX || '/'),
+    /* Log request headers to the console. */
+    'logHeaders': parseBoolString(process.env.LOG_HEADERS || 'false')
 });
 
 export default config;

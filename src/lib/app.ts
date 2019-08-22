@@ -11,7 +11,7 @@ import problemsRouter from './routes/problems';
 import { printError } from './common';
 import { UnknownUserError, getGlobalUserRepo } from './userRepo';
 import config from './config';
-import { getGlid } from './middleware';
+import { getGlid, logHeaders } from './middleware';
 
 export const app = express();
 
@@ -23,6 +23,8 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+
+if (config.logHeaders) app.use(logHeaders);
 
 // Only allow users who are in the database to access the app.
 app.use(async (req, res, next) => {
