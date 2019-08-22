@@ -23,8 +23,8 @@ const config = Object.freeze({
     /* Email configuration. */
     'smtpHost': process.env.SMTP_HOST || 'localhost',
     'smtpPort': parseInt(process.env.SMTP_PORT || '25'),
-    'smtpUser': process.env.SMTP_USER || 'username',
-    'smtpPass': process.env.SMTP_PASS || 'password',
+    'smtpUser': process.env.SMTP_USER || 'banx',
+    'smtpPass': process.env.SMTP_PASS || '',
     /* Use TLS from the start. */
     'smtpSecure': parseBoolString(process.env.SMTP_SECURE || 'false'),
     /* Require that TLS is started at some point (eg STARTTLS) */
