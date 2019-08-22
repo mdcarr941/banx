@@ -10,15 +10,17 @@ import config from '../config';
 
 const router = express.Router();
 
+const transporterAuth
+    = (config.smtpPass && config.smtpPass.length > 0)
+    ? { user: config.smtpUser, pass: config.smtpPass }
+    : {}
+
 const transporter = nodemailer.createTransport({
     host: config.smtpHost,
     port: config.smtpPort,
     secure: config.smtpSecure,
     requireTLS: config.smtpRequireTls,
-    auth: {
-        user: config.smtpUser,
-        pass: config.smtpPass
-    }
+    auth: transporterAuth
 }, {
     // Default Message Fields
     from: `Banx <${config.smtpUser}>`,

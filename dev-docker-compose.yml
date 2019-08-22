@@ -1,6 +1,10 @@
 version: "3"
 networks:
   webnet:
+    ipam:
+      driver: default
+      config:
+        - subnet: "172.19.0.0/16"
 volumes:
   mongodata:
     external:
