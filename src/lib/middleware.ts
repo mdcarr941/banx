@@ -21,7 +21,8 @@ declare global {
 }
   
 export function getGlid(req: any): string {
-    return req.headers.ufshib_glid;
+    const eppn = req.headers.ufshib_eppn
+    return eppn ? eppn.split('@')[0] : '';
 }
 
 export function onlyAllowAdmin(req: express.Request, res: express.Response, next: express.NextFunction) {
