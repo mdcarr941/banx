@@ -31,7 +31,7 @@ const transporter = nodemailer.createTransport({
 
 function printError(err: Error, message?: string) {
     if (!message) message = '';
-    message = 'API controller: ' + message;
+    message = 'problems controller: ' + message;
     commonPrintError(err, message);
 }
 

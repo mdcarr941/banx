@@ -44,7 +44,7 @@ router.get('*', async (req, res, next) => {
 // We get the repository right when the app starts so that the first
 // request is not slowed down by its creation.
 getGlobalProblemRepo()
-.then(() => console.log('index: Now connected to the database.'))
+.then(() => console.log(`index: Now connected to the database at ${config.mongoUri}.`))
 .catch(err => printError(err, 'Failed to get repositories'));
 
 export default router;
