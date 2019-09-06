@@ -3,6 +3,7 @@ import { ObjectID } from 'mongodb';
 import { Problem } from './schema';
 import { GlobalSageServer, SageVariables } from './sageServer';
 import { ProblemRepo, getGlobalProblemRepo } from './problemRepo';
+import { problemStringParser } from 'common';
 
 interface ContentPartition {
     code?: string;
@@ -37,12 +38,29 @@ export class ProblemGenerator {
         };
     }
 
+    private static needEscapes = [
+        /pi/g, /sqrt\([^)]*\)/g, /sin/g, /cos/g, /tan/g, /cot/g, /sec/g, /csc/g
+    ];
+
+    private static escapeLatexCommands(text: any): string {
+        if (typeof text !== 'string') return text;
+        ProblemGenerator.needEscapes.forEach(pattern => {
+            text = text.replace(pattern, (match: string, capture: string) => {
+                let output = '\\' + match;
+                if (capture) output += `{${capture}}`;
+                return output;
+            });
+        });
+        return text;
+    }
+
     private static sageVarRgx = /\\sage{([^}]*)}/g;
 
     private static replaceVars(content: string, vars: SageVariables) {
         return content.replace(
             ProblemGenerator.sageVarRgx,
             (match: string, varName: string) => vars[varName]
+            //(match: string, varName: string) => ProblemGenerator.escapeLatexCommands(vars[varName])
         ).trim();
     }
 

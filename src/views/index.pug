@@ -5,11 +5,11 @@ block content
 
 block scripts
   script const topics = !{topicsStr}; const remoteUser = !{remoteUser};
+  script(type="text/x-mathjax-config") MathJax.Hub.Config({ tex2jax: {inlineMath: [ ['$', '$'], ['\\(', '\\)'] ]} })
+  script(src="./public/mathjax/MathJax.js?config=TeX-MML-AM_CHTML")
   script(src="./public/banx-app/runtime.js")
   script(src="./public/banx-app/es2015-polyfills.js")
   script(src="./public/banx-app/polyfills.js")
   script(src="./public/banx-app/styles.js")
   script(src="./public/banx-app/vendor.js")
   script(src="./public/banx-app/main.js")
-  script(type="text/x-mathjax-config") MathJax.Hub.Config({ tex2jax: {inlineMath: [ ['$', '$'], ['\\(', '\\)'] ]} })
-  script(src="./public/mathjax/MathJax.js?config=TeX-MML-AM_CHTML" async)
