@@ -4,6 +4,7 @@ import { Problem } from './schema';
 import { GlobalSageServer, SageVariables } from './sageServer';
 import { ProblemRepo, getGlobalProblemRepo } from './problemRepo';
 import { problemStringParser } from 'common';
+import { createTestAccount } from 'nodemailer';
 
 interface ContentPartition {
     code?: string;
@@ -38,16 +39,27 @@ export class ProblemGenerator {
         };
     }
 
-    private static needEscapes = [
-        /pi/g, /sqrt\([^)]*\)/g, /sin/g, /cos/g, /tan/g, /cot/g, /sec/g, /csc/g
-    ];
+    private static needEscapes = [/(pi)/g];
+
+    private static makeFunctionRegExps(...funcNames: string[]): RegExp[] {
+        return funcNames.map(funcName => new RegExp(`(${funcName})\\(([^)]+)\\)`, 'g'));
+    }
+
+    private static oneParamFunctions = ProblemGenerator.makeFunctionRegExps(
+        'sqrt', 'sin', 'cos', 'tan', 'cot', 'sec', 'csc'
+    );
 
     private static escapeLatexCommands(text: any): string {
         if (typeof text !== 'string') return text;
+        text = text.replace(/\*/g, '');
         ProblemGenerator.needEscapes.forEach(pattern => {
-            text = text.replace(pattern, (match: string, capture: string) => {
-                let output = '\\' + match;
-                if (capture) output += `{${capture}}`;
+            text = text.replace(pattern, (_match: string, capture1: string) => '\\' + capture1);
+        })
+        ProblemGenerator.oneParamFunctions.forEach(pattern => {
+            text = text.replace(pattern, (_match: string, capture1: string, capture2: string) => {
+                let output = '';
+                if (capture1) output += '\\' + capture1;
+                if (capture2) output += `{${capture2}}`;
                 return output;
             });
         });
@@ -59,8 +71,7 @@ export class ProblemGenerator {
     private static replaceVars(content: string, vars: SageVariables) {
         return content.replace(
             ProblemGenerator.sageVarRgx,
-            (match: string, varName: string) => vars[varName]
-            //(match: string, varName: string) => ProblemGenerator.escapeLatexCommands(vars[varName])
+            (_match: string, varName: string) => ProblemGenerator.escapeLatexCommands(vars[varName])
         ).trim();
     }
 
