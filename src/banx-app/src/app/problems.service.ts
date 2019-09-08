@@ -60,6 +60,10 @@ export class ProblemsService extends BaseService {
     return this.http.get<string[]>(this.getUrl(`/listTagValues/${tagKey}`));
   }
 
+  getTopics(): Observable<string[]> {
+    return this.http.get<string[]>(this.getUrl('/getTopics'));
+  }
+
   getSubtopics(topic: string): Observable<string[]> {
     return this.http.get<string[]>(this.getUrl(`/getSubtopics/${topic}`));
   }

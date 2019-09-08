@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, OnInit, EventEmitter } from '@angular/core';
 
 import { ProblemsService } from '../problems.service';
 import { InstanceService } from '../instance.service';
@@ -7,9 +7,6 @@ import { forEach } from '../../../../lib/common';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { QueryComponent } from '../query/query.component';
 import { NotificationService } from '../notification.service';
-
-// This is rendered into the index template by the index controller.
-declare const topics: string[];
 
 interface StringBag {
   [key: string]: StringBag
@@ -20,9 +17,11 @@ interface StringBag {
   templateUrl: './problem-query.component.html',
   styleUrls: ['./problem-query.component.css']
 })
-export class ProblemQueryComponent {
-  private problems$ = new BehaviorSubject<Problem[]>(null);
-  private topics: string[] = topics;
+export class ProblemQueryComponent implements OnInit {
+  private readonly problems$ = new BehaviorSubject<Problem[]>(null);
+  private readonly topics$ = new EventEmitter<string[]>();
+  private subtopicCache: {[topic: string]: Observable<string[]>} = {};
+  private tagCache: {[topic: string]: {[subtopic: string]: Observable<KeyValPair[]>} } = {};
   private query: StringBag = {};
   // This class uses query to keep track of
   // which `Problem Query` selections have been made.
@@ -45,6 +44,11 @@ export class ProblemQueryComponent {
     private instanceService: InstanceService,
     private notificationService: NotificationService
   ) { }
+
+  ngOnInit() {
+    this.problems.getTopics()
+    .subscribe(topics => this.topics$.next(topics));
+  }
 
   private _toggle(superState: StringBag, args: string[]): void {
     const arg = args[0];
@@ -113,9 +117,13 @@ export class ProblemQueryComponent {
 
   private removeProblem(problem: Problem) {
     this.problems$.next(this.problems$.value.filter(p => p.idStr !== problem.idStr));
+    this.problems.getTopics().subscribe(topics => {
+      this.query = {};
+      this.topics$.next(topics);
+      this.subtopicCache = {};
+      this.tagCache = {};
+    });
   }
-
-  private subtopicCache: {[topic: string]: Observable<string[]>} = {};
 
   private getSubtopics(topic: string): Observable<string[]> {
     if (!this.subtopicCache[topic]) {
@@ -123,8 +131,6 @@ export class ProblemQueryComponent {
     }
     return this.subtopicCache[topic];
   }
-
-  private tagCache: {[topic: string]: {[subtopic: string]: Observable<KeyValPair[]>} } = {};
 
   private getTags(topic: string, subtopic: string): Observable<KeyValPair[]> {
     if (!this.subtopicCache[topic]) (<any>this.subtopicCache[topic]) = {};

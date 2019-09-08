@@ -186,6 +186,15 @@ router.get('/listTagValues/:tagKey', (req, res, next) => {
     })
 });
 
+router.get('/getTopics', (req, res, next) => {
+    req.banxContext.problemRepo.getTopics()
+    .then(topics => res.send(topics))
+    .catch(err => {
+        printError(err, 'An error occured while calling getTopics.');
+        next(err);
+    })
+});
+
 router.get('/getSubtopics/:topic', (req, res, next) => {
     const topic: string = req.params['topic'];
     req.banxContext.problemRepo.getSubtopics(topic)

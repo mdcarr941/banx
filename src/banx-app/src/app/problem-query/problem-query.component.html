@@ -8,7 +8,7 @@
     <div class="sidebar-sticky">
       <ul class="nav flex-column">
         <h4>Topics</h4>
-        <app-collapsible  *ngFor="let topic of topics"
+        <app-collapsible  *ngFor="let topic of topics$ | async"
             [itemName]="topic"
             (toggled)="toggle(topic)">
           <h5>Subtopics</h5>

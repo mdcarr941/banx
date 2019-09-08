@@ -107,6 +107,10 @@ export class ProblemRepo {
         });
     }
 
+    public getTopics(): Promise<string[]> {
+        return this.getAllValues('Topic');
+    }
+
     public getSubtopics(topic: string): Promise<string[]> {
         return this.getAllValues('Sub', this.makeQuery([{key: 'Topic', value: topic}]));
     }
