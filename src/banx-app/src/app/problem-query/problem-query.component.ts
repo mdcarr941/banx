@@ -1,10 +1,10 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 
 import { ProblemsService } from '../problems.service';
 import { InstanceService } from '../instance.service';
 import { KeyValPair, Problem } from '../../../../lib/schema';
 import { forEach } from '../../../../lib/common';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
 import { QueryComponent } from '../query/query.component';
 import { NotificationService } from '../notification.service';
 
@@ -20,8 +20,8 @@ interface StringBag {
   templateUrl: './problem-query.component.html',
   styleUrls: ['./problem-query.component.css']
 })
-export class ProblemQueryComponent implements OnInit {
-  private problems$ = new BehaviorSubject<Problem[]>([]);
+export class ProblemQueryComponent {
+  private problems$ = new BehaviorSubject<Problem[]>(null);
   private topics: string[] = topics;
   private query: StringBag = {};
   // This class uses query to keep track of
@@ -37,13 +37,14 @@ export class ProblemQueryComponent implements OnInit {
   //   }
   // };
 
+  @ViewChild('queryButton') queryButton;
+  @ViewChild('queryComponent') queryComponent: QueryComponent;
+
   constructor(
     private problems: ProblemsService,
     private instanceService: InstanceService,
     private notificationService: NotificationService
   ) { }
-
-  ngOnInit() { }
 
   private _toggle(superState: StringBag, args: string[]): void {
     const arg = args[0];
@@ -60,8 +61,6 @@ export class ProblemQueryComponent implements OnInit {
     return
     
   }
-
-  @ViewChild('queryButton') queryButton;
 
   private toggleQueryButton(query: StringBag): void {
     // The query is ready if there is at least one (topic, subtopic) pair.
@@ -99,7 +98,6 @@ export class ProblemQueryComponent implements OnInit {
     return output;
   }
 
-  @ViewChild('queryComponent') queryComponent: QueryComponent;
 
   private getProblems() {
     this.notificationService.showLoading('Getting problems.');

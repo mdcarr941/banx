@@ -1,5 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { Component, ViewChild, EventEmitter } from '@angular/core';
 
 import { Problem } from '../../../../lib/schema';
 import { ProblemsService } from '../problems.service';
@@ -14,15 +13,16 @@ import { NotificationService } from '../notification.service';
 })
 export class TagQueryComponent {
   @ViewChild('tagsInput') private tagsInput;
-  private problems$ = new BehaviorSubject<Problem[]>([]);
-  static readonly whiteSpaceRgx = /[\s]+/;
+  @ViewChild('queryComponent') queryComponent: QueryComponent;
+
+  private problems$ = new EventEmitter<Problem[]>();
+
+  private static readonly whiteSpaceRgx = /[\s]+/;
 
   constructor(
     private problems: ProblemsService,
     private notifcations: NotificationService
   ) { }
-
-  @ViewChild('queryComponent') queryComponent: QueryComponent;
 
   private searchTags() {
     const queryInput: string = this.tagsInput.nativeElement.value;

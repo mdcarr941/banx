@@ -17,9 +17,9 @@
 <div class="row">
 
   <div class="col-md-3">
-    <div class="invisible" #resultCounter>
+    <div *ngIf="problems$ | async as problems">
       <span class="font-weight-bold">Problems Found: </span>
-      <span *ngIf="problems$ | async as problems">{{problems.length}}</span>
+      <span>{{problems.length}}</span>
     </div>
     <ng-content></ng-content>
   </div>
