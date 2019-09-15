@@ -1,12 +1,10 @@
 import { Component, OnInit, ViewChild, Output, Input, OnDestroy, EventEmitter } from '@angular/core';
-import { Observable, Subscription } from 'rxjs';
+import { Observable } from 'rxjs';
 
 import { InstanceService } from '../instance.service';
 import { ProblemListComponent } from '../problem-list/problem-list.component';
 import { Problem } from '../../../../lib/schema';
 import { takeUntil } from 'rxjs/operators';
-
-declare let MathJax: any;
 
 @Component({
   selector: 'app-query',

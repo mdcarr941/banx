@@ -2,8 +2,8 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
 import { BanxUser, UserRole } from '../../../../lib/schema';
-import { UsersService } from '../users.service';
 import { ModalComponent } from '../modal/modal.component';
+import { UsersService } from '../users.service';
 import { NotificationService } from '../notification.service';
 
 @Component({

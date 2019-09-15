@@ -8,7 +8,10 @@ declare const remoteUser: IBanxUser;
   providedIn: 'root'
 })
 export class RemoteUserService {
-  public readonly remoteUser = new BanxUser(remoteUser);
+  public readonly remoteUser
+    = typeof remoteUser === 'object'
+    ? new BanxUser(remoteUser)
+    : new BanxUser({glid: 'nobody', roles: []});
 
   constructor() { }
 }

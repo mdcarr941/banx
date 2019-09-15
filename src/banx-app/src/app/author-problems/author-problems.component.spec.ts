@@ -1,4 +1,7 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { FormsModule } from '@angular/forms';
+import { HttpClientModule } from '@angular/common/http';
+import { AngularMonacoEditorModule, AngularMonacoEditorConfig } from 'angular-monaco-editor';
 
 import { AuthorProblemsComponent } from './author-problems.component';
 
@@ -8,6 +11,11 @@ describe('AuthorProblemsComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
+      imports: [ 
+        FormsModule,
+        HttpClientModule,
+        AngularMonacoEditorModule.forRoot()
+      ],
       declarations: [ AuthorProblemsComponent ]
     })
     .compileComponents();

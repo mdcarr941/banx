@@ -1,6 +1,8 @@
+import { EventEmitter } from '@angular/core';
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { NotificationViewComponent } from './notification-view.component';
+import { Notification } from '../notification.service';
 
 describe('NotificationViewComponent', () => {
   let component: NotificationViewComponent;
@@ -16,6 +18,7 @@ describe('NotificationViewComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(NotificationViewComponent);
     component = fixture.componentInstance;
+    component.notification$ = new EventEmitter<Notification>();
     fixture.detectChanges();
   });
 

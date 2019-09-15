@@ -1,6 +1,13 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientModule } from '@angular/common/http';
+import { FormsModule } from '@angular/forms';
+import { AngularMonacoEditorModule } from 'angular-monaco-editor';
 
 import { TagQueryComponent } from './tag-query.component';
+import { QueryComponent } from '../query/query.component';
+import { ProblemListComponent } from '../problem-list/problem-list.component';
+import { ProblemComponent } from '../problem/problem.component';
+import { ModalComponent } from '../modal/modal.component';
 
 describe('TagQueryComponent', () => {
   let component: TagQueryComponent;
@@ -8,7 +15,18 @@ describe('TagQueryComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ TagQueryComponent ]
+      imports: [
+        HttpClientModule,
+        AngularMonacoEditorModule.forRoot(),
+        FormsModule
+      ],
+      declarations: [
+        TagQueryComponent,
+        QueryComponent,
+        ProblemListComponent,
+        ProblemComponent,
+        ModalComponent
+      ]
     })
     .compileComponents();
   }));

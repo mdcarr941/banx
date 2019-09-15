@@ -1,6 +1,6 @@
 import { Component, Input, ViewChild, OnInit, Output, EventEmitter } from '@angular/core';
 import { AngularMonacoEditorComponent } from 'angular-monaco-editor';
-import { BehaviorSubject, Subscription } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 
 import { ProblemsService } from '../problems.service';
 import { NotificationService } from '../notification.service';
@@ -8,8 +8,7 @@ import { RemoteUserService } from '../remote-user.service';
 import { Problem } from '../../../../lib/schema';
 import { parseTagString } from '../../../../lib/common';
 import { ModalComponent } from '../modal/modal.component';
-
-declare const MathJax: any;
+import { useMathJax } from '../app.component';
 
 @Component({
   selector: 'app-problem',
@@ -37,7 +36,9 @@ export class ProblemComponent implements OnInit {
 
   private renderMath() {
     // BADBAD: Using setTimeout is an ugly hack.
-    setTimeout(() => MathJax.Hub.Queue(["Typeset", MathJax.Hub]), 200);
+    useMathJax(mathJax => {
+      setTimeout(() => mathJax.Hub.Queue(["Typeset", mathJax.Hub]), 200);
+    });
   }
 
   private problem$: BehaviorSubject<Problem>;

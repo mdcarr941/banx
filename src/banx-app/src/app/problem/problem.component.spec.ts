@@ -1,6 +1,10 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientModule } from '@angular/common/http';
+import { FormsModule } from '@angular/forms';
+import { AngularMonacoEditorModule } from 'angular-monaco-editor';
 
 import { ProblemComponent } from './problem.component';
+import { ModalComponent } from '../modal/modal.component';
 
 describe('ProblemComponent', () => {
   let component: ProblemComponent;
@@ -8,7 +12,15 @@ describe('ProblemComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ ProblemComponent ]
+      imports: [
+        HttpClientModule,
+        FormsModule,
+        AngularMonacoEditorModule.forRoot()
+      ],
+      declarations: [
+        ProblemComponent,
+        ModalComponent
+      ]
     })
     .compileComponents();
   }));

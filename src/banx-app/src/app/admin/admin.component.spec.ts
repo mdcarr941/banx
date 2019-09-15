@@ -1,25 +1,17 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClient } from '@angular/common/http';
 
 import { AdminComponent } from './admin.component';
+import { UsersService } from '../users.service';
+import { NotificationService } from '../notification.service';
+
+function setup(): AdminComponent {
+  const usersService = new UsersService(null as HttpClient);
+  const notificationService = new NotificationService();
+  return new AdminComponent(usersService, notificationService);
+}
 
 describe('AdminComponent', () => {
-  let component: AdminComponent;
-  let fixture: ComponentFixture<AdminComponent>;
-
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [ AdminComponent ]
-    })
-    .compileComponents();
-  }));
-
-  beforeEach(() => {
-    fixture = TestBed.createComponent(AdminComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
-
   it('should create', () => {
-    expect(component).toBeTruthy();
+    expect(setup()).toBeTruthy();
   });
 });
