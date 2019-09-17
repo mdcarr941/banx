@@ -12,6 +12,10 @@ interface StringBag {
   [key: string]: StringBag
 }
 
+interface QueryNode {
+  [key: string]: {selected: boolean, entries: QueryNode}
+}
+
 @Component({
   selector: 'app-problem-query',
   templateUrl: './problem-query.component.html',
@@ -19,10 +23,8 @@ interface StringBag {
 })
 export class ProblemQueryComponent implements OnInit {
   private readonly problems$ = new BehaviorSubject<Problem[]>(null);
-  private readonly topics$ = new EventEmitter<string[]>();
-  private subtopicCache: {[topic: string]: Observable<string[]>} = {};
-  private tagCache: {[topic: string]: {[subtopic: string]: Observable<KeyValPair[]>} } = {};
   private query: StringBag = {};
+  private queryRoot: QueryNode = {};
   // This class uses query to keep track of
   // which `Problem Query` selections have been made.
   // It looks like this:
@@ -35,6 +37,9 @@ export class ProblemQueryComponent implements OnInit {
   //     }
   //   }
   // };
+  private readonly topics$ = new EventEmitter<string[]>();
+  private subtopicCache: {[topic: string]: Observable<string[]>} = {};
+  private tagCache: {[topic: string]: {[subtopic: string]: Observable<KeyValPair[]>} } = {};
 
   @ViewChild('queryButton') queryButton;
   @ViewChild('queryComponent') queryComponent: QueryComponent;
@@ -47,7 +52,7 @@ export class ProblemQueryComponent implements OnInit {
 
   ngOnInit() {
     this.problems.getTopics()
-    .subscribe(topics => this.topics$.next(topics));
+      .subscribe(this.topics$);
   }
 
   private _toggle(superState: StringBag, args: string[]): void {
@@ -63,7 +68,27 @@ export class ProblemQueryComponent implements OnInit {
     }
     this._toggle(superState[arg], args.slice(1));
     return
-    
+  }
+
+  private _toggleNew(currentNode: QueryNode, keysToToggle: string[]): void {
+    if (keysToToggle.length === 0) return;
+
+    const currentKey = keysToToggle[0];
+    if (1 == keysToToggle.length) {
+      if (currentKey in currentNode) {
+        const selected = currentNode[currentKey].selected;
+        currentNode[currentKey].selected = !selected;
+      }
+      else {
+        currentNode[currentKey] = {selected: true, entries: {}};
+      }
+    }
+    else {
+      if (!(currentKey in currentNode)) {
+        currentNode[currentKey] = {selected: true, entries: {}};
+      }
+      this._toggleNew(currentNode[currentKey].entries, keysToToggle.slice(1));
+    }
   }
 
   private toggleQueryButton(query: StringBag): void {
@@ -80,13 +105,20 @@ export class ProblemQueryComponent implements OnInit {
     this.queryButton.nativeElement.disabled = true;
   }
 
-  private toggle(...args: string[]) {
-    this._toggle(this.query, args);
-    this.toggleQueryButton(this.query);
-    return;
+  private queryButtonDisabled(): void {
   }
 
-  private compileQuery() {
+  private toggle(...args: string[]): void {
+    this._toggle(this.query, args);
+    this.toggleQueryButton(this.query);
+  }
+
+  private toggleNew(...args: string[]): void {
+    this._toggleNew(this.queryRoot, args);
+    //this.toggleQueryButton(t)
+  }
+
+  private compileQuery(): KeyValPair[] {
     const output = [];
     forEach(this.query, (topic: string, subtopics: StringBag) => {
       output.push({key: 'Topic', value: topic});
@@ -103,7 +135,7 @@ export class ProblemQueryComponent implements OnInit {
   }
 
 
-  private getProblems() {
+  private getProblems(): void {
     this.notificationService.showLoading('Getting problems.');
     this.problems.findKeyValue(this.compileQuery())
       .subscribe(problems => {
@@ -125,14 +157,14 @@ export class ProblemQueryComponent implements OnInit {
     });
   }
 
-  private getSubtopics(topic: string): Observable<string[]> {
+  public getSubtopics(topic: string): Observable<string[]> {
     if (!this.subtopicCache[topic]) {
       this.subtopicCache[topic] = this.problems.getSubtopics(topic);
     }
     return this.subtopicCache[topic];
   }
 
-  private getTags(topic: string, subtopic: string): Observable<KeyValPair[]> {
+  public getTags(topic: string, subtopic: string): Observable<KeyValPair[]> {
     if (!this.subtopicCache[topic]) (<any>this.subtopicCache[topic]) = {};
     if (!this.subtopicCache[topic][subtopic]) {
       this.subtopicCache[topic][subtopic] = this.problems.getTags(topic, subtopic);

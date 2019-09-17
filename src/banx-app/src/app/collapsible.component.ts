@@ -22,7 +22,9 @@ export class CollapsibleComponent {
 
   toggle() {
     this.collapsed = !this.collapsed;
-    $(this.list.nativeElement).collapse('toggle');
+    if (typeof $ === 'function') {
+      $(this.list.nativeElement).collapse('toggle');
+    }
     this.toggled.next(this.collapsed);
   }
 }
