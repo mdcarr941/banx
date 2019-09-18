@@ -19,7 +19,9 @@ interface QueryNode {
 })
 export class ProblemQueryComponent implements OnInit {
   private readonly problems$ = new BehaviorSubject<Problem[]>(null);
-  private queryRoot: QueryNode = {};
+  private readonly topics$ = new EventEmitter<string[]>();
+  private subtopicCache: {[topic: string]: Observable<string[]>} = {};
+  private tagCache: {[topic: string]: {[subtopic: string]: Observable<KeyValPair[]>} } = {};
   // This class uses queryRoot to keep track of
   // which `Problem Query` selections have been made.
   // It looks like this:
@@ -34,9 +36,7 @@ export class ProblemQueryComponent implements OnInit {
   //             }}
   //         }}
   //     }}
-  private readonly topics$ = new EventEmitter<string[]>();
-  private subtopicCache: {[topic: string]: Observable<string[]>} = {};
-  private tagCache: {[topic: string]: {[subtopic: string]: Observable<KeyValPair[]>} } = {};
+  private queryRoot: QueryNode = {};
 
   @ViewChild('queryComponent') queryComponent: QueryComponent;
 
@@ -129,14 +129,14 @@ export class ProblemQueryComponent implements OnInit {
     });
   }
 
-  public getSubtopics(topic: string): Observable<string[]> {
+  private getSubtopics(topic: string): Observable<string[]> {
     if (!this.subtopicCache[topic]) {
       this.subtopicCache[topic] = this.problems.getSubtopics(topic);
     }
     return this.subtopicCache[topic];
   }
 
-  public getTags(topic: string, subtopic: string): Observable<KeyValPair[]> {
+  private getTags(topic: string, subtopic: string): Observable<KeyValPair[]> {
     if (!this.subtopicCache[topic]) (<any>this.subtopicCache[topic]) = {};
     if (!this.subtopicCache[topic][subtopic]) {
       this.subtopicCache[topic][subtopic] = this.problems.getTags(topic, subtopic);
