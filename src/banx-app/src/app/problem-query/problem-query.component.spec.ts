@@ -1,10 +1,7 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import { HttpClientModule } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { AngularMonacoEditorModule } from 'angular-monaco-editor';
-import { Observable, of } from 'rxjs';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { By } from '@angular/platform-browser';
 
 import { ProblemQueryComponent } from './problem-query.component';
 import { QueryComponent } from '../query/query.component';
@@ -12,26 +9,12 @@ import { CollapsibleComponent } from '../collapsible.component';
 import { ProblemListComponent } from '../problem-list/problem-list.component';
 import { ProblemComponent } from '../problem/problem.component';
 import { ModalComponent } from '../modal/modal.component';
-import { ProblemsService } from '../problems.service';
-import { Problem, IProblem } from '../../../../lib/schema';
-import { copyAnimationEvent } from '@angular/animations/browser/src/render/shared';
 
-fdescribe('ProblemQueryComponent', () => {
+describe('ProblemQueryComponent', () => {
   let component: ProblemQueryComponent;
   let fixture: ComponentFixture<ProblemQueryComponent>;
   let httpTestingController: HttpTestingController;
   let nativeElement: HTMLElement;
-  
-  // const problemServiceStub: Partial<ProblemsService> = {
-  //   find(tags: string[]): Observable<Problem[]> {
-  //     return of([
-  //       { _id: null, idStr: 'TestProblem', content: 'Test Problem content.', tags: [
-  //         { key: 'Topic', value: 'TestProblems' },
-  //         { key: 'Sub', value: 'Set0' }
-  //       ]}
-  //     ].map(iproblem => new Problem(iproblem)));
-  //   }
-  // }
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
@@ -76,7 +59,7 @@ fdescribe('ProblemQueryComponent', () => {
     req.flush(['Test Problems']);
   });
 
-  it('should turn off check boxes when a tag is deselected', () => {
+  it('should remember query parameters when a tag value is closed and then reopened', () => {
     fixture.detectChanges(); // do ngOnInit()
 
     const reqs = httpTestingController.match('problems/getTopics');
@@ -138,9 +121,9 @@ fdescribe('ProblemQueryComponent', () => {
     queryButton.click();
 
     const firstColor = tags.find(t => t.key === 'Color').values[0];
-    const reqs4 = httpTestingController.match(
-      `problems/?tags=Topic@${topic}&tags=Sub@${subtopic}&tags=Color@${firstColor}`
-    );
+    const queryUrl = `problems/?tags=Topic@${topic}&tags=Sub@${subtopic}&tags=Color@${firstColor}`;
+    const reqs4 = httpTestingController.match(queryUrl);
+
     expect(reqs4.length).toEqual(1);
     expect(reqs4[0].request.method).toEqual('GET');
 
@@ -149,7 +132,14 @@ fdescribe('ProblemQueryComponent', () => {
       {_id: null, idStr: problemId, content: 'Test problem content.', tags: [
         {key: 'Topic', value: topic},
         {key: 'Subtopic', value: subtopic},
-        {key: 'Color', value: firstColor}
+        {key: 'Color', value: firstColor},
+        {key: 'Unique', value: '1'}
+      ]},
+      {_id: null, idStr: problemId, content: 'Test problem 2 content.', tags: [
+        {key: 'Topic', value: topic},
+        {key: 'Subtopic', value: subtopic},
+        {key: 'Color', value: firstColor},
+        {key: 'Unique', value: '2'}
       ]}
     ];
     reqs4[0].flush(problems);
@@ -164,12 +154,25 @@ fdescribe('ProblemQueryComponent', () => {
     const hitCounter: HTMLElement = nativeElement.querySelector(
       'app-query > div:nth-child(2) > div.col-md-3 > div > span:nth-child(2)'
     );
-    expect(hitCounter.innerText).toEqual('1');
+    expect(hitCounter.innerText).toEqual('2');
 
-    // This will collapse the tag value list.
+    // The first click will collapse the tag value list...
     firstTag.click();
 
-    // Now the first value should not be checked.
-    expect(firstValue.checked).toEqual(false);
+    // and the second will open it back up.
+    firstTag.click();
+
+    // Now when we query we should be using the same parameters as before.
+    queryButton.click();
+
+    const reqs5 = httpTestingController.match(queryUrl);
+    expect(reqs5.length).toEqual(1);
+    expect(reqs5[0].request.method).toEqual('GET');
+
+    reqs5[0].flush(problems);
+
+    fixture.detectChanges();
+
+    expect(hitCounter.innerText).toEqual('2');
   });
 });

@@ -3,7 +3,7 @@
     Select a topic and a subtopic below to form a query.
     Optionally you can add tags to narrow the results.
   </p>
-  <button class="btn btn-primary" (click)="getProblems()" disabled #queryButton>Get Problems</button>
+  <button class="btn btn-primary" (click)="getProblems()" [disabled]="queryButtonDisabled()">Get Problems</button>
   <nav class="d-none d-md-block bg-light sidebar">
     <div class="sidebar-sticky">
       <ul class="nav flex-column">

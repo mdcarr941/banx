@@ -6,7 +6,7 @@
     "start": "node_modules/@angular/cli/bin/ng serve",
     "build": "node_modules/@angular/cli/bin/ng build",
     "build-watch": "node_modules/@angular/cli/bin/ng build --watch",
-    "test": "CHROME_BIN=/usr/bin/chromium node_modules/@angular/cli/bin/ng test",
+    "test": "CHROME_BIN=/usr/bin/chromium-browser node_modules/@angular/cli/bin/ng test",
     "lint": "node_modules/@angular/cli/bin/ng lint",
     "e2e": "node_modules/@angular/cli/bin/ng e2e"
   },
