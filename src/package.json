@@ -18,7 +18,7 @@
     "nodemon": "node_modules/nodemon/bin/nodemon.js --signal SIGTERM ./www",
     "dev": "npm run ng-build-watch & npm run build-watch & npm run nodemon",
     "prod": "npm run build-all && npm run start",
-    "test": "node ./bin/tests.js",
+    "test": "node_modules/jasmine/bin/jasmine.js",
     "cli": "node ./bin/cli.js"
   },
   "author": "",
@@ -49,6 +49,7 @@
     "@types/mongodb": "^3.1.28",
     "@types/morgan": "^1.7.35",
     "@types/nodemailer": "^4.6.8",
+    "jasmine": "^3.5.0",
     "nodemon": "^1.19.1",
     "typescript": "^3.5.1"
   }

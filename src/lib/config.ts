@@ -33,7 +33,8 @@ const config = Object.freeze({
     /* The prefix under which the banx app is served. */
     'banxPrefix': cleanPrefix(process.env.BANX_PREFIX || '/'),
     /* Log request headers to the console. */
-    'logHeaders': parseBoolString(process.env.LOG_HEADERS || 'false')
+    'logHeaders': parseBoolString(process.env.LOG_HEADERS || 'false'),
+    'repoDir': process.env.REPO_DIR || '../repositories'
 });
 
 export default config;
