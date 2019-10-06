@@ -25,8 +25,10 @@ export class RepoRepo {
         return this.repoCollection.insertOne(repo);
     }
 
-    public list(namePrefix?: string): Cursor<string> {
-        const searchArgs = (namePrefix) ? {name: {$regex: new RegExp('/^' + namePrefix)}} : {};
+    public list(namePrefix?: string, caseInsensitive?: boolean): Cursor<string> {
+        const searchArgs = (namePrefix)
+            ? {name: {$regex: new RegExp('^' + namePrefix, (caseInsensitive === true) ? 'i' : '')}}
+            : {};
         return this.repoCollection.find(searchArgs)
         .map(irepo => irepo.name);
     }
