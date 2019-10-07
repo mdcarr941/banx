@@ -12,7 +12,7 @@ describe('RepoRepo', function() {
     });
 
     it('can create and delete repos', async function() {
-        const repoName = 'TestRepository';
+        const repoName = 'TestRepository289089';
         const repo = new Repository({name: repoName});
         const output = await globalRepoRepo.insert(repo);
         expect(output.result.ok).toBe(1);
@@ -105,5 +105,21 @@ describe('RepoRepo', function() {
 
         const success2 = await globalRepoRepo.del(name2);
         expect(success2).toBe(true);
+    });
+
+    it('should be able to persist users', async function() {
+        const name = 'PersistUsersRepo';
+        const glids = ['mdcarr'];
+        const repo = new Repository({name: name, glids: glids});
+        const insert = await globalRepoRepo.insert(repo);
+        expect(insert.result.ok).toBe(1);
+
+        const loaded = await globalRepoRepo.get(name);
+        expect(loaded.name).toBe(name);
+        expect(loaded.glids.length).toBe(1);
+        expect(loaded.glids[0]).toBe(glids[0]);
+
+        const success = await globalRepoRepo.del(name);
+        expect(success).toBe(true);
     });
 });

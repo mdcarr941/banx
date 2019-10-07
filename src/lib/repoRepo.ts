@@ -1,8 +1,10 @@
 import { Collection, InsertOneWriteOpResult, Cursor } from 'mongodb';
+import * as git from 'isomorphic-git';
 
 import { Repository, IRepository, BanxUser } from './schema';
 import client from './dbClient';
 import { NonExistantCollectionError } from './dbClient';
+import config from './config';
 
 export class RepoRepo {
     static readonly repoCollectionName = 'repos';
@@ -22,7 +24,7 @@ export class RepoRepo {
     }
 
     public insert(repo: Repository): Promise<InsertOneWriteOpResult> {
-        return this.repoCollection.insertOne(repo);
+        return this.repoCollection.insertOne(repo.toSerializable());
     }
 
     public list(namePrefix?: string, caseInsensitive?: boolean): Cursor<string> {
@@ -37,6 +39,7 @@ export class RepoRepo {
         return this.repoCollection.updateOne({name: name}, {$set: {users: users}})
         .then(results => results.modifiedCount > 0);
     }
+
 }
 
 let GlobalRepoRepo: RepoRepo = null;

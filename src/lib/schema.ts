@@ -132,19 +132,23 @@ export class BanxUser extends MongoObject implements IBanxUser {
 
 export interface IRepository extends IMongoObject {
     name: string; // Primary Identifier
-    users?: BanxUser[];
+    glids?: string[];
 }
 
 export class Repository extends MongoObject implements IRepository {
     public readonly name: string;
-    public readonly users: BanxUser[];
+    public readonly glids: string[];
     public readonly path: string;
 
     constructor(obj: IRepository) {
         super();
         this.name = obj.name;
-        this.users = obj.users || [];
+        this.glids = obj.glids || [];
         const nameDigest = crypto.createHash('sha256').update(this.name).digest('hex');
         this.path = nameDigest.slice(0, 2) + path.sep + nameDigest;
+    }
+
+    public toSerializable(): IRepository {
+        return {name: this.name, glids: this.glids};
     }
 }
