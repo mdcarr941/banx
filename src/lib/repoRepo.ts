@@ -4,19 +4,21 @@ import * as crypto from 'crypto';
 import * as path from 'path';
 import * as fs from 'fs';
 import { fstat } from 'fs';
+import { ObjectID } from 'mongodb';
 
-import { MongoObject, IRepository, BanxUser } from './schema';
+import { IRepository, BanxUser } from './schema';
 import client from './dbClient';
 import { NonExistantCollectionError } from './dbClient';
 import config from './config';
 
-export class Repository extends MongoObject implements IRepository {
+export class Repository implements IRepository {
+    public _id?: ObjectID;
+    public idStr?: string;
     public readonly name: string;
     public readonly glids: string[];
     public readonly path: string;
 
     constructor(obj: IRepository) {
-        super();
         this.name = obj.name;
         this.glids = obj.glids || [];
         const nameDigest = crypto.createHash('sha256').update(this.name).digest('hex');

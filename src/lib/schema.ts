@@ -1,7 +1,5 @@
 import { ObjectID } from 'mongodb';
 
-import config from './config';
-
 export interface KeyValPair {
     key: string;
     value: string;
@@ -12,24 +10,18 @@ export interface IMongoObject {
     idStr?: string;
 }
 
-export abstract class MongoObject implements IMongoObject {
-    _id: ObjectID = null;
-    idStr: string = null;
-}
-
 export interface IProblem extends IMongoObject {
     tags?: KeyValPair[];
     content?: string;
 }
 
-export class Problem extends MongoObject implements IProblem {
+export class Problem implements IProblem {
     public _id: ObjectID = null; // This should always be set on the server.
     public idStr: string = null; // This should always be set on the client.
     public tags: KeyValPair[] = [];
     public content: string;
 
     constructor(obj?: IProblem) {
-        super();
         if (!obj) return;
         this._id = obj._id;
         this.idStr = obj.idStr;
@@ -98,14 +90,13 @@ export interface IBanxUser extends IMongoObject {
     roles: UserRole[];
 }
 
-export class BanxUser extends MongoObject implements IBanxUser {
+export class BanxUser implements IBanxUser {
     public _id: ObjectID = null;
     public idStr: string = null;
     public glid: string;
     public roles: UserRole[];
 
     constructor(obj?: IBanxUser) {
-        super();
         if (!obj) return;
         if (typeof(obj._id) === 'string') this.idStr = obj._id;
         else this._id = obj._id;
