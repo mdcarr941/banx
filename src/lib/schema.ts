@@ -123,5 +123,5 @@ export class BanxUser implements IBanxUser {
 
 export interface IRepository extends IMongoObject {
     name: string; // Primary Identifier
-    glids?: string[];
+    userIds?: string[];
 }

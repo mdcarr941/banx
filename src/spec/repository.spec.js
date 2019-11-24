@@ -1,5 +1,5 @@
 describe('Repository', function() {
-    const Repository = require('../bin/schema').Repository;
+    const Repository = require('../bin/repoRepo').Repository;
     const fs = require('fs');
     const path = require('path');
     const repo = new Repository({name: 'RepositoryTests'});

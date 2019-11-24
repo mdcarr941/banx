@@ -15,18 +15,18 @@ export class Repository implements IRepository {
     public _id?: ObjectID;
     public idStr?: string;
     public readonly name: string;
-    public readonly glids: string[];
+    public readonly userIds: string[];
     public readonly path: string;
 
     constructor(obj: IRepository) {
         this.name = obj.name;
-        this.glids = obj.glids || [];
+        this.userIds = obj.userIds || [];
         const nameDigest = crypto.createHash('sha256').update(this.name).digest('hex');
         this.path = path.join(config.repoDir, nameDigest.slice(0, 2) + path.sep + nameDigest);
     }
 
     public toSerializable(): IRepository {
-        return {name: this.name, glids: this.glids};
+        return {name: this.name, userIds: this.userIds};
     }
 
     public fullPath(sub: string): string {
@@ -56,10 +56,6 @@ export class Repository implements IRepository {
     public async rm(sub: string): Promise<void> {
         return this._rm(this.fullPath(sub));
     }
-
-    // public writeFile(filePath: string, contents: string): Promise<void> {
-
-    // }
 }
 
 export class RepoRepo {
