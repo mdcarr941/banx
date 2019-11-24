@@ -14,19 +14,19 @@ describe('Repository', function() {
         }
     }
 
-    beforeAll(async function() {
-        if (await exists(repo.path)) {
-            await repo.rm('.');
-        }
-    });
-
     it('should be instantiated', function() {
         expect(repo).toBeTruthy();
     });
 
-    it('should be able to create directories', async function() {
+    it('should be an error to access the path of a repo which is not in the DB', async function() {
         const sub = 'mkdirTest';
-        await repo.mkdir(sub);
-        expect(await exists(repo.fullPath(sub))).toBe(true);
+        let caught = false;
+        try {
+            await repo.path;
+        }
+        catch (Error) {
+            caught = true;
+        }
+        expect(caught).toBe(true);
     });
 });

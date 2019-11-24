@@ -12,21 +12,33 @@ import { NonExistantCollectionError } from './dbClient';
 import config from './config';
 
 export class Repository implements IRepository {
-    public _id?: ObjectID;
-    public idStr?: string;
-    public readonly name: string;
+    public _id: ObjectID;
+    public idStr: string;
+    public name: string;
     public readonly userIds: string[];
-    public readonly path: string;
+
+    private _path: string = null;
+    public get path(): string {
+        if (null === this._path) {
+            if (null === this.idStr) {
+                throw new Error(
+                    "An attempt was made to access the path of a repository before it has been assign a database ID."
+                );
+            }
+            this._path = path.join(config.repoDir, this.idStr.slice(0, 2), this.idStr);
+        }
+        return this._path;
+    }
 
     constructor(obj: IRepository) {
+        this._id = obj._id;
+        this.idStr = (!this._id) ? null : this._id.toHexString();
         this.name = obj.name;
         this.userIds = obj.userIds || [];
-        const nameDigest = crypto.createHash('sha256').update(this.name).digest('hex');
-        this.path = path.join(config.repoDir, nameDigest.slice(0, 2) + path.sep + nameDigest);
     }
 
     public toSerializable(): IRepository {
-        return {name: this.name, userIds: this.userIds};
+        return {idStr: this.idStr, name: this.name, userIds: this.userIds};
     }
 
     public fullPath(sub: string): string {
