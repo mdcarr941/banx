@@ -12,8 +12,8 @@ import { NonExistantCollectionError } from './dbClient';
 import config from './config';
 
 export class Repository implements IRepository {
-    public _id: ObjectID;
-    public idStr: string;
+    public readonly _id: ObjectID;
+    public readonly idStr: string;
     public name: string;
     public readonly userIds: string[];
 
@@ -38,7 +38,7 @@ export class Repository implements IRepository {
     }
 
     public toSerializable(): IRepository {
-        return {idStr: this.idStr, name: this.name, userIds: this.userIds};
+        return {name: this.name, userIds: this.userIds};
     }
 
     public fullPath(sub: string): string {
@@ -87,10 +87,6 @@ export class RepoRepo {
         .then(result => result.deletedCount > 0);
     }
 
-    public insert(repo: Repository): Promise<InsertOneWriteOpResult> {
-        return this.repoCollection.insertOne(repo.toSerializable());
-    }
-
     public list(namePrefix?: string, caseInsensitive?: boolean): Cursor<string> {
         const searchArgs = (namePrefix)
             ? {name: {$regex: new RegExp('^' + namePrefix, (caseInsensitive === true) ? 'i' : '')}}
@@ -99,11 +95,23 @@ export class RepoRepo {
         .map(irepo => irepo.name);
     }
 
-    public setUsers(name: string, users: BanxUser[]): Promise<boolean> {
-        return this.repoCollection.updateOne({name: name}, {$set: {users: users}})
-        .then(results => results.modifiedCount > 0);
+    public async upsert(repo: Repository): Promise<Repository> {
+        if (null == repo._id) {
+            return this.repoCollection.insertOne(repo)
+            .then(output => {
+                if (1 !== output.result.ok) throw new Error("RepoRepo.upsert failed to insert a new repository.")
+                return new Repository({_id: output.insertedId, name: repo.name, userIds: repo.userIds});
+            });
+        }
+        else {
+            return this.repoCollection
+            .findOneAndReplace({_id: repo._id}, repo.toSerializable(), {upsert: false, returnOriginal: false})
+            .then(result => {
+                if (1 == result.ok) return new Repository(result.value);
+                else throw new Error('RepoRepo.update failed to update the repository named: ' + repo.name);
+            });
+        }
     }
-
 }
 
 let GlobalRepoRepo: RepoRepo = null;

@@ -13,23 +13,28 @@ describe('RepoRepo', function() {
 
     it('can create and delete repos', async function() {
         const repoName = 'TestRepository289089';
-        const repo = new Repository({name: repoName});
-        const output = await globalRepoRepo.insert(repo);
-        expect(output.result.ok).toBe(1);
-
-        const success = await globalRepoRepo.del(repoName);
-        expect(success).toBe(true);
+        try {
+            const repo = await globalRepoRepo.upsert(new Repository({name: repoName}));
+            expect(repo._id).toBeTruthy();
+        }
+        finally {
+            const success = await globalRepoRepo.del(repoName);
+            expect(success).toBe(true);
+        }
     });
 
     it('has unique names', async function() {
         const repoName = 'TestRepository';
-        const repo = new Repository({name: repoName});
-
-        const output = await globalRepoRepo.insert(repo);
-        expect(output.result.ok).toBe(1);
-
         try {
-            const caught = await globalRepoRepo.insert(repo).catch(() => true);
+            let repo = await globalRepoRepo.upsert(new Repository({name: repoName}));
+            expect(repo._id).toBeTruthy();
+            let caught = false;
+            try {
+                await globalRepoRepo.upsert(new Repository({name: repoName}));
+            }
+            catch {
+                caught = true;
+            }
             expect(caught).toBe(true);
         }
         finally {
@@ -40,17 +45,14 @@ describe('RepoRepo', function() {
 
     it('can list all repos', async function() {
         const name1 = 'TestRepo1';
-        const repo1 = new Repository({name: name1});
-
-        const insert1 = await globalRepoRepo.insert(repo1);
-        expect(insert1.result.ok).toBe(1);
+        const repo1 = await globalRepoRepo.upsert(new Repository({name: name1}));
 
         try {
+            expect(repo1._id).toBeTruthy();
+
             const name2 = 'TestRepo2';
-            const repo2 = new Repository({name: name2});
-    
-            const insert2 = await globalRepoRepo.insert(repo2);
-            expect(insert2.result.ok).toBe(1);
+            const repo2 = await globalRepoRepo.upsert(new Repository({name: name2}));
+            expect(repo2._id).toBeTruthy();
     
             try {
                 const names = await globalRepoRepo.list().toArray();
@@ -72,15 +74,13 @@ describe('RepoRepo', function() {
 
     it('can filter names by prefix', async function() {
         const name1 = '1TestRepo';
-        const repo1 = new Repository({name: name1});
-        const insert1 = await globalRepoRepo.insert(repo1);
-        expect(insert1.result.ok).toBe(1);
+        const repo1 = await globalRepoRepo.upsert(new Repository({name: name1}));
 
         try {
+            expect(repo1._id).toBeTruthy();
             const name2 = '2TestRepo';
-            const repo2 = new Repository({name: name2});
-            const insert2 = await globalRepoRepo.insert(repo2);
-            expect(insert2.result.ok).toBe(1);
+            const repo2 = await globalRepoRepo.upsert(new Repository({name: name2}));
+            expect(repo2._id).toBeTruthy();
             
             try {
                 const names = await globalRepoRepo.list('1').toArray();
@@ -100,15 +100,13 @@ describe('RepoRepo', function() {
 
     it('can match prefixes in a case insensitive manner', async function() {
         const name1 = 'aTestRepo';
-        const repo1 = new Repository({name: name1});
-        const insert1 = await globalRepoRepo.insert(repo1);
-        expect(insert1.result.ok).toBe(1);
+        const repo1 = await globalRepoRepo.upsert(new Repository({name: name1}));
 
         try {
+            expect(repo1._id).toBeTruthy();
             const name2 = 'ATestRepo';
-            const repo2 = new Repository({name: name2});
-            const insert2 = await globalRepoRepo.insert(repo2);
-            expect(insert2.result.ok).toBe(1);
+            const repo2 = await globalRepoRepo.upsert(new Repository({name: name2}));
+            expect(repo2._id).toBeTruthy();
     
             try {
                 const names = await globalRepoRepo.list('a', true).toArray();
@@ -131,11 +129,10 @@ describe('RepoRepo', function() {
     it('should be able to persist users', async function() {
         const name = 'PersistUsersRepo';
         const userIds = ['mdcarr'];
-        const repo = new Repository({name: name, userIds: userIds});
-        const insert = await globalRepoRepo.insert(repo);
-        expect(insert.result.ok).toBe(1);
+        const repo = await globalRepoRepo.upsert(new Repository({name: name, userIds: userIds}));
 
         try {
+            expect(repo._id).toBeTruthy();
             const loaded = await globalRepoRepo.get(name);
             expect(loaded.name).toBe(name);
             expect(loaded.userIds.length).toBe(1);
@@ -144,6 +141,23 @@ describe('RepoRepo', function() {
         finally {
             const success = await globalRepoRepo.del(name);
             expect(success).toBe(true);
+        }
+    });
+
+    it ('should be able to update names', async function() {
+        let repo = await globalRepoRepo.upsert(new Repository({name: 'RepoName1', userIds: []}));
+        
+        try {
+            const newName = 'RepoName2';
+            repo.name = newName;
+            repo = await globalRepoRepo.upsert(repo)
+            expect(repo.name).toBe(newName);
+
+            const loaded = await globalRepoRepo.get(newName);
+            expect(loaded.name).toBe(newName);
+        }
+        finally {
+            expect(await globalRepoRepo.del(repo.name)).toBe(true);
         }
     });
 });
