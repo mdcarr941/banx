@@ -8,10 +8,9 @@ import usersRouter from './routes/users';
 import indexRouter from './routes/index';
 import sageShellRouter from './routes/sageShell';
 import problemsRouter from './routes/problems';
-import { printError } from './common';
-import { UnknownUserError, getGlobalUserRepo } from './userRepo';
 import config from './config';
-import { getGlid, logHeaders } from './middleware';
+import { logHeaders, onlyAllowRepoContributors } from './middleware';
+import { gitHttpBackend } from './gitHttpBackend';
 
 export const app = express();
 
@@ -27,23 +26,23 @@ app.use(cookieParser());
 if (config.logHeaders) app.use(logHeaders);
 
 // Only allow users who are in the database to access the app.
-app.use(async (req, res, next) => {
-  // Initialize the BanxContext.
-  req.banxContext = {};
-  const glid = getGlid(req);
-  try {
-    req.banxContext.userRepo = await getGlobalUserRepo();
-    req.banxContext.remoteUser = await req.banxContext.userRepo.get(glid);
-    next();
-  }
-  catch (err) {
-    if (err instanceof UnknownUserError) res.sendStatus(403);
-    else {
-      printError(err, `An unkown error occured while looking up user '${glid}'`);
-      next(err);
-    }
-  }
-});
+// app.use(async (req, res, next) => {
+//   // Initialize the BanxContext.
+//   req.banxContext = {};
+//   const glid = getGlid(req);
+//   try {
+//     req.banxContext.userRepo = await getGlobalUserRepo();
+//     req.banxContext.remoteUser = await req.banxContext.userRepo.get(glid);
+//     next();
+//   }
+//   catch (err) {
+//     if (err instanceof UnknownUserError) res.sendStatus(403);
+//     else {
+//       printError(err, `An unkown error occured while looking up user '${glid}'`);
+//       next(err);
+//     }
+//   }
+// });
 
 // The index router handles all requests with the /app prefix and requests
 // which have no path are redirected to /app.
@@ -56,6 +55,10 @@ app.use('/users', usersRouter);
 app.use('/problems', problemsRouter);
 
 app.use('/sageshell', sageShellRouter);
+
+// Anything under /git will be passed off to git-http-backend.
+//app.use('/git', onlyAllowRepoContributors)
+app.use('/git', gitHttpBackend);
 
 // Static file setup.
 const staticHandler = express.static(path.join(__dirname, '../public'))

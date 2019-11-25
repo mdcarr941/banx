@@ -34,7 +34,8 @@ const config = Object.freeze({
     'banxPrefix': cleanPrefix(process.env.BANX_PREFIX || '/'),
     /* Log request headers to the console. */
     'logHeaders': parseBoolString(process.env.LOG_HEADERS || 'false'),
-    'repoDir': process.env.REPO_DIR || '../repositories'
+    'repoDir': process.env.REPO_DIR || '../repositories',
+    'gitHttpBackend': process.env.GIT_HTTP_BACKEND || '/usr/lib/git-core/git-http-backend'
 });
 
 export default config;

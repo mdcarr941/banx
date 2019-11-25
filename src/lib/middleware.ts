@@ -1,9 +1,11 @@
 import * as express from 'express';
+import * as url from 'url';
 
 import { ProblemRepo } from 'problemRepo';
 import { BanxUser } from './schema';
 import { UserRepo } from './userRepo';
 import { forEach } from './common';
+import { getGlobalRepoRepo } from './repoRepo';
 
 export interface BanxContext {
     remoteUser?: BanxUser;
@@ -45,4 +47,14 @@ export function logHeaders(req: express.Request, res: express.Response, next: ex
     forEach(req.headers, (headerName, headerValue) => print(`${headerName}: ${headerValue}`));
     print('  END');
     next();
+}
+
+export async function onlyAllowRepoContributors(req: express.Request, res: express.Response, next: express.NextFunction) {
+    const parsedUrl = url.parse(req.url);
+    // pasrsedUrl.pathname should match: /[0-9a-f]{2}/(?repoId[0-9a-f]+)
+    const repoId = parsedUrl.pathname.split('/')[1];
+    const repoRepo = await getGlobalRepoRepo();
+    const repo = await repoRepo.getByIdStr(repoId);
+    if (repo.isUserAuthorized(req.banxContext.remoteUser.glid)) next();
+    else res.sendStatus(403);
 }

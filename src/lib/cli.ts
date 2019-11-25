@@ -11,7 +11,8 @@ import { ProblemParser } from './problemParser';
 import { Problem, BanxUser, UserRole, UserRoleInverse } from './schema';
 import { makePairs, printError } from './common';
 import { GlobalSageServer } from './sageServer';
-import { response } from 'express';
+import { getGlobalRepoRepo, Repository } from './repoRepo';
+import { stringLiteral } from 'babel-types';
 
 const bufferLimit = 1000;
 
@@ -206,6 +207,25 @@ function getTags(repo: ProblemRepo, topic: string, subtopic: string): Promise<vo
     ));
 }
 
+async function initRepo(name: string, userIds: string[]): Promise<void> {
+    const repoRepo = await getGlobalRepoRepo();
+    const repo = new Repository({name: name, userIds: userIds});
+    try {
+        await repoRepo.upsert(repo);
+        console.log(`Course '${name}' was successfully initialized.`);
+    }
+    catch (err) {
+        console.log(`Failed to initialize course '${name}'.`);
+        console.error(err.stack);
+    }
+}
+
+async function listRepos(): Promise<void> {
+    const repoRepo = await getGlobalRepoRepo();
+    console.log('Repositories in the database:');
+    await repoRepo.list().forEach(name => console.log(name));
+}
+
 type IOptions = {[key: string]: any};
 
 interface IAction {
@@ -280,6 +300,16 @@ async function main(argv: string[]) {
         .action((topic: string, subtopic: string) => {
             action = { command: 'getTags', options: { topic: topic, subtopic: subtopic }};
         });
+    program.command('initCourse <name> [userIds...]')
+        .description('Initilize a new course repository.')
+        .action((name: string, userIds: string[]) => {
+            action = { command: 'initRepo', options: {name: name, userIds: userIds} };
+        });
+    program.command('listCourses')
+        .description('List all the courses in the database.')
+        .action(() => {
+            action = { command: 'listRepos', options: {} };
+        });
     program.parse(argv);
     switch (action.command) {
         case 'insert':
@@ -317,6 +347,12 @@ async function main(argv: string[]) {
             break;
         case 'getTags':
             await getTags(repo, action.options.topic, action.options.subtopic);
+            break;
+        case 'initRepo':
+            await initRepo(action.options.name, action.options.userIds);
+            break;
+        case 'listRepos':
+            await listRepos();
             break;
         default:
             throw new Error('unknown command');

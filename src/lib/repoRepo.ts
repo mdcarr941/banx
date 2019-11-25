@@ -1,12 +1,10 @@
-import { Collection, InsertOneWriteOpResult, Cursor } from 'mongodb';
+import { Collection, Cursor, ObjectId } from 'mongodb';
 import * as git from 'isomorphic-git';
-import * as crypto from 'crypto';
 import * as path from 'path';
 import * as fs from 'fs';
-import { fstat } from 'fs';
 import { ObjectID } from 'mongodb';
 
-import { IRepository, BanxUser } from './schema';
+import { IRepository } from './schema';
 import client from './dbClient';
 import { NonExistantCollectionError } from './dbClient';
 import config from './config';
@@ -37,15 +35,20 @@ export class Repository implements IRepository {
         this.userIds = obj.userIds || [];
     }
 
+    public isUserAuthorized(userId: string): boolean {
+        return this.userIds.indexOf(userId) >= 0;
+    }
+
     public toSerializable(): IRepository {
         return {name: this.name, userIds: this.userIds};
     }
 
-    public fullPath(sub: string): string {
-        return path.join(this.path, sub);
+    public fullPath(sub?: string): string {
+        if (sub) return path.join(this.path, sub);
+        else return this.path;
     }
 
-    public mkdir(sub: string): Promise<void> {
+    public mkdir(sub?: string): Promise<void> {
         return fs.promises.mkdir(this.fullPath(sub), {recursive: true});
     }
 
@@ -65,8 +68,19 @@ export class Repository implements IRepository {
         return fs.promises.rmdir(sub);
     }
 
-    public async rm(sub: string): Promise<void> {
-        return this._rm(this.fullPath(sub));
+    public async rm(sub?: string): Promise<void> {
+        const path = this.fullPath(sub);
+        return this._rm(path);
+    }
+
+    public async init(): Promise<void> {
+        console.log(`initializing ${this.path}`);
+        await this.mkdir();
+        return git.init({
+            fs: fs,
+            gitdir: this.path,
+            bare: true
+        });
     }
 }
 
@@ -82,9 +96,19 @@ export class RepoRepo {
         .then(irepo => new Repository(irepo));
     }
 
+    public getByIdStr(idStr: string): Promise<Repository> {
+        return this.repoCollection.findOne({_id: ObjectId.createFromHexString(idStr)})
+        .then(irepo => new Repository(irepo));
+    }
+
     public del(name: string): Promise<boolean> {
-        return this.repoCollection.deleteOne({name: name})
-        .then(result => result.deletedCount > 0);
+        return this.repoCollection.findOneAndDelete({name: name})
+        .then(result => {
+            if (result.ok !== 1) return false;
+            const repo = new Repository(result.value);
+            repo.rm();
+            return true;
+        });
     }
 
     public list(namePrefix?: string, caseInsensitive?: boolean): Cursor<string> {
@@ -97,11 +121,13 @@ export class RepoRepo {
 
     public async upsert(repo: Repository): Promise<Repository> {
         if (null == repo._id) {
-            return this.repoCollection.insertOne(repo)
-            .then(output => {
-                if (1 !== output.result.ok) throw new Error("RepoRepo.upsert failed to insert a new repository.")
-                return new Repository({_id: output.insertedId, name: repo.name, userIds: repo.userIds});
-            });
+            repo = await this.repoCollection.insertOne(repo)
+                .then(output => {
+                    if (1 !== output.result.ok) throw new Error("RepoRepo.upsert failed to insert a new repository.")
+                    return new Repository({_id: output.insertedId, name: repo.name, userIds: repo.userIds});
+                });
+            await repo.init();
+            return repo;
         }
         else {
             return this.repoCollection

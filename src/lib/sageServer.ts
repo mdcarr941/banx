@@ -8,7 +8,7 @@ type Timeout = any; // The nodejs Timeout type, which is opaque to me.
 export const serverPathDefault = '../lib/sage_server.py';
 export const responseTimeoutMsDefault = 2500;
 
-class LineStream extends Stream.Transform {
+export class LineStream extends Stream.Transform {
     private buffer: string = '';
 
     constructor(options?: any) {
