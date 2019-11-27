@@ -34,19 +34,29 @@ class CgiStream extends LineStream {
     }
 }
 
+const urlSplitter = /^([^?]*)(\??.*)/;
+
+function splitUrl(url: string) {
+    const match = urlSplitter.exec(url);
+    return {path: match[1], query: match[2]};
+}
+
 export async function gitHttpBackend(req: express.Request, res: express.Response, next: express.NextFunction): Promise<void> {
     console.log(`gitHttpBackend: called`);
-    console.log(`gitHttpBackend: expected path = ${config.repoDir}${req.url}`);
+    const urlParts = splitUrl(req.url);
     const env = Object.freeze({
         GIT_PROJECT_ROOT: config.repoDir,
         GIT_HTTP_EXPORT_ALL: '',
-        PATH_INFO: req.url,
+        PATH_INFO: urlParts.path,
         //REMOTE_USER: req.banxContext.remoteUser.glid,
+        REMOTE_USER: 'fake-user',
         REMOTE_ADDR: req.ip,
         CONTENT_TYPE: req.headers['content-type'],
-        QUERY_STRING: req.query,
+        QUERY_STRING: urlParts.query,
         REQUEST_METHOD: req.method
     });
+    console.log('env:');
+    console.log(env);
     const subproc = spawn(config.gitHttpBackend, {
         env: env
     });
