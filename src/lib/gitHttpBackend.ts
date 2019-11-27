@@ -34,7 +34,9 @@ class CgiStream extends LineStream {
     }
 }
 
-export function gitHttpBackend(req: express.Request, res: express.Response, next: express.NextFunction) {
+export async function gitHttpBackend(req: express.Request, res: express.Response, next: express.NextFunction): Promise<void> {
+    console.log(`gitHttpBackend: called`);
+    console.log(`gitHttpBackend: expected path = ${config.repoDir}${req.url}`);
     const env = Object.freeze({
         GIT_PROJECT_ROOT: config.repoDir,
         GIT_HTTP_EXPORT_ALL: '',
@@ -55,13 +57,16 @@ export function gitHttpBackend(req: express.Request, res: express.Response, next
     });
     subproc.on('exit', (code, signal) => {
         if (code || signal) {
-            next(new Error(`${config.gitHttpBackend} exited abnormally. exit code: ${code}, signal number ${signal}`));
+            const message = `${config.gitHttpBackend} exited abnormally. exit code: ${code}, signal number ${signal}`;
+            console.error(message);
+            next(new Error(message));
         }
     });
-
+    
     const cgiStream = new CgiStream();
     cgiStream.on('headers', (headers: Headers) => {
         res.statusCode = parseInt(headers.Status) || 200;
+        console.log(`gitHttpBackend: sending status ${res.statusCode}`);
         delete headers.Status;
         for (let name in headers) {
             res.setHeader(name, headers[name]);
@@ -72,4 +77,5 @@ export function gitHttpBackend(req: express.Request, res: express.Response, next
     });
     subproc.stdout.pipe(cgiStream);
     req.pipe(subproc.stdin);
+    console.log('gitHttpBackend: returning');
 }

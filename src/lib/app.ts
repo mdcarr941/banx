@@ -63,7 +63,7 @@ app.use('/git', gitHttpBackend);
 // Static file setup.
 const staticHandler = express.static(path.join(__dirname, '../public'))
 app.use('/public', staticHandler);
-app.use('/assets', staticHandler)
+app.use('/assets', staticHandler);
 
 // Catch 404 errors and forward them to the error handler.
 app.use(function(req, res, next) {
