@@ -226,6 +226,30 @@ async function listRepos(): Promise<void> {
     await repoRepo.list().forEach(name => console.log(name));
 }
 
+async function deleteRepo(name: string): Promise<void> {
+    const repoRepo = await getGlobalRepoRepo();
+    const rl = readline.createInterface({
+        input: process.stdin, output: process.stdout
+    });
+    return new Promise((resolve) => {
+        rl.question(`Are you sure you want to delete '${name}'? (y/N) `, answer => {
+            if (answer.trim().toLocaleLowerCase().startsWith('y')) {
+                console.log('Proceeding with delete.');
+                repoRepo.del(name).then(success => {
+                    if (success) console.log('Delete completed successfully.')
+                    else console.log(`A course named '${name}' is not in the database.`)
+                    rl.close();
+                    resolve()
+                });
+            } else {
+                console.log('Aborting delete.');
+                rl.close();
+                resolve();
+            }
+        })
+    });
+}
+
 type IOptions = {[key: string]: any};
 
 interface IAction {
@@ -310,6 +334,11 @@ async function main(argv: string[]) {
         .action(() => {
             action = { command: 'listRepos', options: {} };
         });
+    program.command('deleteCourse <name>')
+        .description('Delete a course from the database.')
+        .action((name: string) => {
+            action = { command: 'deleteRepo', options: {name: name} }
+        });
     program.parse(argv);
     switch (action.command) {
         case 'insert':
@@ -353,6 +382,9 @@ async function main(argv: string[]) {
             break;
         case 'listRepos':
             await listRepos();
+            break;
+        case 'deleteRepo':
+            await deleteRepo(action.options.name);
             break;
         default:
             throw new Error('unknown command');
