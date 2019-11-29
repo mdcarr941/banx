@@ -74,7 +74,6 @@ export class Repository implements IRepository {
     }
 
     public async init(): Promise<void> {
-        console.log(`initializing ${this.path}`);
         await this.mkdir();
         return git.init({
             fs: fs,
@@ -101,14 +100,12 @@ export class RepoRepo {
         .then(irepo => new Repository(irepo));
     }
 
-    public del(name: string): Promise<boolean> {
-        return this.repoCollection.findOneAndDelete({name: name})
-        .then(result => {
-            if (result.ok !== 1) return false;
-            const repo = new Repository(result.value);
-            repo.rm();
-            return true;
-        });
+    public async del(name: string): Promise<boolean> {
+        const result = await this.repoCollection.findOneAndDelete({name: name})
+        if (result.ok !== 1) return false;
+        const repo = new Repository(result.value);
+        await repo.rm();
+        return true;
     }
 
     public list(namePrefix?: string, caseInsensitive?: boolean): Cursor<string> {
@@ -137,6 +134,11 @@ export class RepoRepo {
                 else throw new Error('RepoRepo.update failed to update the repository named: ' + repo.name);
             });
         }
+    }
+
+    public getEditorsRepos(userId: string): Cursor<Repository> {
+        return this.repoCollection.find({ userIds: userId })
+        .map(irepo => new Repository(irepo));
     }
 }
 

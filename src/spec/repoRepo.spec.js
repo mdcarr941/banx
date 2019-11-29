@@ -144,7 +144,7 @@ describe('RepoRepo', function() {
         }
     });
 
-    it ('should be able to update names', async function() {
+    it('should be able to update names', async function() {
         let repo = await globalRepoRepo.upsert(new Repository({name: 'RepoName1', userIds: []}));
         
         try {
@@ -158,6 +158,28 @@ describe('RepoRepo', function() {
         }
         finally {
             expect(await globalRepoRepo.del(repo.name)).toBe(true);
+        }
+    });
+
+    it('should be able to find an editors repositories', async function() {
+        const userId = 'someguy';
+        await Promise.all([
+            globalRepoRepo.upsert(new Repository({name: 'Repo1', userIds: [userId]})),
+            globalRepoRepo.upsert(new Repository({name: 'Repo2', userIds: [userId]}))       
+        ]);
+        
+        try {
+            const repos = await globalRepoRepo.getEditorsRepos(userId).toArray();
+            const repoNames = repos.map(repo => repo.name).sort();
+            expect(repoNames.length).toBe(2);
+            expect(repoNames[0]).toBe('Repo1');
+            expect(repoNames[1]).toBe('Repo2');
+        }
+        finally {
+            await Promise.all([
+                globalRepoRepo.del('Repo1'),
+                globalRepoRepo.del('Repo2')
+            ]);
         }
     });
 });
