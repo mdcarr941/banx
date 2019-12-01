@@ -57,7 +57,6 @@ const routes: Routes = [
   imports: [
     RouterModule.forRoot(routes),
     BrowserModule,
-    BrowserAnimationsModule,
     HttpClientModule,
     FormsModule,
     //AngularMonacoEditorModule.forRoot()
