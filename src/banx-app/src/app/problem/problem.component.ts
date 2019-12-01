@@ -1,5 +1,5 @@
 import { Component, Input, ViewChild, OnInit, Output, EventEmitter } from '@angular/core';
-import { AngularMonacoEditorComponent } from 'angular-monaco-editor';
+//import { AngularMonacoEditorComponent } from 'angular-monaco-editor';
 import { BehaviorSubject } from 'rxjs';
 
 import { ProblemsService } from '../problems.service';
@@ -70,7 +70,7 @@ export class ProblemComponent implements OnInit {
     return match[1];
   }
 
-  @ViewChild('codeInput') private codeInput: AngularMonacoEditorComponent;
+  //@ViewChild('codeInput') private codeInput: AngularMonacoEditorComponent;
 
   private onEditorInit(event: any) {
     /* Place any code that needs to run after the monaco editor is loaded here. */
@@ -80,7 +80,7 @@ export class ProblemComponent implements OnInit {
     this.editMode$.next(true);
   }
 
-  @ViewChild('newTagsInput') private newTagsInput;
+  @ViewChild('newTagsInput', {static: true}) private newTagsInput;
 
   private saveChanges() {
     const problem = this.problem$.value;
@@ -103,7 +103,7 @@ export class ProblemComponent implements OnInit {
     this.editMode$.next(false);
   }
 
-  @ViewChild('confirmModal') private confirmModal: ModalComponent;
+  @ViewChild('confirmModal', {static: true}) private confirmModal: ModalComponent;
 
   private showConfirmModal() {
     this.confirmModal.show();
