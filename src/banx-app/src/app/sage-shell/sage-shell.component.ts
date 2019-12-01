@@ -1,5 +1,5 @@
 import { Component, ViewChild } from '@angular/core';
-import { AngularMonacoEditorComponent } from 'angular-monaco-editor';
+//import { AngularMonacoEditorComponent } from 'angular-monaco-editor';
 import * as $ from 'jquery';
 
 import { SageShellService } from '../sage-shell.service';
@@ -22,7 +22,7 @@ export class SageShellComponent {
     language: 'python',
   });
 
-  @ViewChild('resultTbody') resultTbody;
+  @ViewChild('resultTbody', {static: true}) resultTbody;
 
   private displayResult(response: SageVariables) {
     const elem: HTMLTableSectionElement = this.resultTbody.nativeElement;
@@ -41,23 +41,23 @@ export class SageShellComponent {
     }
   }
 
-  @ViewChild('codeInput') codeInput: AngularMonacoEditorComponent;
+  //@ViewChild('codeInput') codeInput: AngularMonacoEditorComponent;
 
   private execute() {
-    const code = this.codeInput.value;
-    if (0 == code.length) return;
+    // const code = this.codeInput.value;
+    // if (0 == code.length) return;
 
-    this.notifications.showLoading('Executing your code.');
-    this.sageShellService.execute(code)
-    .subscribe(
-      response => {
-        this.notifications.showSuccess('Code execution complete.');
-        this.displayResult(response)
-      },
-      err => {
-        this.notifications.showError('Failed to excute your code. Check the console for a stack trace.');
-        console.error(err.error)
-      }
-    );
+    // this.notifications.showLoading('Executing your code.');
+    // this.sageShellService.execute(code)
+    // .subscribe(
+    //   response => {
+    //     this.notifications.showSuccess('Code execution complete.');
+    //     this.displayResult(response)
+    //   },
+    //   err => {
+    //     this.notifications.showError('Failed to excute your code. Check the console for a stack trace.');
+    //     console.error(err.error)
+    //   }
+    // );
   }
 }

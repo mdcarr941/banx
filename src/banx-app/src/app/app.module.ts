@@ -4,7 +4,7 @@ import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { Routes, RouterModule } from '@angular/router';
-import { AngularMonacoEditorConfig, AngularMonacoEditorModule } from 'angular-monaco-editor';
+//import { AngularMonacoEditorConfig, AngularMonacoEditorModule } from 'angular-monaco-editor';
 
 import { AppComponent } from './app.component';
 import { InstanceListComponent } from './instance-list/instance-list.component';
@@ -60,7 +60,7 @@ const routes: Routes = [
     BrowserAnimationsModule,
     HttpClientModule,
     FormsModule,
-    AngularMonacoEditorModule.forRoot()
+    //AngularMonacoEditorModule.forRoot()
   ],
   providers: [],
   bootstrap: [AppComponent]
