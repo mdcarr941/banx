@@ -12,8 +12,8 @@ import { NotificationService } from '../notification.service';
   styleUrls: ['./tag-query.component.css']
 })
 export class TagQueryComponent {
-  @ViewChild('tagsInput') private tagsInput;
-  @ViewChild('queryComponent') queryComponent: QueryComponent;
+  @ViewChild('tagsInput', { static: true }) private tagsInput;
+  @ViewChild('queryComponent', { static: true }) queryComponent: QueryComponent;
 
   private problems$ = new EventEmitter<Problem[]>();
 

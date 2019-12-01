@@ -23,7 +23,7 @@ export class NotificationComponent implements OnInit, OnDestroy {
     return new BehaviorSubject(arg);
   }
 
-  @ViewChild('notificationsModal') notificationsModal: ModalComponent;
+  @ViewChild('notificationsModal', { static: true }) notificationsModal: ModalComponent;
 
   private showModal(): void {
     this.notificationsModal.show();
@@ -33,7 +33,7 @@ export class NotificationComponent implements OnInit, OnDestroy {
     this.notificationsModal.hide();
   }
 
-  @ViewChild('notifications') notifications;
+  @ViewChild('notifications', { static: true }) notifications;
 
   private sub: Subscription;
   // Even though this code runs in the browser, NodeJS.Timer seems

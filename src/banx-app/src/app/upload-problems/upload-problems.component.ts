@@ -15,7 +15,7 @@ export class UploadProblemsComponent {
     private notificationService: NotificationService
   ) { }
 
-  @ViewChild('fileInput') private fileInput;
+  @ViewChild('fileInput', { static: true }) private fileInput;
 
   private uploadFiles() {
     const files: FileList = (<any>this.fileInput.nativeElement).files;

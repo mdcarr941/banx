@@ -18,8 +18,8 @@ export class QueryComponent implements OnInit, OnDestroy {
   @Output() problemsShown$: Observable<boolean>;
   @Output() removeProblem$ = new EventEmitter<Problem>();
 
-  @ViewChild('resultCounter') resultCounter;
-  @ViewChild('problemList') problemList: ProblemListComponent;
+  @ViewChild('resultCounter', { static: false }) resultCounter;
+  @ViewChild('problemList', { static: true }) problemList: ProblemListComponent;
 
   private readonly destroyed$ = new EventEmitter<null>();
 

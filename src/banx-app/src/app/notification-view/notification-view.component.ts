@@ -13,11 +13,11 @@ export class NotificationViewComponent implements OnInit, OnDestroy {
 
   constructor() { }
 
-  @ViewChild('errorIcon') errorIcon;
-  @ViewChild('warningIcon') warningIcon;
-  @ViewChild('successIcon') successIcon;
-  @ViewChild('infoIcon') infoIcon;
-  @ViewChild('loadingIcon') loadingIcon;
+  @ViewChild('errorIcon', { static: true }) errorIcon;
+  @ViewChild('warningIcon', { static: true }) warningIcon;
+  @ViewChild('successIcon', { static: true }) successIcon;
+  @ViewChild('infoIcon', { static: true }) infoIcon;
+  @ViewChild('loadingIcon', { static: true }) loadingIcon;
 
   private getIdAndPrefixMessage(notification: Notification): {icon: any, message: string} {
     switch(notification.type) {
@@ -53,7 +53,7 @@ export class NotificationViewComponent implements OnInit, OnDestroy {
     $(icon.nativeElement).show();
   }
 
-  @ViewChild('messageSpan') messageSpan;
+  @ViewChild('messageSpan', { static: true }) messageSpan;
 
   private showMessage(message: string): void {
     this.messageSpan.nativeElement.innerText = message;    

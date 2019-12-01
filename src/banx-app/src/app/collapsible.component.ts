@@ -16,7 +16,7 @@ declare const $: any;
 })
 export class CollapsibleComponent {
   private collapsed: boolean = true;
-  @ViewChild('list') list;
+  @ViewChild('list', { static: true }) list;
   @Input() itemName: string;
   @Output() toggled = new EventEmitter<boolean>();
 

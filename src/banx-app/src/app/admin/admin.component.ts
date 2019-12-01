@@ -24,7 +24,7 @@ export class AdminComponent implements OnInit {
     this.users.list().subscribe(this.users$);
   }
 
-  @ViewChild('userGlidInput') userGlidInput;
+  @ViewChild('userGlidInput', { static: true }) userGlidInput;
 
   addUser(): void {
     const glid: string = this.userGlidInput.nativeElement.value;
@@ -69,15 +69,15 @@ export class AdminComponent implements OnInit {
     });
   }
 
-  @ViewChild('adminModal') adminModal: ModalComponent;
+  @ViewChild('adminModal', { static: true }) adminModal: ModalComponent;
 
   modifyUser(user: BanxUser): void {
     this.selectedUser = user;
     this.adminModal.show()
   }
 
-  @ViewChild('adminCheckbox') adminCheckbox;
-  @ViewChild('authorCheckbox') authorCheckbox;
+  @ViewChild('adminCheckbox', { static: true }) adminCheckbox;
+  @ViewChild('authorCheckbox', { static: true }) authorCheckbox;
 
   submitUserModifications(): void {
     const user = this.selectedUser;

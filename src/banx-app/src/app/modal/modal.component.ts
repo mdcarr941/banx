@@ -12,7 +12,7 @@ export class ModalComponent {
 
   constructor() { }
 
-  @ViewChild('modalDiv') private modalDiv;
+  @ViewChild('modalDiv', { static: true }) private modalDiv;
 
   public show(): void {
     $(this.modalDiv.nativeElement).show();

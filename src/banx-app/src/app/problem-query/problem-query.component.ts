@@ -38,7 +38,7 @@ export class ProblemQueryComponent implements OnInit {
   //     }}
   private queryRoot: QueryNode = {};
 
-  @ViewChild('queryComponent') queryComponent: QueryComponent;
+  @ViewChild('queryComponent', { static: true }) queryComponent: QueryComponent;
 
   constructor(
     private problems: ProblemsService,
