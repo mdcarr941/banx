@@ -3,16 +3,16 @@
 import * as program from 'commander';
 import * as readline from 'readline';
 import * as os from 'os';
+import * as fs from 'fs';
 const repl = require('repl');
 
 import { ProblemRepo, getGlobalProblemRepo } from './problemRepo';
 import { UnknownUserError, getGlobalUserRepo } from './userRepo';
+import { getGlobalRepoRepo } from './repoRepo';
 import { ProblemParser } from './problemParser';
-import { Problem, BanxUser, UserRole, UserRoleInverse } from './schema';
+import { Problem, BanxUser, UserRole, UserRoleInverse, Repository } from './schema';
 import { makePairs, printError } from './common';
 import { GlobalSageServer } from './sageServer';
-import { getGlobalRepoRepo, Repository } from './repoRepo';
-import { stringLiteral } from 'babel-types';
 
 const bufferLimit = 1000;
 
@@ -209,7 +209,7 @@ function getTags(repo: ProblemRepo, topic: string, subtopic: string): Promise<vo
 
 async function initRepo(name: string, userIds: string[]): Promise<void> {
     const repoRepo = await getGlobalRepoRepo();
-    const repo = new Repository({name: name, userIds: userIds});
+    const repo = new Repository({name: name, userIds: userIds}, fs);
     try {
         await repoRepo.upsert(repo);
         console.log(`Course '${name}' was successfully initialized.`);

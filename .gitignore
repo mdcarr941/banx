@@ -13,3 +13,4 @@ npm-debug.log
 src/public/monaco
 src/public/open-iconic
 repositories/
+src/.vscode/
