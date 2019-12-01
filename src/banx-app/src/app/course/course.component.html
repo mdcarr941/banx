@@ -1,0 +1,16 @@
+<div class="row">
+  <div class="col-3">
+    <div class="container-fluid">
+      <h3 class="row"></h3>
+      <ul class="row">
+        <ng-container *ngIf="repos$ | async as repos">
+          <li *ngFor="let repo of repos">{{repo.name}}</li>
+        </ng-container>
+      </ul>
+    </div>
+  </div>
+
+  <div class="col-9">
+
+  </div>
+</div>

@@ -4,6 +4,9 @@ import * as path from 'path';
 import * as cookieParser from 'cookie-parser';
 import * as logger from 'morgan';
 
+import { printError } from './common';
+import { getGlobalUserRepo, UnknownUserError } from './userRepo';
+import { getGlid } from './middleware';
 import usersRouter from './routes/users';
 import indexRouter from './routes/index';
 import sageShellRouter from './routes/sageShell';
@@ -26,23 +29,23 @@ app.use(cookieParser());
 if (config.logHeaders) app.use(logHeaders);
 
 // Only allow users who are in the database to access the app.
-// app.use(async (req, res, next) => {
-//   // Initialize the BanxContext.
-//   req.banxContext = {};
-//   const glid = getGlid(req);
-//   try {
-//     req.banxContext.userRepo = await getGlobalUserRepo();
-//     req.banxContext.remoteUser = await req.banxContext.userRepo.get(glid);
-//     next();
-//   }
-//   catch (err) {
-//     if (err instanceof UnknownUserError) res.sendStatus(403);
-//     else {
-//       printError(err, `An unkown error occured while looking up user '${glid}'`);
-//       next(err);
-//     }
-//   }
-// });
+app.use(async (req, res, next) => {
+  // Initialize the BanxContext.
+  req.banxContext = {};
+  const glid = getGlid(req);
+  try {
+    req.banxContext.userRepo = await getGlobalUserRepo();
+    req.banxContext.remoteUser = await req.banxContext.userRepo.get(glid);
+    next();
+  }
+  catch (err) {
+    if (err instanceof UnknownUserError) res.sendStatus(403);
+    else {
+      printError(err, `An unkown error occured while looking up user '${glid}'`);
+      next(err);
+    }
+  }
+});
 
 // The index router handles all requests with the /app prefix and requests
 // which have no path are redirected to /app.

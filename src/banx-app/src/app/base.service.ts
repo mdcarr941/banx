@@ -6,7 +6,7 @@ import { urlJoin } from '../../../lib/common';
     providedIn: 'root'
 })
 export abstract class BaseService {
-    protected endpoint: string;
+    protected abstract get endpoint(): string;
 
     protected getUrl(end?: string) {
         if (!end) end = '';
