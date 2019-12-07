@@ -52,6 +52,8 @@
     "@types/nodemailer": "^4.6.8",
     "jasmine": "^3.5.0",
     "nodemon": "^1.19.1",
+    "superagent": "^5.1.2",
+    "supertest": "^4.0.2",
     "typescript": "^3.5.1"
   }
 }

@@ -11,9 +11,9 @@ import usersRouter from './routes/users';
 import indexRouter from './routes/index';
 import sageShellRouter from './routes/sageShell';
 import problemsRouter from './routes/problems';
+import gitRouter from './routes/git';
 import config from './config';
-import { logHeaders, onlyAllowRepoContributors } from './middleware';
-import { gitHttpBackend } from './gitHttpBackend';
+import { logHeaders } from './middleware';
 
 export const app = express();
 
@@ -59,9 +59,8 @@ app.use('/problems', problemsRouter);
 
 app.use('/sageshell', sageShellRouter);
 
-// Anything under /git will be passed off to git-http-backend.
-//app.use('/git', onlyAllowRepoContributors)
-app.use('/git', gitHttpBackend);
+// Pass off any requests under /git to the gitRouter.
+app.use('/git', gitRouter);
 
 // Static file setup.
 const staticHandler = express.static(path.join(__dirname, '../public'))

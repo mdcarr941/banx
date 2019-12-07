@@ -5,13 +5,14 @@ import { ProblemRepo } from 'problemRepo';
 import { BanxUser } from './schema';
 import { UserRepo } from './userRepo';
 import { forEach } from './common';
-import { getGlobalRepoRepo } from './repoRepo';
+import { RepoRepo } from './repoRepo';
 
 export interface BanxContext {
     remoteUser?: BanxUser;
     userRepo?: UserRepo;
     problemRepo?: ProblemRepo;
     requestedUser?: BanxUser;
+    repoRepo?: RepoRepo
 }
   
 declare global {
@@ -53,8 +54,7 @@ export async function onlyAllowRepoContributors(req: express.Request, res: expre
     const parsedUrl = url.parse(req.url);
     // pasrsedUrl.pathname should match: /[0-9a-f]{2}/(?repoId[0-9a-f]+)
     const repoId = parsedUrl.pathname.split('/')[1];
-    const repoRepo = await getGlobalRepoRepo();
-    const repo = await repoRepo.getByIdStr(repoId);
+    const repo = await req.banxContext.repoRepo.getByIdStr(repoId);
     if (repo.isUserAuthorized(req.banxContext.remoteUser.glid)) next();
     else res.sendStatus(403);
 }
