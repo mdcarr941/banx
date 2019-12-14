@@ -36,9 +36,11 @@ router.get('/', async (req, res, next) => {
 
 // Return information about the repo with 'name'.
 router.get('/:name', async (req, res, next) => {
+    const name: string = req.params['name'];
+    
     let repo: Repository;
     try {
-        repo = await req.banxContext.repoRepo.get(req.params['name']);
+        repo = await req.banxContext.repoRepo.get(name);
     }
     catch (err) {
         console.error(`Failed to get the repository with the name ${name}:`);

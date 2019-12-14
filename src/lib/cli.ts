@@ -5,18 +5,18 @@ import * as readline from 'readline';
 import * as os from 'os';
 const repl = require('repl');
 
-import { ProblemRepo, getGlobalProblemRepo } from './problemRepo';
+import { getGlobalProblemRepo } from './problemRepo';
 import { UnknownUserError, getGlobalUserRepo } from './userRepo';
 import { ProblemParser } from './problemParser';
 import { Problem, BanxUser, UserRole, UserRoleInverse } from './schema';
 import { makePairs, printError } from './common';
 import { GlobalSageServer } from './sageServer';
 import { getGlobalRepoRepo, Repository } from './repoRepo';
-import { stringLiteral } from 'babel-types';
 
 const bufferLimit = 1000;
 
-async function insert(repo: ProblemRepo, files: string[]): Promise<void> {
+async function insertProblem(files: string[]): Promise<void> {
+    const repo = await getGlobalProblemRepo();
     const buffer: Problem[] = [];
     const parser = ProblemParser(...files);
     let rval: IteratorResult<Problem | Error> = {done: false, value: null};
@@ -36,7 +36,8 @@ async function insert(repo: ProblemRepo, files: string[]): Promise<void> {
     }
 }
 
-async function find(repo: ProblemRepo, tags: string[]) {
+async function findProblem(tags: string[]) {
+    const repo = await getGlobalProblemRepo();
     const pairs = makePairs(tags);
     let count = 0;
     await repo.find(pairs).forEach(problem => {
@@ -46,7 +47,8 @@ async function find(repo: ProblemRepo, tags: string[]) {
     console.log(`Found ${count} problem${count == 1 ? '' : 's'}.`);
 }
 
-async function del(repo: ProblemRepo, tags: string[]) {
+async function deleteProblem(tags: string[]) {
+    const repo = await getGlobalProblemRepo();
     const pairs = makePairs(tags);
     const problems: Problem[] = [];
     await repo.find(pairs).forEach(problem => {
@@ -165,46 +167,60 @@ function userModify(glid: string, roles: UserRole[]): Promise<void> {
     .catch(err => printError(err, 'Failed to get the global user repo'));
 }
 
-function listTagValues(repo: ProblemRepo, tagKey: string, lineLimit: number = 80): Promise<void> {
-    return repo.getAllValues(tagKey)
-    .then(values => {
-        if (values.length > 0) {
-            values = values.map(value => `'${value}'`);
-            let output = '';
-            let line = '[' + values[0];
-            for (let k = 1; k < values.length; k += 1) {
-                line += ', ' + values[k];
-                if (line.length >= lineLimit) {
-                    output += line + os.EOL;
-                    line = '';
-                }
+async function listTagValues(tagKey: string, lineLimit: number = 80): Promise<void> {
+    const repo = await getGlobalProblemRepo();
+    let values: string[];
+    try {
+        values = await repo.getAllValues(tagKey);
+    }
+    catch (err) {
+        printError(err, 'An error occured while executing your request')
+    }
+
+    if (values.length > 0) {
+        values = values.map(value => `'${value}'`);
+        let output = '';
+        let line = '[' + values[0];
+        for (let k = 1; k < values.length; k += 1) {
+            line += ', ' + values[k];
+            if (line.length >= lineLimit) {
+                output += line + os.EOL;
+                line = '';
             }
-            output += line + ']';
-            console.log(output);
         }
-        console.log(`Found ${values.length} values.`);
-    })
-    .catch(err => printError(err, 'An error occured while executing your request'));
+        output += line + ']';
+        console.log(output);
+    }
+    console.log(`Found ${values.length} values.`);
 }
 
-function getSubtopics(repo: ProblemRepo, topic: string): Promise<void> {
-    return repo.getSubtopics(topic)
-    .then(subtopics => {
-        console.log(subtopics);
-        console.log(`Found ${subtopics.length} subtopic${subtopics.length === 1 ? '' : 's'}`);
-    })
-    .catch(err => printError(err, `Failed to get the subtopics of topic "${topic}".`));
+async function getSubtopics(topic: string): Promise<void> {
+    const repo = await getGlobalProblemRepo();
+    let subtopics: string[];
+    try {
+        subtopics = await repo.getSubtopics(topic)
+    }
+    catch (err) {
+        printError(err, `Failed to get the subtopics of topic "${topic}".`)
+    }
+    console.log(subtopics);
+    console.log(`Found ${subtopics.length} subtopic${subtopics.length === 1 ? '' : 's'}`);
 }
 
-function getTags(repo: ProblemRepo, topic: string, subtopic: string): Promise<void> {
-    return repo.getTags(topic, subtopic)
-    .then(tags => {
-        console.log(tags);
-        //console.log(`Found ${tags.length} tag${tags.length === 1 ? '' : 's'}.`);
-    })
-    .catch(err => printError(err,
-        `Failed to get the tags under the topic "${topic}" and the subtopic "${subtopic}".`
-    ));
+async function getTags(topic: string, subtopic: string): Promise<void> {
+    const repo = await getGlobalProblemRepo();
+    let tags: {key: string, values: string[]}[];
+    try {
+        tags = await repo.getTags(topic, subtopic);
+    }
+    catch (err) {
+        printError(err,
+            `Failed to get the tags under the topic "${topic}" and the subtopic "${subtopic}".`
+        );
+    }
+
+    console.log(tags);
+    console.log(`Found ${tags.length} tag${tags.length === 1 ? '' : 's'}.`);
 }
 
 async function initRepo(name: string, userIds: string[]): Promise<void> {
@@ -257,8 +273,7 @@ interface IAction {
     options: IOptions;
 }
 
-async function main(argv: string[]) {
-    const repo = await getGlobalProblemRepo();
+async function main(argv: string[]): Promise<void> {
     let action: IAction = { command: 'default', options: {} };
     program.version('0.0.1');
     program.command('find [tags...]')
@@ -340,18 +355,19 @@ async function main(argv: string[]) {
             action = { command: 'deleteRepo', options: {name: name} }
         });
     program.parse(argv);
+
     switch (action.command) {
         case 'insert':
-            await insert(repo, action.options.files);
+            await insertProblem(action.options.files);
             break;
         case 'find':
-            await find(repo, action.options.tags);
+            await findProblem(action.options.tags);
             break;
         case 'listTagValues':
-            await listTagValues(repo, action.options.tagKey);
+            await listTagValues(action.options.tagKey);
             break;
         case 'delete':
-            await del(repo, action.options.tags);
+            await deleteProblem(action.options.tags);
             break;
         case 'sageShell':
             await sageShell();
@@ -372,10 +388,10 @@ async function main(argv: string[]) {
             await userModify(action.options.glid, action.options.roles);
             break;
         case 'getSubtopics':
-            await getSubtopics(repo, action.options.topic);
+            await getSubtopics(action.options.topic);
             break;
         case 'getTags':
-            await getTags(repo, action.options.topic, action.options.subtopic);
+            await getTags(action.options.topic, action.options.subtopic);
             break;
         case 'initRepo':
             await initRepo(action.options.name, action.options.userIds);
@@ -391,9 +407,13 @@ async function main(argv: string[]) {
     }
 }
 
-main(process.argv)
-    .then(_ => process.exit(0))
-    .catch(err => {
-        console.log(err.message);
+(async function() {
+    try {
+        await main(process.argv);
+    }
+    catch (err) {
+        printError(err);
         process.exit(1);
-    });
+    }
+    process.exit(0);
+})();
