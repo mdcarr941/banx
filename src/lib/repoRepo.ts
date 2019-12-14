@@ -5,7 +5,7 @@ import * as fs from 'fs';
 import { ObjectID } from 'mongodb';
 
 import { IRepository } from './schema';
-import client from './dbClient';
+import client, { DbClient } from './dbClient';
 import { NonExistantCollectionError } from './dbClient';
 import config from './config';
 
@@ -84,11 +84,32 @@ export class Repository implements IRepository {
 }
 
 export class RepoRepo {
-    static readonly repoCollectionName = 'repos';
+    static readonly collectionName = 'repos';
 
     constructor(
         private repoCollection: Collection<IRepository>
     ) { }
+
+    private static async makeRepoCollection(client: DbClient): Promise<Collection<IRepository>> {
+        const db = await client.db();
+        const collection = await db.createCollection(RepoRepo.collectionName);
+        collection.createIndex({name: 1}, {unique: true});
+        return collection;
+    }
+
+    public static async create(client: DbClient): Promise<RepoRepo> {
+        let collection: Collection<IRepository>;
+        try {
+            collection = await client.collection(RepoRepo.collectionName);
+        }
+        catch (err) {
+            if (err instanceof NonExistantCollectionError) {
+                collection = await RepoRepo.makeRepoCollection(client);
+            }
+            else throw err;
+        };
+        return new RepoRepo(collection);
+    }
 
     public get(name: string): Promise<Repository> {
         return this.repoCollection.findOne({name: name})
@@ -145,21 +166,7 @@ export class RepoRepo {
 let GlobalRepoRepo: RepoRepo = null;
 export async function getGlobalRepoRepo(): Promise<RepoRepo> {
     if (!GlobalRepoRepo) {
-        GlobalRepoRepo = await client.collection(RepoRepo.repoCollectionName)
-        .then(collection => new RepoRepo(collection))
-        .catch(err => {
-            if (err instanceof NonExistantCollectionError) {
-                return client.db()
-                .then(db => {
-                    return db.createCollection(RepoRepo.repoCollectionName)
-                    .then(collection => {
-                        return collection.createIndex({name: 1}, {unique: true})
-                        .then(() => new RepoRepo(collection));
-                    });
-                });
-            }
-            else throw err;
-        });
+        GlobalRepoRepo = await RepoRepo.create(client);
     }
     return GlobalRepoRepo;
 }

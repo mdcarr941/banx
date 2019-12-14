@@ -4,7 +4,7 @@ import config from "./config";
 
 export class NonExistantCollectionError extends Error { }
 
-class DbClient {
+export class DbClient {
     static readonly connectOptions = Object.freeze({
         useNewUrlParser: true,
         // We will attempt to reconnect indefinitely, but reject

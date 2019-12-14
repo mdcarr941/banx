@@ -2,14 +2,14 @@ import { Collection, Cursor, InsertOneWriteOpResult,
          InsertWriteOpResult,
          FilterQuery, ObjectID } from 'mongodb';
 
-import client, { NonExistantCollectionError } from './dbClient';
+import client, { NonExistantCollectionError, DbClient } from './dbClient';
 import { Problem, IProblem, KeyValPair } from './schema';
 import { mapObj } from './common';
 
 
 
 export class ProblemRepo {
-    public static readonly CollectionName = 'problems';
+    public static readonly collectionName = 'problems';
 
     constructor(
         private readonly collection: Collection<IProblem>
@@ -149,21 +149,21 @@ export class ProblemRepo {
     }
 }
 
-async function makeProblemsCollection(): Promise<Collection<Problem>> {
+async function makeProblemsCollection(client: DbClient): Promise<Collection<IProblem>> {
     const db = await client.db();
-    return db.createCollection(ProblemRepo.CollectionName);
+    return db.createCollection(ProblemRepo.collectionName);
 }
 
 let GlobalProblemRepo: ProblemRepo = null;
 export async function getGlobalProblemRepo(): Promise<ProblemRepo> {
     if (!GlobalProblemRepo) {
-        let problemCollection: Collection<Problem>;
+        let problemCollection: Collection<IProblem>;
         try {
-            problemCollection = await client.collection(ProblemRepo.CollectionName);
+            problemCollection = await client.collection(ProblemRepo.collectionName);
         }
         catch (err) {
             if (err instanceof NonExistantCollectionError) {
-                problemCollection = await makeProblemsCollection();
+                problemCollection = await makeProblemsCollection(client);
             }
             else throw err;
         }
