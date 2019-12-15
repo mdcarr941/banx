@@ -1,19 +1,12 @@
 describe('RepoRepo', function() {
     const repoRepoModule = require('../bin/repoRepo.js');
     const Repository = repoRepoModule.Repository;
-    const testHelpers = require('./testHelpers');
+    const getGlobalRepoRepo = repoRepoModule.getGlobalRepoRepo;
 
     let repoRepo;
 
     beforeAll(async function() {
-        const RepoRepo = repoRepoModule.RepoRepo;
-        const mongoUri = await testHelpers.makeMongoUri();
-        const DbClient = require('../bin/dbClient').DbClient;
-        repoRepo = await RepoRepo.create(new DbClient(mongoUri));
-    });
-
-    afterAll(async function() {
-        await testHelpers.dropTestingDb();
+        repoRepo = await getGlobalRepoRepo();
     });
     
     it('should be created', function() {

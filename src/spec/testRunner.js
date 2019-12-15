@@ -1,10 +1,53 @@
+// This program sets up an environment (mongo database and repository directory)
+// so that all tests are run in a fresh state.
+
 const os = require('os');
 const path = require('path');
 const fs = require('fs').promises;
 const child_process = require('child_process');
+const mongodb = require('mongodb');
+
+const config = Object.freeze({
+    mongoServer: process.env.MONGO_SERVER || 'mongodb://localhost:27017',
+    repoBasename: process.env.REPO_BASENAME || 'repositories'
+});
+
+function getClient() {
+    return mongodb.MongoClient.connect(
+        config.mongoServer, {useNewUrlParser: true}
+    );
+}
+
+async function makeTestingDb() {
+    const client = await getClient();
+
+    const dbs = await client.db('admin').admin().listDatabases();
+
+    const dbNames = dbs.databases.map(db => db.name);
+
+    let baseName = 'banxTest';
+    let testingDbName = baseName;
+    let counter = 1;
+    while (dbNames.indexOf(testingDbName) >= 0) {
+        counter += 1;
+        testingDbName = baseName + counter.toString();
+    }
+
+    return testingDbName;
+}
+
+function mongoUri(testingDbName) {
+    return config.mongoServer.trimRight('/') + '/' + testingDbName;
+}
+
+async function dropTestingDb(testingDbName) {
+    const client = await getClient();
+    const db = client.db(testingDbName);
+    await db.dropDatabase();
+}
 
 async function makeTempRepoDir() {
-    const basePath = path.join(os.tmpdir(), 'repositories');
+    const basePath = path.join(os.tmpdir(), config.repoBasename);
     let fullPath = basePath;
     let counter = 1;
     while (await fs.access(fullPath).then(() => true).catch(() => false)) {
@@ -15,11 +58,12 @@ async function makeTempRepoDir() {
     return fullPath;
 }
 
-async function main(repoDir) {
+async function main(repoDir, testingDbName) {
     const subproc = child_process.spawn(
         'node', ['node_modules/jasmine/bin/jasmine.js'], { env: {
             ...process.env,
-            REPO_DIR: repoDir
+            REPO_DIR: repoDir,
+            MONGO_URI: mongoUri(testingDbName)
         } }
     );
     subproc.stdout.pipe(process.stdout);
@@ -44,25 +88,30 @@ async function main(repoDir) {
     return Promise.race([exit, error]);
 }
 
-async function exitWith(code, repoDir) {
-    await fs.rmdir(repoDir, { recursive: true });
+async function exitWith(code, repoDir, testingDbName) {
+    let promises = [];
+    if (repoDir) promises.push(fs.rmdir(repoDir, { recursive: true }));
+    if (testingDbName) promises.push(dropTestingDb(testingDbName));
+    await Promise.all(promises);
     process.exit(code);
 }
 
 (async function() {
-    let repoDir;
+    let repoDir, testingDbName;
     try {
-        repoDir = await makeTempRepoDir();
+        [repoDir, testingDbName] = await Promise.all([
+            makeTempRepoDir(), makeTestingDb()
+        ]);
     }
     catch (err) {
-        console.error('makeTempRepoDir failed:');
+        console.error('failed to initialize testing environment:');
         console.error(err);
-        process.exit(1);
+        exitWith(1, repoDir, testingDbName);
     }
 
     let code;
     try {
-        code = await main(repoDir);
+        code = await main(repoDir, testingDbName);
     }
     catch (err) {
         console.error('An unhandled error occured:');
@@ -71,5 +120,5 @@ async function exitWith(code, repoDir) {
         else code = 1;
     }
 
-    exitWith(code, repoDir);
+    exitWith(code, repoDir, testingDbName);
 })();
