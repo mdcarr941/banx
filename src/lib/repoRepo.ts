@@ -11,26 +11,26 @@ import config from './config';
 
 export class Repository implements IRepository {
     public readonly _id: ObjectID;
-    public readonly idStr: string;
     public name: string;
     public readonly userIds: string[];
 
     private _path: string = null;
     public get path(): string {
         if (null === this._path) {
-            if (null === this.idStr) {
+            if (null === this._id) {
                 throw new Error(
                     "An attempt was made to access the path of a repository before it has been assign a database ID."
                 );
             }
-            this._path = path.join(config.repoDir, this.idStr.slice(0, 2), this.idStr);
+            const idStr = this._id.toHexString();
+            this._path = path.join(config.repoDir, idStr.slice(0, 2), idStr);
         }
         return this._path;
     }
 
     constructor(obj: IRepository) {
-        this._id = obj._id;
-        this.idStr = (!this._id) ? null : this._id.toHexString();
+        if (typeof obj._id === 'string') this._id = ObjectID.createFromHexString(obj._id);
+        else if (obj._id) this._id = obj._id;
         this.name = obj.name;
         this.userIds = obj.userIds || [];
     }
@@ -39,8 +39,8 @@ export class Repository implements IRepository {
         return this.userIds.indexOf(userId) >= 0;
     }
 
-    public toSerializable(): IRepository {
-        return {name: this.name, userIds: this.userIds};
+    public toJSON(): IRepository {
+        return {_id: this._id.toHexString(), name: this.name, userIds: this.userIds};
     }
 
     public fullPath(sub?: string): string {
@@ -149,7 +149,7 @@ export class RepoRepo {
         }
         else {
             return this.repoCollection
-            .findOneAndReplace({_id: repo._id}, repo.toSerializable(), {upsert: false, returnOriginal: false})
+            .findOneAndReplace({_id: repo._id}, repo, {upsert: false, returnOriginal: false})
             .then(result => {
                 if (1 == result.ok) return new Repository(result.value);
                 else throw new Error('RepoRepo.update failed to update the repository named: ' + repo.name);

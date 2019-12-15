@@ -1,4 +1,4 @@
-import { ObjectID } from 'mongodb';
+import { ObjectID, ObjectId } from 'mongodb';
 
 export interface KeyValPair {
     key: string;
@@ -121,7 +121,8 @@ export class BanxUser implements IBanxUser {
     }
 }
 
-export interface IRepository extends IMongoObject {
-    name: string; // Primary Identifier
+export interface IRepository {
+    _id?: ObjectID | string;
+    name: string; // unique
     userIds?: string[];
 }

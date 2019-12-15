@@ -164,7 +164,8 @@ describe('RepoRepo', function() {
     });
 
     it('should be able to update names', async function() {
-        let repo = await repoRepo.upsert(new Repository({name: 'RepoName1', userIds: []}));
+        let repoName = 'RepoName1';
+        let repo = await repoRepo.upsert(new Repository({name: repoName}));
         const originalPath = repo.path;
         
         try {
@@ -172,7 +173,9 @@ describe('RepoRepo', function() {
 
             const newName = 'RepoName2';
             repo.name = newName;
-            repo = await repoRepo.upsert(repo)
+            repo = await repoRepo.upsert(repo);
+            repoName = repo.name;
+
             expect(repo.name).toBe(newName);
             expect(repo.path).toBe(originalPath);
 
@@ -180,7 +183,7 @@ describe('RepoRepo', function() {
             expect(loaded.name).toBe(newName);
         }
         finally {
-            expect(await repoRepo.del(repo.name)).toBe(true);
+            expect(await repoRepo.del(repoName)).toBe(true);
         }
         expect(await testHelpers.pathExists(repo.path)).toBe(false);
     });
