@@ -18,7 +18,7 @@
     "nodemon": "node_modules/nodemon/bin/nodemon.js --signal SIGTERM ./www",
     "dev": "npm run ng-build-watch & npm run build-watch & npm run nodemon",
     "prod": "npm run build-all && npm run start",
-    "test": "node_modules/jasmine/bin/jasmine.js",
+    "test": "node spec/testRunner.js",
     "cli": "node ./bin/cli.js"
   },
   "author": "",
