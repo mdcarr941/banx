@@ -58,7 +58,7 @@ async function makeTempRepoDir() {
     return fullPath;
 }
 
-async function main(repoDir, testingDbName) {
+async function runJasmine(repoDir, testingDbName) {
     const subproc = child_process.spawn(
         'node', ['node_modules/jasmine/bin/jasmine.js'], { env: {
             ...process.env,
@@ -111,7 +111,7 @@ async function exitWith(code, repoDir, testingDbName) {
 
     let code;
     try {
-        code = await main(repoDir, testingDbName);
+        code = await runJasmine(repoDir, testingDbName);
     }
     catch (err) {
         console.error('An unhandled error occured:');

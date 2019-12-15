@@ -1,4 +1,6 @@
 describe('RepoRepo', function() {
+    const testHelpers = require('./testHelpers');
+
     const repoRepoModule = require('../bin/repoRepo.js');
     const Repository = repoRepoModule.Repository;
     const getGlobalRepoRepo = repoRepoModule.getGlobalRepoRepo;
@@ -15,21 +17,23 @@ describe('RepoRepo', function() {
 
     it('can create and delete repos', async function() {
         const repoName = 'TestRepository289089';
+        const repo = await repoRepo.upsert(new Repository({name: repoName}));
         try {
-            const repo = await repoRepo.upsert(new Repository({name: repoName}));
             expect(repo._id).toBeTruthy();
+            expect(await testHelpers.pathExists(repo.path)).toBe(true);
         }
         finally {
-            const success = await repoRepo.del(repoName);
-            expect(success).toBe(true);
+            expect(await repoRepo.del(repoName)).toBe(true);
         }
+        expect(await testHelpers.pathExists(repo.path)).toBe(false);
     });
 
     it('has unique names', async function() {
         const repoName = 'TestRepository';
+        let repo = await repoRepo.upsert(new Repository({name: repoName}));
         try {
-            let repo = await repoRepo.upsert(new Repository({name: repoName}));
             expect(repo._id).toBeTruthy();
+            expect(await testHelpers.pathExists(repo.path)).toBe(true);
             let caught = false;
             try {
                 await repoRepo.upsert(new Repository({name: repoName}));
@@ -40,9 +44,9 @@ describe('RepoRepo', function() {
             expect(caught).toBe(true);
         }
         finally {
-            const success = await repoRepo.del(repoName);
-            expect(success).toBe(true);
+            expect(await repoRepo.del(repoName)).toBe(true);
         }
+        expect(await testHelpers.pathExists(repo.path)).toBe(false);
     });
 
     it('can list all repos', async function() {
@@ -51,12 +55,15 @@ describe('RepoRepo', function() {
 
         try {
             expect(repo1._id).toBeTruthy();
+            expect(await testHelpers.pathExists(repo1.path)).toBe(true);
 
             const name2 = 'TestRepo2';
             const repo2 = await repoRepo.upsert(new Repository({name: name2}));
-            expect(repo2._id).toBeTruthy();
     
             try {
+                expect(repo2._id).toBeTruthy();
+                expect(await testHelpers.pathExists(repo2.path)).toBe(true);
+
                 const names = await repoRepo.list().toArray();
                 expect(names.length).toBe(2);
                 names.sort();
@@ -64,14 +71,14 @@ describe('RepoRepo', function() {
                 expect(names[1]).toBe(name2);
             }
             finally {
-                const success2 = await repoRepo.del(name2);
-                expect(success2).toBe(true);
+                expect(await repoRepo.del(name2)).toBe(true);
             }
+            expect(await testHelpers.pathExists(repo2.path)).toBe(false);
         }
         finally {
-            const success1 = await repoRepo.del(name1);
-            expect(success1).toBe(true);
+            expect(await repoRepo.del(name1)).toBe(true);
         }
+        expect(await testHelpers.pathExists(repo1.path)).toBe(false);
     });
 
     it('can filter names by prefix', async function() {
@@ -80,24 +87,28 @@ describe('RepoRepo', function() {
 
         try {
             expect(repo1._id).toBeTruthy();
+            expect(await testHelpers.pathExists(repo1.path)).toBe(true);
+
             const name2 = '2TestRepo';
             const repo2 = await repoRepo.upsert(new Repository({name: name2}));
-            expect(repo2._id).toBeTruthy();
             
             try {
+                expect(repo2._id).toBeTruthy();
+                expect(await testHelpers.pathExists(repo2.path)).toBe(true);
+
                 const names = await repoRepo.list('1').toArray();
                 expect(names.length).toBe(1);
                 expect(names[0]).toBe(name1);
             }
             finally {
-                const success2 = await repoRepo.del(name2);
-                expect(success2).toBe(true);
+                expect(await repoRepo.del(name2)).toBe(true);
             }
+            expect(await testHelpers.pathExists(repo2.path)).toBe(false);
         }
         finally {
-            const success1 = await repoRepo.del(name1);
-            expect(success1).toBe(true);
+            expect(await repoRepo.del(name1)).toBe(true);
         }
+        expect(await testHelpers.pathExists(repo1.path)).toBe(false);
     });
 
     it('can match prefixes in a case insensitive manner', async function() {
@@ -106,11 +117,15 @@ describe('RepoRepo', function() {
 
         try {
             expect(repo1._id).toBeTruthy();
+            expect(await testHelpers.pathExists(repo1.path)).toBe(true);
+
             const name2 = 'ATestRepo';
             const repo2 = await repoRepo.upsert(new Repository({name: name2}));
-            expect(repo2._id).toBeTruthy();
     
             try {
+                expect(repo2._id).toBeTruthy();
+                expect(await testHelpers.pathExists(repo2.path)).toBe(true);
+
                 const names = await repoRepo.list('a', true).toArray();
                 expect(names.length).toBe(2);
                 names.sort();
@@ -118,14 +133,14 @@ describe('RepoRepo', function() {
                 expect(names[1]).toBe(name1);
             }
             finally {
-                const success2 = await repoRepo.del(name2);
-                expect(success2).toBe(true);
+                expect(await repoRepo.del(name2)).toBe(true);
             }
+            expect(await testHelpers.pathExists(repo2.path)).toBe(false);
         }
         finally {
-            const success1 = await repoRepo.del(name1);
-            expect(success1).toBe(true);
+            expect(await repoRepo.del(name1)).toBe(true);
         }
+        expect(await testHelpers.pathExists(repo1.path)).toBe(false);
     });
 
     it('should be able to persist users', async function() {
@@ -135,25 +150,31 @@ describe('RepoRepo', function() {
 
         try {
             expect(repo._id).toBeTruthy();
+            expect(await testHelpers.pathExists(repo.path)).toBe(true);
+
             const loaded = await repoRepo.get(name);
             expect(loaded.name).toBe(name);
             expect(loaded.userIds.length).toBe(1);
             expect(loaded.userIds[0]).toBe(userIds[0]);
         }
         finally {
-            const success = await repoRepo.del(name);
-            expect(success).toBe(true);
+            expect(await repoRepo.del(name)).toBe(true);
         }
+        expect(await testHelpers.pathExists(repo.path)).toBe(false);
     });
 
     it('should be able to update names', async function() {
         let repo = await repoRepo.upsert(new Repository({name: 'RepoName1', userIds: []}));
+        const originalPath = repo.path;
         
         try {
+            expect(await testHelpers.pathExists(repo.path)).toBe(true);
+
             const newName = 'RepoName2';
             repo.name = newName;
             repo = await repoRepo.upsert(repo)
             expect(repo.name).toBe(newName);
+            expect(repo.path).toBe(originalPath);
 
             const loaded = await repoRepo.get(newName);
             expect(loaded.name).toBe(newName);
@@ -161,27 +182,35 @@ describe('RepoRepo', function() {
         finally {
             expect(await repoRepo.del(repo.name)).toBe(true);
         }
+        expect(await testHelpers.pathExists(repo.path)).toBe(false);
     });
 
-    it('should be able to find an editors repositories', async function() {
+    it('should be able to find an editor\'s repositories', async function() {
         const userId = 'someguy';
-        await Promise.all([
-            repoRepo.upsert(new Repository({name: 'Repo1', userIds: [userId]})),
-            repoRepo.upsert(new Repository({name: 'Repo2', userIds: [userId]}))       
+        const [repo0, repo1] = await Promise.all([
+            repoRepo.upsert(new Repository({name: 'repo0', userIds: [userId]})),
+            repoRepo.upsert(new Repository({name: 'repo1', userIds: [userId]}))       
         ]);
         
         try {
             const repos = await repoRepo.getEditorsRepos(userId).toArray();
             const repoNames = repos.map(repo => repo.name).sort();
             expect(repoNames.length).toBe(2);
-            expect(repoNames[0]).toBe('Repo1');
-            expect(repoNames[1]).toBe('Repo2');
+            expect(repoNames[0]).toBe(repo0.name);
+            expect(repoNames[1]).toBe(repo1.name);
         }
         finally {
             await Promise.all([
-                repoRepo.del('Repo1'),
-                repoRepo.del('Repo2')
+                repoRepo.del(repo0.name),
+                repoRepo.del(repo1.name)
             ]);
         }
+        
+        expect(
+            await Promise.all([
+                testHelpers.pathExists(repo0.path), testHelpers.pathExists(repo1.path)
+            ])
+            .then(([v0, v1]) => v0 || v1)
+        ).toBe(false);
     });
 });
