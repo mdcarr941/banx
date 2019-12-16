@@ -42,21 +42,17 @@ function splitUrl(url: string) {
 }
 
 export async function gitHttpBackend(req: express.Request, res: express.Response, next: express.NextFunction): Promise<void> {
-    console.log(`gitHttpBackend: called`);
     const urlParts = splitUrl(req.url);
     const env = Object.freeze({
         GIT_PROJECT_ROOT: config.repoDir,
         GIT_HTTP_EXPORT_ALL: '',
         PATH_INFO: urlParts.path,
-        //REMOTE_USER: req.banxContext.remoteUser.glid,
-        REMOTE_USER: 'fake-user',
+        REMOTE_USER: req.banxContext.remoteUser.glid,
         REMOTE_ADDR: req.ip,
         CONTENT_TYPE: req.headers['content-type'],
         QUERY_STRING: urlParts.query,
         REQUEST_METHOD: req.method
     });
-    console.log('env:');
-    console.log(env);
     const subproc = spawn(config.gitHttpBackend, {
         env: env
     });
@@ -76,7 +72,6 @@ export async function gitHttpBackend(req: express.Request, res: express.Response
     const cgiStream = new CgiStream();
     cgiStream.on('headers', (headers: Headers) => {
         res.statusCode = parseInt(headers.Status) || 200;
-        console.log(`gitHttpBackend: sending status ${res.statusCode}`);
         delete headers.Status;
         for (let name in headers) {
             res.setHeader(name, headers[name]);
@@ -87,5 +82,4 @@ export async function gitHttpBackend(req: express.Request, res: express.Response
     });
     subproc.stdout.pipe(cgiStream);
     req.pipe(subproc.stdin);
-    console.log('gitHttpBackend: returning');
 }

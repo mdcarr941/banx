@@ -22,8 +22,7 @@ export class Repository implements IRepository {
                     "An attempt was made to access the path of a repository before it has been assign a database ID."
                 );
             }
-            const idStr = this._id.toHexString();
-            this._path = path.join(config.repoDir, idStr.slice(0, 2), idStr);
+            this._path = path.join(config.repoDir, this.dir());
         }
         return this._path;
     }
@@ -33,6 +32,11 @@ export class Repository implements IRepository {
         else if (obj._id) this._id = obj._id;
         this.name = obj.name;
         this.userIds = obj.userIds || [];
+    }
+
+    public dir(): string {
+        const idStr = this._id.toHexString();
+        return path.join(idStr.slice(0, 2), idStr);
     }
 
     public isUserAuthorized(userId: string): boolean {

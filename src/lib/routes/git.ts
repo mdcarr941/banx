@@ -8,7 +8,7 @@ import { IRepository } from 'schema';
 const router = express.Router();
 
 // Load the global repo repository into the BanxContext.
-router.use('/db', async (req, res, next) => {
+router.use(async (req, res, next) => {
     try {
         req.banxContext.repoRepo = await getGlobalRepoRepo();
         next();
@@ -86,7 +86,7 @@ router.put('/db', async (req, res, next) => {
 });
 
 // Anything under /repos will be passed off to git-http-backend.
-//app.use('/repos', onlyAllowRepoContributors)
+router.use('/repos', onlyAllowRepoContributors);
 router.use('/repos', gitHttpBackend);
 
 export default router;

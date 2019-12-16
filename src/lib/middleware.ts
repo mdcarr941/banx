@@ -50,10 +50,17 @@ export function logHeaders(req: express.Request, res: express.Response, next: ex
     next();
 }
 
+const repoIdRgx = /[0-9a-f]{2}\/([0-9a-f]+)/i;
+
 export async function onlyAllowRepoContributors(req: express.Request, res: express.Response, next: express.NextFunction) {
     const parsedUrl = url.parse(req.url);
-    // pasrsedUrl.pathname should match: /[0-9a-f]{2}/(?repoId[0-9a-f]+)
-    const repoId = parsedUrl.pathname.split('/')[1];
+    const match = repoIdRgx.exec(parsedUrl.pathname);
+    if (!match) {
+        next(new Error('Failed to extract a repo Id from: ' + parsedUrl.pathname));
+        return;
+    }
+
+    const repoId = match[1];
     const repo = await req.banxContext.repoRepo.getByIdStr(repoId);
     if (repo.isUserAuthorized(req.banxContext.remoteUser.glid)) next();
     else res.sendStatus(403);
