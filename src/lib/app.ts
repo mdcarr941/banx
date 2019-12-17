@@ -28,6 +28,11 @@ app.use(cookieParser());
 
 if (config.logHeaders) app.use(logHeaders);
 
+// Static file setup.
+const staticHandler = express.static(path.join(__dirname, '../public'))
+app.use('/public', staticHandler);
+app.use('/assets', staticHandler);
+
 // Only allow users who are in the database to access the app.
 app.use(async (req, res, next) => {
   // Initialize the BanxContext.
@@ -61,11 +66,6 @@ app.use('/sageshell', sageShellRouter);
 
 // Pass off any requests under /git to the gitRouter.
 app.use('/git', gitRouter);
-
-// Static file setup.
-const staticHandler = express.static(path.join(__dirname, '../public'))
-app.use('/public', staticHandler);
-app.use('/assets', staticHandler);
 
 // Catch 404 errors and forward them to the error handler.
 app.use(function(req, res, next) {

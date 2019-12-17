@@ -2,15 +2,19 @@
   <div class="col-3">
     <div class="container-fluid">
       <h3 class="row"></h3>
-      <ul class="row">
-        <ng-container *ngIf="repos$ | async as repos">
-          <li *ngFor="let repo of repos">{{repo.name}}</li>
-        </ng-container>
+      <ul *ngIf="repos$ | async as repos">
+        <li class="row" *ngFor="let repo of repos">
+          <button class="btn btn-link" (click)="selectRepo(repo)">
+            {{repo.name}}
+          </button>
+        </li>
       </ul>
     </div>
   </div>
 
   <div class="col-9">
-
+    <ng-container *ngIf="selectedRepo$ | async as selectedRepo">
+      {{selectedRepo.name}}
+    </ng-container>
   </div>
 </div>

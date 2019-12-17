@@ -21,6 +21,12 @@ class HttpClientStub extends HttpClient {
     return new Error(errMessage);
   }
 
+  private checkEndpoint(path: string): void {
+    if (!path.startsWith(this.endpoint)) throw this.newError(
+      `The beginning of path "${path}" did not match endpoint "${this.endpoint}".`
+    );
+  }
+
   private static makeTestingProb(setNum: number, color: string, index: number): IProblem {
     return {
       _id: null,
@@ -32,12 +38,6 @@ class HttpClientStub extends HttpClient {
         {key: 'Index', value: index.toString()}
       ]
     }
-  }
-
-  private checkEndpoint(path: string): void {
-    if (!path.startsWith(this.endpoint)) throw this.newError(
-      `The beginning of path "${path}" did not match endpoint "${this.endpoint}".`
-    );
   }
 
   public get<T>(path: string): Observable<T> {

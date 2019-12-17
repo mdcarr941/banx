@@ -36,7 +36,7 @@ export class Repository implements IRepository {
 
     public dir(): string {
         const idStr = this._id.toHexString();
-        return path.join(idStr.slice(0, 2), idStr);
+        return path.join(idStr.slice(0, 2), idStr) + '.git';
     }
 
     public isUserAuthorized(userId: string): boolean {

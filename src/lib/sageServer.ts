@@ -20,17 +20,23 @@ export class LineStream extends Stream.Transform {
     }
 
     private getNextLine(): string {
-        const index = this.buffer.indexOf('\n');
+        let index = this.buffer.indexOf('\r\n');
+        let length = 2;
+        if (index < 0) {
+            index = this.buffer.indexOf('\n');
+            length = 1;
+        }
         if (index < 0) return null;
         const rval = this.buffer.slice(0, index);
-        this.buffer = this.buffer.slice(index + 1);
+        this.buffer = this.buffer.slice(index + length);
         return rval;
     }
 
     private pushLines() {
         let nextLine = this.getNextLine();
-        while (nextLine) {
-            this.push(nextLine);
+        while (null !== nextLine) {
+            if ('' === nextLine) this.emit('data', nextLine);
+            else this.push(nextLine);
             nextLine = this.getNextLine();
         }
     }
