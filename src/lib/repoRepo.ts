@@ -9,6 +9,22 @@ import client, { DbClient } from './dbClient';
 import { NonExistantCollectionError } from './dbClient';
 import config from './config';
 
+export async function rm(sub: string, isDirectory?: boolean): Promise<void> {
+    if (undefined === isDirectory) {
+        isDirectory = (await fs.promises.lstat(sub)).isDirectory();
+    }
+    if (false === isDirectory) return fs.promises.unlink(sub);
+
+    const entries = await (<any>fs).promises.readdir(sub, {withFileTypes: true});
+    const promises = [];
+    for (let entry of entries) {
+        const nextSub = path.join(sub, entry.name);
+        promises.push(rm(nextSub, entry.isDirectory()));
+    }
+    await Promise.all(promises);
+    return fs.promises.rmdir(sub);
+}
+
 export class Repository implements IRepository {
     public readonly _id: ObjectID;
     public name: string;
@@ -56,25 +72,8 @@ export class Repository implements IRepository {
         return fs.promises.mkdir(this.fullPath(sub), {recursive: true});
     }
 
-    public async _rm(sub: string, isDirectory?: boolean): Promise<void> {
-        if (undefined === isDirectory) {
-            isDirectory = (await fs.promises.lstat(sub)).isDirectory();
-        }
-        if (false === isDirectory) return fs.promises.unlink(sub);
-
-        const entries = await (<any>fs).promises.readdir(sub, {withFileTypes: true});
-        const promises = [];
-        for (let entry of entries) {
-            const nextSub = path.join(sub, entry.name);
-            promises.push(this._rm(nextSub, entry.isDirectory()));
-        }
-        await Promise.all(promises);
-        return fs.promises.rmdir(sub);
-    }
-
     public async rm(sub?: string): Promise<void> {
-        const path = this.fullPath(sub);
-        return this._rm(path);
+        return rm(this.fullPath(sub));
     }
 
     public async init(): Promise<void> {
@@ -126,7 +125,7 @@ export class RepoRepo {
     }
 
     public async del(name: string): Promise<boolean> {
-        const result = await this.repoCollection.findOneAndDelete({name: name})
+        const result = await this.repoCollection.findOneAndDelete({name: name});
         if (result.ok !== 1) return false;
         const repo = new Repository(result.value);
         await repo.rm();

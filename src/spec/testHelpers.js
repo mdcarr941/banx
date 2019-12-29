@@ -25,7 +25,7 @@ exports.getTempDir = async function(nameLen) {
     const tmp = os.tmpdir();
     let tmpPath;
     do {
-        tmpPath = path.join(tmp, randomString(nameLen));
+        tmpPath = path.join(tmp, 'tempDir_' + randomString(nameLen));
     } while (await exports.pathExists(tmpPath));
     await fs.mkdir(tmpPath);
     return tmpPath;

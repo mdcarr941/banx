@@ -88,11 +88,15 @@ export class RepoService extends BaseService {
 
   public async updateFromServer(repo: Repository): Promise<void> {
     if (await exists(repo.dir)) {
+      console.log('doing pull');
       await gitPull({
-        dir: repo.dir
-      })
+        dir: repo.dir,
+        ref: 'master'
+      });
+      console.log('pull done');
     }
     else {
+      console.log('doing clone');
       await repo.init();
       await gitClone({
         dir: repo.dir,
@@ -100,6 +104,7 @@ export class RepoService extends BaseService {
         ref: 'master',
         singleBranch: true
       });
+      console.log('clone done');
     }
   }
 }

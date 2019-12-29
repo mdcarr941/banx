@@ -27,29 +27,30 @@ export class LineStream extends Stream.Transform {
             length = 1;
         }
         if (index < 0) return null;
-        const rval = this.buffer.slice(0, index);
+        const rval = this.buffer.slice(0, index + length);
         this.buffer = this.buffer.slice(index + length);
         return rval;
     }
 
-    private pushLines() {
+    private emitLines() {
         let nextLine = this.getNextLine();
         while (null !== nextLine) {
-            if ('' === nextLine) this.emit('data', nextLine);
-            else this.push(nextLine);
+            this.emit('data', nextLine);
             nextLine = this.getNextLine();
         }
     }
 
     _transform(chunk: string, encoding: string, callback: Function) {
         this.buffer += chunk;
-        this.pushLines();
+        this.emitLines();
         callback(null);
     }
 
     _flush(callback: Function) {
-        this.pushLines();
-        if (this.buffer.length > 0) this.push(this.buffer);
+        this.emitLines();
+        if (this.buffer.length > 0) {
+            this.emit('data', this.buffer);
+        }
         callback(null);
     }
 }

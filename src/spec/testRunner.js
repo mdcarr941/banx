@@ -6,6 +6,7 @@ const path = require('path');
 const fs = require('fs').promises;
 const child_process = require('child_process');
 const mongodb = require('mongodb');
+const rm = require('../bin/repoRepo').rm;
 
 const config = Object.freeze({
     mongoServer: process.env.MONGO_SERVER || 'mongodb://localhost:27017',
@@ -90,8 +91,14 @@ async function runJasmine(repoDir, testingDbName) {
 
 async function exitWith(code, repoDir, testingDbName) {
     let promises = [];
-    if (repoDir) promises.push(fs.rmdir(repoDir, { recursive: true }));
-    if (testingDbName) promises.push(dropTestingDb(testingDbName));
+    if (repoDir) promises.push(rm(repoDir).catch(err => {
+        console.error(`failed to remove '${repoDir}':`);
+        console.error(err);
+    }));
+    if (testingDbName) promises.push(dropTestingDb(testingDbName).catch(err => {
+        console.error(`failed to drop '${testingDbName}':`);
+        console.error(err);
+    }));
     await Promise.all(promises);
     process.exit(code);
 }

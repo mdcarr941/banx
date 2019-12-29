@@ -32,10 +32,10 @@ describe('lineStream', function() {
     });
 
     it('should handle a line at a time', function() {
-        const line0 = 'line zero';
-        stream.write(line0 + lf);
-        const line1 = 'line one';
-        stream.write(line1 + lf);
+        const line0 = 'line zero' + lf;
+        stream.write(line0);
+        const line1 = 'line one' + lf;
+        stream.write(line1);
 
         expect(lines.length).toBe(2);
         expect(lines[0]).toBe(line0);
@@ -43,12 +43,10 @@ describe('lineStream', function() {
     });
 
     it('should handle lines split across data chunks', function() {
-        const line0 = 'first:second';
+        const line0 = 'first:second' + lf;
         partition(line0, ':').map(f => stream.write(f));
-        stream.write(lf);
-        const line1 = 'third;fourth';
+        const line1 = 'third;fourth' + lf;
         partition(line1, ';').map(f => stream.write(f));
-        stream.write(lf);
 
         expect(lines.length).toBe(2);
         expect(lines[0]).toBe(line0);
@@ -56,9 +54,9 @@ describe('lineStream', function() {
     });
 
     it('should handle multiple lines in a single chunk', function() {
-        const line0 = 'first line';
-        const line1 = 'second line';
-        stream.write(line0 + lf + line1 + lf);
+        const line0 = 'first line' + lf;
+        const line1 = 'second line' + lf;
+        stream.write(line0 + line1);
 
         expect(lines.length).toBe(2);
         expect(lines[0]).toBe(line0);
@@ -66,9 +64,9 @@ describe('lineStream', function() {
     });
 
     it('should emit remaining data when end is called', function() {
-        const line0 = 'line zero';
+        const line0 = 'line zero' + lf;
         const line1 = 'this is not terminated by eol';
-        stream.write(line0 + lf);
+        stream.write(line0);
         stream.write(line1);
         stream.end();
         
@@ -77,10 +75,10 @@ describe('lineStream', function() {
         expect(lines[1]).toBe(line1);
     });
 
-    it('should not emit if no eol is encoutered and end has not been called', function() {
-        const line0 = 'eol terminated';
+    it('should not emit if no eol is encountered and end has not been called', function() {
+        const line0 = 'eol terminated' + lf;
         const line1 = 'non eol terminated';
-        stream.write(line0 + lf);
+        stream.write(line0);
         stream.write(line1);
 
         expect(lines.length).toBe(1);
@@ -91,16 +89,16 @@ describe('lineStream', function() {
         stream.write(lf);
 
         expect(lines.length).toBe(1);
-        expect(lines[0]).toBe('');
+        expect(lines[0]).toBe(lf);
     });
 
     it('should handle all types of line delimiters', function() {
-        const line0 = 'first line';
-        const line1 = 'second line';
-        const line2 = 'third line';
-        stream.write(line0 + lf);
-        stream.write(line1 + crlf);
-        stream.write(line2 + crlf);
+        const line0 = 'first line' + lf;
+        const line1 = 'second line' + crlf;
+        const line2 = 'third line' + crlf;
+        stream.write(line0);
+        stream.write(line1);
+        stream.write(line2);
 
         expect(lines.length).toBe(3);
         expect(lines[0]).toBe(line0);

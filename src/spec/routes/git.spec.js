@@ -5,6 +5,8 @@ describe('git router', function() {
     const os = require('os');
     const fs = require('fs').promises;
     const http = require('http');
+    const git = require('isomorphic-git');
+    const path = require('path');
 
     const config = require('../../bin/config').default;
     const testHelpers = require('../testHelpers');
@@ -19,6 +21,7 @@ describe('git router', function() {
     beforeAll(async function() {
         const userRepo = await getGlobalUserRepo();
         await userRepo.insert(new BanxUser({ glid: testUserId }));
+        git.plugins.set('fs', fs);
     });
 
     afterAll(async function() {
@@ -164,6 +167,8 @@ describe('git router', function() {
         repo = new Repository(res.body);
         
         try {
+            expect(await testHelpers.pathExists(repo.path)).toBe(true);
+
             const server = http.createServer(app);
             server.listen(config.port);
             await new Promise(resolve => {
@@ -183,7 +188,9 @@ describe('git router', function() {
                     {cwd: tempDir}
                 );
                 subproc.stdout.pipe(process.stdout);
-                subproc.stderr.pipe(process.stderr);
+                subproc.stderr.on('data', chunk => {
+                    console.error(`git stderr: ${chunk}`);
+                })
                 process.stdin.pipe(subproc.stdin);
                 const exit = new Promise((resolve, reject) => {
                     subproc.on('exit', (code, signal) => {
@@ -206,7 +213,7 @@ describe('git router', function() {
                 expect(code).toBe(0);
             }
             finally {
-                await fs.rmdir(tempDir, {recursive: true});
+                await repoRepoModule.rm(tempDir);
                 await new Promise((resolve, reject) => server.close(err => {
                     if (err) reject(err);
                     else resolve();
@@ -216,6 +223,46 @@ describe('git router', function() {
         }
         finally {
             const repoRepo = await getGlobalRepoRepo();
+            await repoRepo.del(repoName);
+        }
+        expect(await testHelpers.pathExists(repo.path)).toBe(false);
+    });
+
+    it('should allow repositories to be cloned with isomorphic git', async function() {
+        const repoName = 'gitRouterCloneWithIsoGit';
+        const repoRepo = await getGlobalRepoRepo();
+        const repo = await repoRepo.upsert(new Repository({name: repoName}));
+
+        try {
+            const tempDir = await testHelpers.getTempDir();
+            try {
+                const server = http.createServer(app);
+                server.listen(config.port);
+                await new Promise(resolve => {
+                    server.on('listening', () => resolve());
+                });
+
+                try {
+                    await git.clone({
+                        dir: '/tmp/tempDir',
+                        url: `http://localhost:${config.port}/git/repos${repo.dir}`,
+                        ref: 'master',
+                        singleBranch: true,
+                        depth: 1
+                    });
+                }
+                finally {
+                    await new Promise((resolve, reject) => server.close(err => {
+                        if (err) reject(err);
+                        else resolve();
+                    }));
+                }
+            }
+            finally {
+              repoRepoModule.rm(tempDir);
+            }
+        }
+        finally {
             await repoRepo.del(repoName);
         }
         expect(await testHelpers.pathExists(repo.path)).toBe(false);
