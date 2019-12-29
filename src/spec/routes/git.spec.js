@@ -3,7 +3,8 @@ describe('git router', function() {
     const mongodb = require('mongodb');
     const child_process = require('child_process');
     const os = require('os');
-    const fs = require('fs').promises;
+    const fsOld = require('fs');
+    const fs = fsOld.promises;
     const http = require('http');
     const git = require('isomorphic-git');
     const path = require('path');
@@ -21,7 +22,7 @@ describe('git router', function() {
     beforeAll(async function() {
         const userRepo = await getGlobalUserRepo();
         await userRepo.insert(new BanxUser({ glid: testUserId }));
-        git.plugins.set('fs', fs);
+        git.plugins.set('fs', fsOld);
     });
 
     afterAll(async function() {
@@ -228,28 +229,74 @@ describe('git router', function() {
         expect(await testHelpers.pathExists(repo.path)).toBe(false);
     });
 
-    it('should allow repositories to be cloned with isomorphic git', async function() {
+    fit('should allow repositories to be cloned with isomorphic git', async function() {
         const repoName = 'gitRouterCloneWithIsoGit';
         const repoRepo = await getGlobalRepoRepo();
-        const repo = await repoRepo.upsert(new Repository({name: repoName}));
 
+        const repo = await repoRepo.upsert(new Repository({name: repoName, userIds: [testUserId]}));
         try {
-            const tempDir = await testHelpers.getTempDir();
+            const dir = await testHelpers.getTempDir();
             try {
                 const server = http.createServer(app);
+
                 server.listen(config.port);
                 await new Promise(resolve => {
                     server.on('listening', () => resolve());
                 });
-
                 try {
+                    const headers = { 'ufshib_eppn': testUserId };
+                    const url = `http://localhost:${config.port}/git/repos/${repo.dir()}`;
                     await git.clone({
-                        dir: '/tmp/tempDir',
-                        url: `http://localhost:${config.port}/git/repos${repo.dir}`,
+                        dir,
+                        url,
                         ref: 'master',
                         singleBranch: true,
-                        depth: 1
+                        depth: 1,
+                        headers
                     });
+
+                    const testFile = 'testFile.txt';
+                    const fileContents = 'This is an English sentence.';
+                    await fs.appendFile(
+                        path.join(dir, testFile),
+                        fileContents
+                    );
+
+                    await git.add({
+                        dir,
+                        filepath: testFile 
+                    });
+
+                    await git.commit({
+                        dir,
+                        message: 'Initial commit',
+                        author: {
+                            name: testUserId,
+                            email: testUserId + '@ufl.edu'
+                        }
+                    });
+
+                    await git.push({
+                        dir,
+                        headers
+                    });
+
+                    const dir2 = await testHelpers.getTempDir();
+                    try {
+                        console.debug('\n******************BEFORE CLONE**********************')
+                        await git.clone({
+                            dir: dir2,
+                            url,
+                            ref: 'master',
+                            singleBranch: true,
+                            depth: 1,
+                            headers
+                        });
+                        console.debug('******************AFTER CLONE**********************')
+                    }
+                    finally {
+                        await repoRepoModule.rm(dir2);
+                    }
                 }
                 finally {
                     await new Promise((resolve, reject) => server.close(err => {
@@ -259,8 +306,9 @@ describe('git router', function() {
                 }
             }
             finally {
-              repoRepoModule.rm(tempDir);
+              await repoRepoModule.rm(dir);
             }
+            expect(await testHelpers.pathExists(dir)).toBe(false);
         }
         finally {
             await repoRepo.del(repoName);

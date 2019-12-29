@@ -86,7 +86,14 @@ export async function gitHttpBackend(req: express.Request, res: express.Response
         console.debug(`status set: ${res.statusCode}`);
         delete headers.Status;
         res.set(headers);
+
         cgiStream.pipe(res);
+        // const buffer: any[] = [];
+        // cgiStream.on('data', chunk => buffer.push(chunk));
+        // cgiStream.on('end', () => {
+        //     buffer.forEach(chunk => res.write(chunk))
+        //     res.end();
+        // });
     });
     subproc.stdout.pipe(cgiStream);
     req.pipe(subproc.stdin);
