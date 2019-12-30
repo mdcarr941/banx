@@ -1,5 +1,4 @@
 import { Component, ViewChild } from '@angular/core';
-import { AngularMonacoEditorComponent } from 'angular-monaco-editor';
 import * as $ from 'jquery';
 
 import { SageShellService } from '../sage-shell.service';
@@ -12,12 +11,14 @@ import { NotificationService } from '../notification.service';
   styleUrls: ['./sage-shell.component.css']
 })
 export class SageShellComponent {
+  private code: string;
+
   constructor(
     private sageShellService: SageShellService,
     private notifications: NotificationService
   ) { }
 
-  readonly editorOptions = Object.freeze({
+  private readonly editorOptions = Object.freeze({
     theme: 'vs',
     language: 'python',
   });
@@ -41,14 +42,11 @@ export class SageShellComponent {
     }
   }
 
-  @ViewChild('codeInput') codeInput: AngularMonacoEditorComponent;
-
   private execute() {
-    const code = this.codeInput.value;
-    if (0 == code.length) return;
+    if (0 == this.code.length) return;
 
     this.notifications.showLoading('Executing your code.');
-    this.sageShellService.execute(code)
+    this.sageShellService.execute(this.code)
     .subscribe(
       response => {
         this.notifications.showSuccess('Code execution complete.');

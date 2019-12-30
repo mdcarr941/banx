@@ -38,7 +38,8 @@ export class DirViewComponent implements OnInit, OnDestroy {
   private currentDir: string = null;
 
   @Input() public dir$: Observable<string>;
-  @Output() public fileSelected$: Observable<string> = this._fileSelected$;
+  @Output() public fileSelected$: Observable<string>
+    = this._fileSelected$;
 
   constructor() { }
 

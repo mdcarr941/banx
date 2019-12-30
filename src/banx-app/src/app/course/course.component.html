@@ -21,9 +21,31 @@
   </div>
 
   <div class="col-6">
-    <span *ngIf="selectedFile$ | async as selectedFile; else noFile">
-      File selected: {{selectedFile}}
-    </span>
-    <ng-template #noFile>No file selected.</ng-template>
+    <div class="container-fluid">
+      <ng-container *ngIf="selectedFile$ | async as selectedFile; else noFile">
+        <div class="row">{{displayName(selectedFile)}}:</div>
+        <div class="row">
+          <angular-monaco-editor class="editor" [options]="editorOptions" [(ngModel)]="editorText">
+          </angular-monaco-editor>
+        </div>
+        <div class="row">
+          <div class="col">
+            <button class="btn btn-primary" (click)="saveEdits()">Save</button>
+          </div>
+          <div class="col">
+            <button class="btn btn-secondary" (click)="rename()">Rename</button>
+          </div>
+          <div class="col">
+            <button class="btn btn-secondary">Reset From Server</button>
+          </div>
+          <div class="col">
+            <button class="btn btn-danger">Delete</button>
+          </div>
+        </div>
+      </ng-container>
+      <ng-template #noFile>
+        <div class="row">No file selected.</div>
+      </ng-template>
+    </div>
   </div>
 </div>
