@@ -12,4 +12,8 @@ export abstract class BaseService {
         if (!end) end = '';
         return urlJoin(this.endpoint, end);
     }
+
+    protected getFullUrl(end?: string) {
+        return urlJoin(window.origin, this.getUrl(end));
+    }
 }

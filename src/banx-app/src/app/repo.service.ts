@@ -63,12 +63,26 @@ export class Repository implements IRepository {
   providedIn: 'root'
 })
 export class RepoService extends BaseService {
+  // We are assuming that the app is hosted under the 'app' path,
+  // but that there could be zero or more path components which
+  // preceed 'app'.
+  protected static readonly endpointRgx = /^(.*)\/app/;
+
+  private readonly _endpoint: string;
+
   protected get endpoint(): string {
-    return 'git'
+    return this._endpoint;
   }
 
   constructor(private readonly http: HttpClient) {
     super();
+
+    const pathname = window.location.pathname;
+    const match = RepoService.endpointRgx.exec(pathname);
+    if (!match) throw new Error(`Failed to extract the app prefix from '${pathname}'`);
+
+    this._endpoint = match[1] + '/git';
+    console.log(`_endpoint = ${this._endpoint}`)
   }
 
   public list(): Observable<Repository[]> {
@@ -88,23 +102,20 @@ export class RepoService extends BaseService {
 
   public async updateFromServer(repo: Repository): Promise<void> {
     if (await exists(repo.dir)) {
-      console.log('doing pull');
       await gitPull({
         dir: repo.dir,
         ref: 'master'
       });
-      console.log('pull done');
     }
     else {
-      console.log('doing clone');
       await repo.init();
+      const url = this.getFullUrl(`/repos${repo.dir}`);
       await gitClone({
         dir: repo.dir,
-        url: `http://localhost:3000/git/repos${repo.dir}`,
+        url,
         ref: 'master',
         singleBranch: true
       });
-      console.log('clone done');
     }
   }
 }

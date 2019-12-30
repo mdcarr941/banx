@@ -104,10 +104,10 @@ export class SageServer {
 
         this.lineStream = new LineStream();
         this.sub.stdout.pipe(this.lineStream);
-        this.lineStream.on('data', (line: string) => {
+        this.lineStream.on('data', (line: Buffer) => {
             let response: SageResponse;
             try {
-                response = JSON.parse(line);
+                response = JSON.parse(line.toString('utf8'));
             } catch {
                 return;
             }

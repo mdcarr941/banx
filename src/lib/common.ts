@@ -43,6 +43,9 @@ export function printError(err: Error, message?: string) {
     console.error(`${message}\n${err.message}`);
 }
 
+// Return true if a segment has positive length or it is at the beginning or end
+// of the array. This prevents zero length segments from appearing in the middle of
+// a path.
 function segmentFilter(segment: string, index: number, array: Array<string>): boolean {
     return segment.length > 0 || index == 0 || index == array.length - 1;
 }
@@ -51,11 +54,33 @@ export function cleanPrefix(prefix: string): string {
     return prefix.split('/').filter(segmentFilter).join('/');
 }
 
+function trimPatternStart(text: string, pattern: string): string {
+    if (!text || !pattern) return text;
+    else if (text.startsWith(pattern)) return text.slice(pattern.length);
+    else return text;
+}
+
+function trimPatternEnd(text: string, pattern: string): string {
+    if (!text || !pattern) return text;
+    else if (text.endsWith(pattern)) return text.slice(0, text.length - pattern.length);
+    else return text;
+}
+
+function trimPattern(text: string, pattern: string): string {
+    return trimPatternEnd(trimPatternStart(text, pattern), pattern);
+}
+
+const sep = '/';
+
 export function urlJoin(...args: string[]) {
-    return args.map(arg => arg.split('/'))
-    .reduce((accum, current) => accum.concat(current))
-    .filter(segmentFilter)
-    .join('/');
+    const lastIndex = args.length - 1;
+    return args.map((arg, index) => {
+            if (0 === index) return trimPatternEnd(arg, sep)
+            else if (lastIndex === index) return trimPatternStart(arg, sep);
+            else return trimPattern(arg, sep)
+        })
+        .filter(segmentFilter)
+        .join('/');
 }
 
 const startRgx = /%+\s*\\tagged{([^}]+)}\s*{/;
