@@ -180,38 +180,25 @@ describe('git router', function() {
 
             try {
                 const repoUrl = `http://localhost:${config.port}/git/repos/${repo.dir()}`;
-                const subproc = child_process.spawn(
-                    'git',
-                    [
-                        '-c', `http.extraHeader=ufshib_eppn: ${testUserId}`,
-                        'clone', repoUrl
-                    ],
-                    {cwd: tempDir}
-                );
-                subproc.stdout.pipe(process.stdout);
-                subproc.stderr.on('data', chunk => {
-                    console.error(`git stderr: ${chunk}`);
-                })
-                process.stdin.pipe(subproc.stdin);
-                const exit = new Promise((resolve, reject) => {
-                    subproc.on('exit', (code, signal) => {
-                        if (code || signal) {
-                            console.error(`Git exited abnormally: code = ${code}, signal = ${signal}`);
-                            reject(code);
-                        }
-                        else resolve(code);
-                    });
-                });
-                const error = new Promise((resolve, reject) => {
-                    subproc.on('error', (err) => {
-                        console.error('The git subprocess threw an error:');
-                        console.error(err);
-                        reject(err);
-                    });
-                });
+                expect(await testHelpers.gitClone(repoUrl, tempDir, testUserId)).toBe(0);
 
-                const code = await Promise.race([exit, error]);
-                expect(code).toBe(0);
+                const testFile = 'testFile.txt';
+                const fileContents = 'A string of text.';
+                await fs.appendFile(path.join(tempDir, testFile), fileContents);
+
+                expect(await testHelpers.gitAdd(tempDir, testFile, testUserId)).toBe(0);
+                expect(await testHelpers.gitCommit(tempDir, 'Initial commit', testUserId)).toBe(0);
+                expect(await testHelpers.gitPush(tempDir, testUserId)).toBe(0);
+
+                const tempDir2 = await testHelpers.getTempDir();
+                try {
+                    expect(await testHelpers.gitClone(repoUrl, tempDir2, testUserId)).toBe(0);
+                    expect(await fs.readFile(path.join(tempDir2, testFile), 'utf8')).toBe(fileContents);
+                }
+                finally {
+                    await repoRepoModule.rm(tempDir2);
+                }
+                expect(await testHelpers.pathExists(tempDir2)).toBe(false);
             }
             finally {
                 await repoRepoModule.rm(tempDir);
@@ -229,7 +216,7 @@ describe('git router', function() {
         expect(await testHelpers.pathExists(repo.path)).toBe(false);
     });
 
-    fit('should allow repositories to be cloned with isomorphic git', async function() {
+    it('should allow repositories to be cloned with isomorphic git', async function() {
         const repoName = 'gitRouterCloneWithIsoGit';
         const repoRepo = await getGlobalRepoRepo();
 
@@ -283,7 +270,6 @@ describe('git router', function() {
 
                     const dir2 = await testHelpers.getTempDir();
                     try {
-                        console.debug('\n******************BEFORE CLONE**********************')
                         await git.clone({
                             dir: dir2,
                             url,
@@ -292,7 +278,6 @@ describe('git router', function() {
                             depth: 1,
                             headers
                         });
-                        console.debug('******************AFTER CLONE**********************')
                     }
                     finally {
                         await repoRepoModule.rm(dir2);

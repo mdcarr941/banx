@@ -4,6 +4,7 @@
 
 import { spawn } from 'child_process';
 import * as express from 'express';
+import { createWriteStream } from 'fs';
 
 import config from './config';
 import { LineStream } from './sageServer';
@@ -58,8 +59,8 @@ export async function gitHttpBackend(req: express.Request, res: express.Response
         QUERY_STRING: trimStart(urlParts.query, '?'),
         REQUEST_METHOD: req.method
     });
-    console.debug('env:');
-    console.debug(env);
+    // console.debug('env:');
+    // console.debug(env);
     const subproc = spawn(config.gitHttpBackend, {
         env: env
     });
@@ -80,23 +81,20 @@ export async function gitHttpBackend(req: express.Request, res: express.Response
     });
     
     cgiStream.on('headers', (headers: Headers) => {
-        console.debug('headers:');
-        console.debug(headers);
+        // console.debug('headers:');
+        // console.debug(headers);
         res.statusCode = parseInt(headers.Status) || 200;
-        console.debug(`status set: ${res.statusCode}`);
+        // console.debug(`status set: ${res.statusCode}`);
         delete headers.Status;
         res.set(headers);
-
         cgiStream.pipe(res);
-        // const buffer: any[] = [];
-        // cgiStream.on('data', chunk => buffer.push(chunk));
-        // cgiStream.on('end', () => {
-        //     buffer.forEach(chunk => res.write(chunk))
-        //     res.end();
-        // });
     });
     subproc.stdout.pipe(cgiStream);
     req.pipe(subproc.stdin);
-    cgiStream.on('end', () => console.debug('cgiStream ended'))
-    cgiStream.on('finish', () => console.debug('cgiStream finished'))
+    //cgiStream.on('end', () => console.log('cgiStream ended'))
+
+    const gitOutput = createWriteStream('/tmp/gitOutput');
+    const cgiOutput = createWriteStream('/tmp/cgiOutput');
+    subproc.stdout.pipe(gitOutput);
+    cgiStream.pipe(cgiOutput);
 }

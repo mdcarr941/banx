@@ -9,25 +9,28 @@ export const serverPathDefault = '../lib/sage_server.py';
 export const responseTimeoutMsDefault = 2500;
 
 export class LineStream extends Stream.Transform {
-    private buffer: string = '';
+    private static readonly crlf = Buffer.from([13, 10]);
+    private static readonly lf = Buffer.from([10]);
+    private buffer: Buffer = Buffer.alloc(0);
 
     constructor(options?: any) {
         super({
             ...options,
-            objectMode: false,
-            decodeStrings: false
+            objectMode: false, // only string and Buffer values may be written
+            decodeStrings: true, // decode string values to Buffer values 
+            autoDestroy: true // destroy the stream if an error occurs
         });
     }
 
-    private getNextLine(): string {
-        let index = this.buffer.indexOf('\r\n');
+    private getNextLine(): Buffer {
+        let index = this.buffer.indexOf(LineStream.crlf);
         let length = 2;
         if (index < 0) {
-            index = this.buffer.indexOf('\n');
+            index = this.buffer.indexOf(LineStream.lf);
             length = 1;
         }
         if (index < 0) return null;
-        const rval = this.buffer.slice(0, index + length);
+        const rval = Buffer.from(this.buffer.slice(0, index + length));
         this.buffer = this.buffer.slice(index + length);
         return rval;
     }
@@ -40,8 +43,8 @@ export class LineStream extends Stream.Transform {
         }
     }
 
-    _transform(chunk: string, encoding: string, callback: Function) {
-        this.buffer += chunk;
+    _transform(chunk: Buffer, encoding: string, callback: Function) {
+        this.buffer = Buffer.concat([this.buffer, chunk]);
         this.emitLines();
         callback(null);
     }

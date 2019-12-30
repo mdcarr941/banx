@@ -19,6 +19,7 @@
     "dev": "npm run ng-build-watch & npm run build-watch & npm run nodemon",
     "prod": "npm run build-all && npm run start",
     "test": "node spec/testRunner.js",
+    "test-debug": "node --inspect-brk spec/testRunner.js",
     "cli": "node ./bin/cli.js"
   },
   "author": "",

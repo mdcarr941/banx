@@ -1,3 +1,5 @@
+const { LineStream } = require('../bin/sageServer');
+
 function partition(text, delim) {
     const output = Array(3);
     const start = text.indexOf(delim);
@@ -16,7 +18,6 @@ function partition(text, delim) {
 }
 
 describe('lineStream', function() {
-    const LineStream = require('../bin/sageServer').LineStream;
     const lf = '\n';
     const crlf = '\r\n';
 

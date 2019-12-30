@@ -24,11 +24,11 @@ function copyIfExists(from: any, to: any): void {
   });
 }
 
-export async function exists(path: string): Promise<boolean> {
+export function exists(path: string): Promise<boolean> {
   return fs.stat(path).then(() => true).catch(() => false);
 }
 
-export async function ls(path: string): Promise<string[]> {
+export function ls(path: string): Promise<string[]> {
   return fs.readdir(path);
 }
 
