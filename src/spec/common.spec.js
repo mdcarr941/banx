@@ -1,6 +1,6 @@
 const common = require('../bin/common');
 
-fdescribe('common module', function() {
+describe('common module', function() {
     it('should be able to join url segments', function() {
         expect(common.urlJoin('/', '/banx/', 'app', 'courses/'))
             .toBe('/banx/app/courses/');
@@ -13,5 +13,8 @@ fdescribe('common module', function() {
 
         expect(common.urlJoin('top', '/', '', 'middle/', '/bottom'))
             .toBe('top/middle/bottom');
+
+        expect(common.urlJoin('a', null, 'b'))
+            .toBe('a/b');
     });
 });

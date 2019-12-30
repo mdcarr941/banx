@@ -22,6 +22,7 @@ import { NotificationViewComponent } from './notification-view/notification-view
 import { UploadProblemsComponent } from './upload-problems/upload-problems.component';
 import { AuthorProblemsComponent } from './author-problems/author-problems.component';
 import { CourseComponent } from './course/course.component';
+import { DirViewComponent } from './dir-view/dir-view.component';
 
 const routes: Routes = [
   { path: '', redirectTo: '/problemquery', pathMatch: 'full'},
@@ -52,7 +53,8 @@ const routes: Routes = [
     NotificationViewComponent,
     UploadProblemsComponent,
     AuthorProblemsComponent,
-    CourseComponent
+    CourseComponent,
+    DirViewComponent
   ],
   imports: [
     RouterModule.forRoot(routes),

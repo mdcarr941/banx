@@ -74,7 +74,9 @@ const sep = '/';
 
 export function urlJoin(...args: string[]) {
     const lastIndex = args.length - 1;
-    return args.map((arg, index) => {
+    return args
+        .filter(segment => typeof segment === 'string')
+        .map((arg, index) => {
             if (0 === index) return trimPatternEnd(arg, sep)
             else if (lastIndex === index) return trimPatternStart(arg, sep);
             else return trimPattern(arg, sep)

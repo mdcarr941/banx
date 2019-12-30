@@ -4,7 +4,7 @@
       <h3 class="row"></h3>
       <ul *ngIf="repos$ | async as repos">
         <li class="row" *ngFor="let repo of repos">
-          <button class="btn btn-link" (click)="selectRepo(repo)">
+          <button class="btn btn-link" (click)="selectedRepo$.next(repo)">
             {{repo.name}}
           </button>
         </li>
@@ -12,9 +12,18 @@
     </div>
   </div>
 
-  <div class="col-9">
-    <ng-container *ngIf="selectedRepo$ | async as selectedRepo">
-      {{selectedRepo.name}}
+  <div class="col-3">
+    <ng-container *ngIf="currentDir$ | async">
+      <h4>Course Files:</h4>
     </ng-container>
+    <app-dir-view [dir$]="currentDir$" (fileSelected$)="selectedFile$.next($event)">
+    </app-dir-view>
+  </div>
+
+  <div class="col-6">
+    <span *ngIf="selectedFile$ | async as selectedFile; else noFile">
+      File selected: {{selectedFile}}
+    </span>
+    <ng-template #noFile>No file selected.</ng-template>
   </div>
 </div>

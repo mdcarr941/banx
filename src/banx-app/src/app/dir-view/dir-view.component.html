@@ -1,0 +1,8 @@
+<ng-container *ngIf="tree$ | async as tree">
+  <button class="btn btn-link" (click)="newFile()">New File</button>
+  <button class="btn btn-link" (click)="newDir()">New Directory</button>
+  <ul>
+    <li class="font-weight-bold direntry" *ngFor="let subdir of tree.subdirs">{{subdir}}</li>
+    <li class="direntry" *ngFor="let file of tree.files" (click)="selectFile(file)">{{file}}</li>
+  </ul>
+</ng-container>

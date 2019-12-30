@@ -1,12 +1,16 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import FS from '@isomorphic-git/lightning-fs';
-import { clone as gitClone, plugins as gitPlugins, pull as gitPull } from 'isomorphic-git';
+import FS, { Stat } from '@isomorphic-git/lightning-fs';
+import {
+  clone as gitClone,
+  plugins as gitPlugins,
+  pull as gitPull
+} from 'isomorphic-git';
 
 import { BaseService } from './base.service';
 import { IRepository } from '../../../lib/schema';
-import { forEach } from '../../../lib/common';
+import { forEach, urlJoin } from '../../../lib/common';
 import { map } from 'rxjs/operators';
 
 const fs = (function() {
@@ -24,12 +28,44 @@ function copyIfExists(from: any, to: any): void {
   });
 }
 
+const stringEncoding = 'utf8';
+
 export function exists(path: string): Promise<boolean> {
   return fs.stat(path).then(() => true).catch(() => false);
 }
 
 export function ls(path: string): Promise<string[]> {
   return fs.readdir(path);
+}
+
+export async function lsStats(path: string): Promise<{[name: string]: Stat}> {
+  const names = await fs.readdir(path);
+  const output: {[name: string]: Stat} = {};
+  for (let name of names) {
+    output[name] = await fs.stat(urlJoin(path, name));
+  }
+  return output
+}
+
+export function mkdir(path: string): Promise<void> {
+  return fs.mkdir(path);
+}
+
+export function touch(path: string): Promise<void> {
+  return fs.writeFile(path, '', {encoding: stringEncoding});
+}
+
+export function mv(oldPath: string, newPath: string): Promise<void> {
+  return fs.rename(oldPath, newPath);
+}
+
+export function cat(path: string): Promise<string> {
+  return fs.readFile(path, {encoding: stringEncoding});
+}
+
+export async function echo(path: string, text: string, truncate?: boolean): Promise<void> {
+  if (truncate) await fs.unlink(path);
+  return fs.writeFile(path, text, {encoding: stringEncoding});
 }
 
 export class Repository implements IRepository {
@@ -63,26 +99,12 @@ export class Repository implements IRepository {
   providedIn: 'root'
 })
 export class RepoService extends BaseService {
-  // We are assuming that the app is hosted under the 'app' path,
-  // but that there could be zero or more path components which
-  // preceed 'app'.
-  protected static readonly endpointRgx = /^(.*)\/app/;
-
-  private readonly _endpoint: string;
-
   protected get endpoint(): string {
-    return this._endpoint;
+    return 'git';
   }
 
   constructor(private readonly http: HttpClient) {
     super();
-
-    const pathname = window.location.pathname;
-    const match = RepoService.endpointRgx.exec(pathname);
-    if (!match) throw new Error(`Failed to extract the app prefix from '${pathname}'`);
-
-    this._endpoint = match[1] + '/git';
-    console.log(`_endpoint = ${this._endpoint}`)
   }
 
   public list(): Observable<Repository[]> {
@@ -102,17 +124,26 @@ export class RepoService extends BaseService {
 
   public async updateFromServer(repo: Repository): Promise<void> {
     if (await exists(repo.dir)) {
-      await gitPull({
-        dir: repo.dir,
-        ref: 'master'
-      });
+      try {
+        await gitPull({
+          dir: repo.dir,
+          ref: 'master'
+        });
+      }
+      catch (err) {
+        if (err.name === 'ExpandRefError') {
+          // It appears that the repository has no commits
+          // on the master branch. This is the case if the
+          // repository is empty.
+          return;
+        }
+      }
     }
     else {
       await repo.init();
-      const url = this.getFullUrl(`/repos${repo.dir}`);
       await gitClone({
         dir: repo.dir,
-        url,
+        url: this.getFullUrl(`/repos${repo.dir}`),
         ref: 'master',
         singleBranch: true
       });
