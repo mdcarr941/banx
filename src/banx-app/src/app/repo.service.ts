@@ -1,17 +1,23 @@
 import { Injectable, EventEmitter } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import FS, { Stat } from '@isomorphic-git/lightning-fs';
 import {
   clone as gitClone,
   plugins as gitPlugins,
-  pull as gitPull
+  pull as gitPull,
+  commit as gitCommit,
+  push as gitPush,
+  add as gitAdd,
+  status as gitStatus,
+  PushResponse
 } from 'isomorphic-git';
+import { RemoteUserService } from './remote-user.service';
 
 import { BaseService } from './base.service';
 import { IRepository } from '../../../lib/schema';
 import { forEach, urlJoin } from '../../../lib/common';
-import { map } from 'rxjs/operators';
 
 const fs = (function() {
   const _fs = new FS('banxFS');
@@ -101,6 +107,12 @@ export class Repository implements IRepository {
   }
 }
 
+export class PushError extends Error {
+  constructor(message: string, public readonly errors: PushResponse) {
+    super(message);
+  }
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -109,7 +121,10 @@ export class RepoService extends BaseService {
     return 'git';
   }
 
-  constructor(private readonly http: HttpClient) {
+  constructor(
+    private readonly http: HttpClient,
+    private readonly userService: RemoteUserService
+  ) {
     super();
   }
 
@@ -155,5 +170,53 @@ export class RepoService extends BaseService {
       });
     }
     repo.refreshed$.next();
+  }
+
+  private async addFilesTo(repo: Repository, relativePath?: string): Promise<void> {
+    const absolutePath = relativePath ? urlJoin(repo.dir, relativePath) : repo.dir
+    const stats = await lsStats(absolutePath);
+    const promises = [];
+    for (let name in stats) {
+      const filepath = relativePath ? urlJoin(relativePath, name) : name
+      if (stats[name].isDirectory()) {
+        promises.push(this.addFilesTo(repo, filepath));
+      }
+      else {
+        const status = await gitStatus({
+          dir: repo.dir,
+          filepath
+        });
+        if ('*modified' === status || '*added' === status) {
+          promises.push(gitAdd({
+            dir: repo.dir,
+            filepath
+          }));
+        }
+      }
+    }
+    await Promise.all(promises);
+  }
+
+  public async commit(repo: Repository, message?: string): Promise<void> {
+    console.log('adding files')
+    await this.addFilesTo(repo);
+    console.log('finished adding files')
+    await gitCommit({
+      dir: repo.dir,
+      message: message ? message : '',
+      author: {
+        name: this.userService.remoteUser.glid,
+        email: this.userService.remoteUser.email()
+      }
+    });
+    const response = await gitPush({
+      dir: repo.dir
+    });
+    if (response.ok && response.ok.length > 0 && response.ok[0] === 'unpack') {
+      return;
+    }
+    else {
+      throw new PushError('The push response did not indicate success.', response);
+    }
   }
 }

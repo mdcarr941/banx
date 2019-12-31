@@ -1,4 +1,4 @@
-import { ObjectID, ObjectId } from 'mongodb';
+import { ObjectID } from 'mongodb';
 
 export interface KeyValPair {
     key: string;
@@ -91,6 +91,8 @@ export interface IBanxUser extends IMongoObject {
 }
 
 export class BanxUser implements IBanxUser {
+    public static readonly emailDomain = 'ufl.edu';
+
     public _id: ObjectID = null;
     public idStr: string = null;
     public glid: string;
@@ -100,7 +102,7 @@ export class BanxUser implements IBanxUser {
         if (!obj) return;
         if (typeof(obj._id) === 'string') this.idStr = obj._id;
         else this._id = obj._id;
-        this.glid = obj.glid || "";
+        this.glid = obj.glid || '';
         this.roles = obj.roles || [];
     }
 
@@ -114,6 +116,10 @@ export class BanxUser implements IBanxUser {
 
     public canEdit(): boolean {
         return this.isAdmin() || this.isAuthor();
+    }
+
+    public email(): string {
+        return this.glid + '@' + BanxUser.emailDomain;
     }
 
     public toString(): string {

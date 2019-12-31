@@ -15,6 +15,14 @@
 
   <div class="col-8">
     <div class="container-fluid">
+      <div *ngIf="selectedRepo" class="row">
+        <h3 class="col">{{selectedRepo.name}}</h3>
+        <div class="col d-flex flex-row-reverse">
+          <button class="btn btn-primary" (click)="saveToServer()">
+            Save to Server
+          </button>
+        </div>
+      </div>
       <ng-container *ngIf="selectedFile$ | async as selectedFile; else noFile">
         <div class="row">{{selectedFile}}:</div>
         <div class="row">

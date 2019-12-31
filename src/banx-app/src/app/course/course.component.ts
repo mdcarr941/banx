@@ -21,10 +21,11 @@ export class CourseComponent implements OnInit, OnDestroy {
   private readonly collapseAllExcept$ = new EventEmitter<string>();
 
   private editorText: string;
+  private selectedRepo: Repository;
 
   constructor(
     private readonly repoService: RepoService,
-    private readonly notifcation: NotificationService
+    private readonly notification: NotificationService
   ) {}
 
   public ngOnInit() {
@@ -47,37 +48,52 @@ export class CourseComponent implements OnInit, OnDestroy {
   private async toggleRepo(repo: Repository, collapsed: boolean): Promise<void> {
     if (collapsed) return;
 
+    this.selectedRepo = repo;
     // Collapse each DirViewComponent except the one
     // for repo.dir.
     this.collapseAllExcept$.next(repo.dir);
 
-    this.notifcation.showLoading(`Updating ${repo.name} from the server...`);
+    this.notification.showLoading(`Updating ${repo.name} from the server...`);
     try {
       await this.repoService.updateFromServer(repo);
     }
     catch (err) {
-      this.notifcation.showError(`Failed to update ${repo.name}!`);
+      this.notification.showError(`Failed to update ${repo.name}!`);
       console.error(err);
+      return;
     }
-    this.notifcation.showSuccess('Finished updating');
+    this.notification.showSuccess('Finished updating');
     this.selectedFile$.next(null);
   }
 
   private async saveEdits(): Promise<void> {
     const filepath = this.selectedFile$.value;
     if (!filepath) {
-      // The way the template is structured this should never happen,
-      // but this is here just in case.
-      this.notifcation.showError('Can\'t save, no file has been selected.');
+      // The way the template is structured this should never happen.
+      // This is here just in case.
+      this.notification.showError('Can\'t save, no file has been selected.');
     }
     else {
-      this.notifcation.showLoading('Saving changes...');
+      this.notification.showLoading('Saving changes...');
       await echo(filepath, this.editorText, true);
-      this.notifcation.showSuccess('Saved changes.');
+      this.notification.showSuccess('Saved changes.');
     }
   }
 
   private async rename(): Promise<void> {
 
+  }
+
+  private async saveToServer(): Promise<void> {
+    this.notification.showLoading(`Saving ${this.selectedRepo.name} to the server...`);
+    try {
+      await this.repoService.commit(this.selectedRepo);
+    }
+    catch (err) {
+      this.notification.showError(`Failed to save ${this.selectedRepo.name}!`);
+      console.error(err);
+      return;
+    }
+    this.notification.showSuccess(`Finished saving ${this.selectedRepo.name}.`);
   }
 }
