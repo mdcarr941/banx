@@ -1,6 +1,6 @@
-import { Component, Input, Output, EventEmitter, ViewChild } from '@angular/core';
-
-declare const $: any;
+import { Component, Input, Output, EventEmitter, ViewChild, OnInit, OnDestroy } from '@angular/core';
+import { Observable } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-collapsible',
@@ -9,22 +9,38 @@ declare const $: any;
       <button class="btn btn-link" (click)="toggle()">
         {{itemName}}
       </button>
-      <ul [class.collapse]="collapsed" #list>
+      <ul [class.collapse]="collapsed">
         <ng-content></ng-content>
       </ul>
     </li>`  
 })
-export class CollapsibleComponent {
+export class CollapsibleComponent implements OnInit, OnDestroy {
   private collapsed: boolean = true;
-  @ViewChild('list') list;
-  @Input() itemName: string;
-  @Output() toggled = new EventEmitter<boolean>();
+  private readonly _toggled = new EventEmitter<boolean>();
+  private readonly destroyed$ = new EventEmitter<void>();
 
-  toggle() {
-    this.collapsed = !this.collapsed;
-    if (typeof $ === 'function') {
-      $(this.list.nativeElement).collapse('toggle');
+  @Input() itemName: string;
+  @Input() collapse$: Observable<void>;
+  @Output() toggled: Observable<boolean> = this._toggled;
+
+  public ngOnInit() {
+    if (this.collapse$) {
+      this.collapse$.pipe(takeUntil(this.destroyed$))
+        .subscribe(() => this.collapse());
     }
-    this.toggled.next(this.collapsed);
+  }
+
+  public ngOnDestroy() {
+    this.destroyed$.next();
+  }
+
+  public toggle() {
+    this.collapsed = !this.collapsed;
+    this._toggled.next(this.collapsed);
+  }
+
+  public collapse() {
+    this.collapsed = true;
+    this._toggled.next(this.collapsed);
   }
 }

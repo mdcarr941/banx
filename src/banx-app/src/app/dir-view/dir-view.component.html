@@ -1,10 +1,12 @@
-<app-collapsible [itemName]="dir" (toggled)="_toggled$.next($event)">
+<app-collapsible [itemName]="dir" [collapse$]="_collapse$"
+  (toggled)="_toggled$.next($event)">
   <div class="container-fluid" *ngIf="tree$ | async as tree">
     <li>
       <button class="btn btn-link" (click)="newFile()">+File</button>
       <button class="btn btn-link" (click)="newDir()">+Dir</button>
     </li>
     <app-dir-view *ngFor="let subdir of tree.subdirs"
+      [collapse$]="collapse$"
       [dir]="fullPath(subdir)" [refresh$]="refresh$"
       (fileSelected$)="_fileSelected$.next($event)">
     </app-dir-view>

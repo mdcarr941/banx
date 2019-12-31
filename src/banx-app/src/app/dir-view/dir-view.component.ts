@@ -36,9 +36,11 @@ export class DirViewComponent implements OnInit, OnDestroy {
   private readonly _toggled$ = new EventEmitter<boolean>();
   private readonly _fileSelected$ = new EventEmitter<string>();
   private readonly tree$ = new BehaviorSubject<DirTree>(null);
+  private readonly _collapse$ = new EventEmitter<void>();
 
   @Input() public dir: string;
   @Input() public refresh$: Observable<void>;
+  @Input() public collapse$: Observable<string>;
   @Output() public readonly fileSelected$: Observable<string>
     = this._fileSelected$;
   @Output() public readonly toggled$: Observable<boolean>
@@ -47,8 +49,18 @@ export class DirViewComponent implements OnInit, OnDestroy {
   constructor() { }
 
   public ngOnInit() {
-    this.refresh$.pipe(takeUntil(this.destroyed$))
-      .subscribe(() => this.refresh());
+    if (this.refresh$) {
+      this.refresh$.pipe(takeUntil(this.destroyed$))
+        .subscribe(() => this.refresh());
+    }
+
+    if (this.collapse$) {
+      this.collapse$.pipe(takeUntil(this.destroyed$))
+        .subscribe(collapseException => {
+          if (this.dir === collapseException) return;
+          else this._collapse$.next();
+        });
+    }
 
     this._toggled$.pipe(
       takeUntil(this.destroyed$),
@@ -66,7 +78,7 @@ export class DirViewComponent implements OnInit, OnDestroy {
       this.tree$.next(await DirTree.from(this.dir));
     }
     else {
-      console.log(`not a directory: ${this.dir}`);
+      console.debug(`DirViewComponent.refresh: '${this.dir}' is not a directory`);
     }
   }
 

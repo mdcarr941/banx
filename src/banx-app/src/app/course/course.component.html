@@ -5,8 +5,9 @@
       <ul *ngIf="repos$ | async as repos">
         <app-dir-view class="row" *ngFor="let repo of repos"
           [dir]="repo.dir" [refresh$]="repo.refreshed$"
+          [collapse$]="collapseAllExcept$"
           (fileSelected$)="selectedFile$.next($event)"
-          (toggled$)="refresh(repo, $event)">
+          (toggled$)="toggleRepo(repo, $event)">
         </app-dir-view>
       </ul>
     </div>

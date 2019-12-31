@@ -18,6 +18,7 @@ export class CourseComponent implements OnInit, OnDestroy {
     theme: 'vs-dark',
     language: 'latex'
   });
+  private readonly collapseAllExcept$ = new EventEmitter<string>();
 
   private editorText: string;
 
@@ -43,8 +44,12 @@ export class CourseComponent implements OnInit, OnDestroy {
     this.destroyed$.next();
   }
 
-  private async refresh(repo: Repository, closed: boolean): Promise<void> {
-    if (closed) return;
+  private async toggleRepo(repo: Repository, collapsed: boolean): Promise<void> {
+    if (collapsed) return;
+
+    // Collapse each DirViewComponent except the one
+    // for repo.dir.
+    this.collapseAllExcept$.next(repo.dir);
 
     this.notifcation.showLoading(`Updating ${repo.name} from the server...`);
     try {
