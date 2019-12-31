@@ -5,14 +5,14 @@ declare const $: any;
 @Component({
   selector: 'app-collapsible',
   template:
-    `<ng-container>
-      <li (click)="toggle()">
-        <button class="btn btn-link">{{itemName}}</button>
-      </li>
+    `<li>
+      <button class="btn btn-link" (click)="toggle()">
+        {{itemName}}
+      </button>
       <ul [class.collapse]="collapsed" #list>
         <ng-content></ng-content>
       </ul>
-    </ng-container>`  
+    </li>`  
 })
 export class CollapsibleComponent {
   private collapsed: boolean = true;

@@ -50,7 +50,11 @@ export class DirViewComponent implements OnInit, OnDestroy {
     this.refresh$.pipe(takeUntil(this.destroyed$))
       .subscribe(() => this.refresh());
 
-    this.refresh();
+    this._toggled$.pipe(
+      takeUntil(this.destroyed$),
+      filter(collapsed => !collapsed)
+    )
+    .subscribe(() => this.refresh());
   }
 
   public ngOnDestroy() {
@@ -60,6 +64,9 @@ export class DirViewComponent implements OnInit, OnDestroy {
   private async refresh(): Promise<void> {
     if (await isdir(this.dir)) {
       this.tree$.next(await DirTree.from(this.dir));
+    }
+    else {
+      console.log(`not a directory: ${this.dir}`);
     }
   }
 

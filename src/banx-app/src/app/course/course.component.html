@@ -1,19 +1,18 @@
 <div class="row">
-  <div class="col-3">
+  <div class="col-4">
     <div class="container-fluid">
       <h3 class="row"></h3>
       <ul *ngIf="repos$ | async as repos">
-        <li class="row" *ngFor="let repo of repos">
-          <app-dir-view [dir]="repo.dir" [refresh$]="repo.refreshed$"
-              (fileSelected$)="selectedFile$.next($event)"
-              (toggled$)="refresh(repo, $event)">
-          </app-dir-view>
-        </li>
+        <app-dir-view class="row" *ngFor="let repo of repos"
+          [dir]="repo.dir" [refresh$]="repo.refreshed$"
+          (fileSelected$)="selectedFile$.next($event)"
+          (toggled$)="refresh(repo, $event)">
+        </app-dir-view>
       </ul>
     </div>
   </div>
 
-  <div class="col-9">
+  <div class="col-8">
     <div class="container-fluid">
       <ng-container *ngIf="selectedFile$ | async as selectedFile; else noFile">
         <div class="row">{{selectedFile}}:</div>
