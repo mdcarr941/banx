@@ -1,10 +1,10 @@
-import { Component, OnInit, OnDestroy, Input, EventEmitter, Output } from '@angular/core';
+import { Component, OnInit, Input, EventEmitter, Output, OnDestroy } from '@angular/core';
 import { Observable, BehaviorSubject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
 import { Stat } from '@isomorphic-git/lightning-fs';
 
-import { lsStats, ls, touch, mkdir } from '../repo.service';
+import { lsStats, ls, touch, mkdir, isdir } from '../repo.service';
 import { urlJoin } from '../../../../lib/common';
+import { takeUntil, filter } from 'rxjs/operators';
 
 class DirTree {
   public subdirs: string[] = [];
@@ -33,26 +33,38 @@ class DirTree {
 })
 export class DirViewComponent implements OnInit, OnDestroy {
   private readonly destroyed$ = new EventEmitter<void>();
+  private readonly _toggled$ = new EventEmitter<boolean>();
   private readonly _fileSelected$ = new EventEmitter<string>();
   private readonly tree$ = new BehaviorSubject<DirTree>(null);
-  private currentDir: string = null;
 
-  @Input() public dir$: Observable<string>;
-  @Output() public fileSelected$: Observable<string>
+  @Input() public dir: string;
+  @Input() public refresh$: Observable<void>;
+  @Output() public readonly fileSelected$: Observable<string>
     = this._fileSelected$;
+  @Output() public readonly toggled$: Observable<boolean>
+    = this._toggled$;
 
   constructor() { }
 
   public ngOnInit() {
-    this.dir$.pipe(takeUntil(this.destroyed$))
-      .subscribe(async dir => {
-        this.currentDir = dir;
-        this.tree$.next(await DirTree.from(dir));
-      });
+    this.refresh$.pipe(takeUntil(this.destroyed$))
+      .subscribe(() => this.refresh());
+
+    this.refresh();
   }
 
   public ngOnDestroy() {
     this.destroyed$.next();
+  }
+
+  private async refresh(): Promise<void> {
+    if (await isdir(this.dir)) {
+      this.tree$.next(await DirTree.from(this.dir));
+    }
+  }
+
+  private fullPath(subpath: string): string {
+    return urlJoin(this.dir, subpath);
   }
 
   private uniqueName(base: string, usedNames: string[]): string {
@@ -68,9 +80,9 @@ export class DirViewComponent implements OnInit, OnDestroy {
   private async newFile(): Promise<void> {
     const filename = this.uniqueName(
       'NewFile',
-      await ls(this.currentDir)
+      await ls(this.dir)
     );
-    await touch(urlJoin(this.currentDir, filename));
+    await touch(this.fullPath(filename));
 
     const tree = this.tree$.value;
     tree.files.push(filename);
@@ -80,9 +92,9 @@ export class DirViewComponent implements OnInit, OnDestroy {
   private async newDir(): Promise<void> {
     const dirname = this.uniqueName(
       'NewDir',
-      await ls(this.currentDir)
+      await ls(this.dir)
     );
-    await mkdir(urlJoin(this.currentDir, dirname));
+    await mkdir(this.fullPath(dirname));
 
     const tree = this.tree$.value;
     tree.subdirs.push(dirname);
@@ -90,6 +102,6 @@ export class DirViewComponent implements OnInit, OnDestroy {
   }
 
   private selectFile(filename: string): void {
-    this._fileSelected$.next(urlJoin(this.currentDir, filename));
+    this._fileSelected$.next(this.fullPath(filename));
   }
 }

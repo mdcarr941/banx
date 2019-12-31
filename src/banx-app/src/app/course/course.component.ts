@@ -13,8 +13,6 @@ import { NotificationService } from '../notification.service';
 export class CourseComponent implements OnInit, OnDestroy {
   private readonly destroyed$ = new EventEmitter<void>();
   private readonly repos$ = new EventEmitter<Repository[]>();
-  private readonly selectedRepo$ = new BehaviorSubject<Repository>(null);
-  private readonly currentDir$ = new EventEmitter<string>();
   private readonly selectedFile$ = new BehaviorSubject<string>(null);
   private readonly editorOptions = Object.freeze({
     theme: 'vs-dark',
@@ -31,25 +29,6 @@ export class CourseComponent implements OnInit, OnDestroy {
   public ngOnInit() {
     this.repoService.list().subscribe(repos => this.repos$.next(repos));
 
-    this.selectedRepo$
-    .pipe(
-      takeUntil(this.destroyed$),
-      filter(repo => !!repo)
-    )
-    .subscribe(async repo => {
-      this.notifcation.showLoading(`Updating ${repo.name} from the server...`);
-      try {
-        await this.repoService.updateFromServer(repo);
-      }
-      catch (err) {
-        this.notifcation.showError(`Failed to update ${repo.name}!`);
-        console.error(err);
-      }
-      this.notifcation.showSuccess('Finished updating');
-      this.currentDir$.next(repo.dir);
-      this.selectedFile$.next(null);
-    });
-
     this.selectedFile$
     .pipe(
       takeUntil(this.destroyed$),
@@ -64,9 +43,26 @@ export class CourseComponent implements OnInit, OnDestroy {
     this.destroyed$.next();
   }
 
+  private async refresh(repo: Repository, closed: boolean): Promise<void> {
+    if (closed) return;
+
+    this.notifcation.showLoading(`Updating ${repo.name} from the server...`);
+    try {
+      await this.repoService.updateFromServer(repo);
+    }
+    catch (err) {
+      this.notifcation.showError(`Failed to update ${repo.name}!`);
+      console.error(err);
+    }
+    this.notifcation.showSuccess('Finished updating');
+    this.selectedFile$.next(null);
+  }
+
   private async saveEdits(): Promise<void> {
     const filepath = this.selectedFile$.value;
     if (!filepath) {
+      // The way the template is structured this should never happen,
+      // but this is here just in case.
       this.notifcation.showError('Can\'t save, no file has been selected.');
     }
     else {
@@ -74,12 +70,6 @@ export class CourseComponent implements OnInit, OnDestroy {
       await echo(filepath, this.editorText, true);
       this.notifcation.showSuccess('Saved changes.');
     }
-  }
-
-  private displayName(filepath: string): string {
-    const repo = this.selectedRepo$.value;
-    if (!repo) return filepath;
-    else return repo.name + filepath.slice(repo.dir.length);
   }
 
   private async rename(): Promise<void> {

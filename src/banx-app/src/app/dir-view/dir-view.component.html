@@ -1,8 +1,22 @@
-<ng-container *ngIf="tree$ | async as tree">
-  <button class="btn btn-link" (click)="newFile()">New File</button>
-  <button class="btn btn-link" (click)="newDir()">New Directory</button>
-  <ul>
-    <li class="font-weight-bold direntry" *ngFor="let subdir of tree.subdirs">{{subdir}}</li>
-    <li class="direntry" *ngFor="let file of tree.files" (click)="selectFile(file)">{{file}}</li>
-  </ul>
-</ng-container>
+<app-collapsible [itemName]="dir" (toggled)="_toggled$.next($event)">
+  <ng-container *ngIf="tree$ | async as tree">
+    <div class="row">
+      <div class="col">
+        <button class="btn btn-link" (click)="newFile()">+ File</button>
+      </div>
+      <div class="col">
+        <button class="btn btn-link" (click)="newDir()">+ Dir</button>
+      </div>
+    </div>
+    <div class="row">
+      <ul class="col">
+        <li class="direntry" *ngFor="let subdir of tree.subdirs">
+          <app-dir-view [dir]="subdir" [refresh$]="refresh$"
+            (fileSelected$)="_fileSelected$.next($event)">
+          </app-dir-view>
+        </li>
+        <li class="direntry" *ngFor="let file of tree.files" (click)="selectFile(file)">{{file}}</li>
+      </ul>
+    </div>
+  </ng-container>
+</app-collapsible>

@@ -4,26 +4,19 @@
       <h3 class="row"></h3>
       <ul *ngIf="repos$ | async as repos">
         <li class="row" *ngFor="let repo of repos">
-          <button class="btn btn-link" (click)="selectedRepo$.next(repo)">
-            {{repo.name}}
-          </button>
+          <app-dir-view [dir]="repo.dir" [refresh$]="repo.refreshed$"
+              (fileSelected$)="selectedFile$.next($event)"
+              (toggled$)="refresh(repo, $event)">
+          </app-dir-view>
         </li>
       </ul>
     </div>
   </div>
 
-  <div class="col-3">
-    <ng-container *ngIf="currentDir$ | async">
-      <h4>Course Files:</h4>
-    </ng-container>
-    <app-dir-view [dir$]="currentDir$" (fileSelected$)="selectedFile$.next($event)">
-    </app-dir-view>
-  </div>
-
-  <div class="col-6">
+  <div class="col-9">
     <div class="container-fluid">
       <ng-container *ngIf="selectedFile$ | async as selectedFile; else noFile">
-        <div class="row">{{displayName(selectedFile)}}:</div>
+        <div class="row">{{selectedFile}}:</div>
         <div class="row">
           <angular-monaco-editor class="editor" [options]="editorOptions" [(ngModel)]="editorText">
           </angular-monaco-editor>
@@ -34,9 +27,6 @@
           </div>
           <div class="col">
             <button class="btn btn-secondary" (click)="rename()">Rename</button>
-          </div>
-          <div class="col">
-            <button class="btn btn-secondary">Reset From Server</button>
           </div>
           <div class="col">
             <button class="btn btn-danger">Delete</button>

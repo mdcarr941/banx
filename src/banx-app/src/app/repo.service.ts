@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, EventEmitter } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import FS, { Stat } from '@isomorphic-git/lightning-fs';
@@ -68,29 +68,35 @@ export async function echo(path: string, text: string, truncate?: boolean): Prom
   return fs.writeFile(path, text, {encoding: stringEncoding});
 }
 
+export function isdir(path: string): Promise<boolean> {
+  return fs.stat(path)
+    .then(stat => stat.isDirectory())
+    .catch(() => false);
+}
+
 export class Repository implements IRepository {
   public readonly _id: string = null;
   public name: string = null;
   public readonly userIds: string[] = null;
 
   // Calculated fields.
-  public readonly prefix: string;
   public readonly dir: string;
+  public readonly serverDir: string;
+  public readonly refreshed$ = new EventEmitter<void>();
 
   constructor(obj: IRepository) {
     if (!obj) return;
     copyIfExists(obj, this);
     this.userIds = this.userIds || [];
 
-    this.prefix = '/' + this._id.slice(0, 2);
-    this.dir = this.prefix + '/' + this._id;
+    this.dir = urlJoin('/', this.name);
+    this.serverDir = this._id.slice(0, 2) + '/' + this._id;
   }
 
-  public async init(): Promise<void> {
+  public async mkdir(): Promise<void> {
     if (await exists(this.dir)) throw new Error(
       `Cannot initialize the repository named '${this.name}' because '${this.dir}' already exists.`
     );
-    if (!(await exists(this.prefix))) await fs.mkdir(this.prefix);
     await fs.mkdir(this.dir);
   }
 }
@@ -140,13 +146,14 @@ export class RepoService extends BaseService {
       }
     }
     else {
-      await repo.init();
+      await repo.mkdir();
       await gitClone({
         dir: repo.dir,
-        url: this.getFullUrl(`/repos${repo.dir}`),
+        url: this.getFullUrl(urlJoin('repos', repo.serverDir)),
         ref: 'master',
         singleBranch: true
       });
     }
+    repo.refreshed$.next();
   }
 }
