@@ -8,15 +8,15 @@
     <div class="sidebar-sticky">
       <ul class="nav flex-column">
         <h4>Topics</h4>
-        <app-collapsible  *ngFor="let topic of topics$ | async"
+        <app-simple-collapsible *ngFor="let topic of topics$ | async"
             [itemName]="topic"
             (toggled)="toggle(topic)">
           <h5>Subtopics</h5>
-          <app-collapsible *ngFor="let subtopic of getSubtopics(topic) | async"
+          <app-simple-collapsible *ngFor="let subtopic of getSubtopics(topic) | async"
               [itemName]="subtopic"
               (toggled)="toggle(topic, subtopic)">
               <span class="font-weight-bold">Tags</span>
-            <app-collapsible *ngFor="let tag of getTags(topic, subtopic) | async"
+            <app-simple-collapsible *ngFor="let tag of getTags(topic, subtopic) | async"
               [itemName]="tag.key"
               (toggled)="toggle(topic, subtopic, tag.key)">
               <span class="font-weight-bold">Tag Values</span>
@@ -26,9 +26,9 @@
                   <input type="checkbox" (click)="toggle(topic, subtopic, tag.key, value)" />
                 </div>
               </li>
-            </app-collapsible>
-          </app-collapsible>
-        </app-collapsible>
+            </app-simple-collapsible>
+          </app-simple-collapsible>
+        </app-simple-collapsible>
       </ul>
     </div>
   </nav>

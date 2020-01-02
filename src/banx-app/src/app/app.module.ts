@@ -9,6 +9,7 @@ import { AngularMonacoEditorConfig, AngularMonacoEditorModule } from 'angular-mo
 import { AppComponent } from './app.component';
 import { InstanceListComponent } from './instance-list/instance-list.component';
 import { CollapsibleComponent } from './collapsible.component';
+import { SimpleCollapsibleComponent } from './simple-collapsible.component';
 import { AdminComponent } from './admin/admin.component';
 import { ProblemQueryComponent } from './problem-query/problem-query.component';
 import { ProblemListComponent} from './problem-list/problem-list.component';
@@ -41,6 +42,7 @@ const routes: Routes = [
     AppComponent,
     InstanceListComponent,
     CollapsibleComponent,
+    SimpleCollapsibleComponent,
     AdminComponent,
     ProblemQueryComponent,
     ProblemListComponent,

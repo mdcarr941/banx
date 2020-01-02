@@ -6,12 +6,9 @@ import { takeUntil } from 'rxjs/operators';
   selector: 'app-collapsible',
   template:
     `<li>
-      <button class="btn btn-link" (click)="toggle()">
-        {{itemName}}
-      </button>
-      <ng-content select="[afterItemName]"></ng-content>
+      <ng-content select="[itemContent]"></ng-content>
       <ul [class.collapse]="collapsed">
-        <ng-content></ng-content>
+        <ng-content select="[subList]"></ng-content>
       </ul>
     </li>`  
 })
@@ -20,14 +17,25 @@ export class CollapsibleComponent implements OnInit, OnDestroy {
   private readonly _toggled = new EventEmitter<boolean>();
   private readonly destroyed$ = new EventEmitter<void>();
 
-  @Input() itemName: string;
+  @Input() toggle$: Observable<void>;
   @Input() collapse$: Observable<void>;
+  @Input() expand$: Observable<void>;
   @Output() toggled: Observable<boolean> = this._toggled;
 
   public ngOnInit() {
+    if (this.toggle$) {
+      this.toggle$.pipe(takeUntil(this.destroyed$))
+        .subscribe(() => this.toggle());
+    }
+
     if (this.collapse$) {
       this.collapse$.pipe(takeUntil(this.destroyed$))
         .subscribe(() => this.collapse());
+    }
+
+    if (this.expand$) {
+      this.expand$.pipe(takeUntil(this.destroyed$))
+        .subscribe(() => this.expand());
     }
   }
 
@@ -42,6 +50,11 @@ export class CollapsibleComponent implements OnInit, OnDestroy {
 
   public collapse() {
     this.collapsed = true;
+    this._toggled.next(this.collapsed);
+  }
+
+  public expand() {
+    this.collapsed = false;
     this._toggled.next(this.collapsed);
   }
 }

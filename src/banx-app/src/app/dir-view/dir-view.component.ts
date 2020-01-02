@@ -28,12 +28,28 @@ class DirTree {
 }
 
 export class DirRenamed {
+  private _resolve: () => void;
+  private _reject: (err: Error) => void;
+
   public readonly newPath: string;
+  public readonly completed = new Promise((resolve, reject) => {
+    this._resolve = resolve;
+    this._reject = reject;
+  });
+
   constructor(
     public readonly oldPath: string,
     public readonly newName: string
   ) {
     this.newPath = urlJoin(dirname(oldPath), newName);
+  }
+
+  public resolve(): void {
+    this._resolve();
+  }
+
+  public reject(err: Error): void {
+    this._reject(err);
   }
 }
 
@@ -44,6 +60,7 @@ export class DirRenamed {
 })
 export class DirViewComponent implements OnInit, OnDestroy {
   private readonly destroyed$ = new EventEmitter<void>();
+  private readonly _toggle$ = new EventEmitter<void>();
   private readonly _toggled$ = new EventEmitter<boolean>();
   private readonly _fileSelected$ = new EventEmitter<string>();
   private readonly tree$ = new BehaviorSubject<DirTree>(null);
@@ -51,6 +68,7 @@ export class DirViewComponent implements OnInit, OnDestroy {
   private readonly showRenameModal$ = new EventEmitter<void>();
   private readonly hideRenameModal$ = new EventEmitter<void>();
   private readonly _dirRenamed$ = new EventEmitter<DirRenamed>();
+  private readonly _dirDeleted$ = new EventEmitter<string>();
 
   private collapsed: boolean = true;
   private newName: string;
@@ -58,12 +76,15 @@ export class DirViewComponent implements OnInit, OnDestroy {
   @Input() public dir: string = '/';
   @Input() public refresh$: Observable<void>;
   @Input() public collapse$: Observable<string>;
+  @Input() public allowDelete: boolean = false;
   @Output() public readonly fileSelected$: Observable<string>
     = this._fileSelected$;
   @Output() public readonly toggled$: Observable<boolean>
     = this._toggled$;
   @Output() public readonly dirRenamed$: Observable<DirRenamed>
     = this._dirRenamed$;
+  @Output() public readonly dirDeleted$: Observable<string>
+    = this._dirDeleted$;
 
   constructor(private readonly notification: NotificationService) { }
 
@@ -127,10 +148,7 @@ export class DirViewComponent implements OnInit, OnDestroy {
       await ls(this.dir)
     );
     await touch(this.fullPath(filename));
-
-    const tree = this.tree$.value;
-    tree.files.push(filename);
-    this.tree$.next(tree);
+    await this.refresh();
   }
 
   private async newDir(): Promise<void> {
@@ -139,10 +157,7 @@ export class DirViewComponent implements OnInit, OnDestroy {
       await ls(this.dir)
     );
     await mkdir(this.fullPath(dirname));
-
-    const tree = this.tree$.value;
-    tree.subdirs.push(dirname);
-    this.tree$.next(tree);
+    await this.refresh();
   }
 
   private selectFile(filename: string): void {
@@ -156,17 +171,14 @@ export class DirViewComponent implements OnInit, OnDestroy {
   private async renameDir(): Promise<void> {
     this.hideRenameModal$.next();
     const event = new DirRenamed(this.dir, this.newName);
-    try {
-      await mv(event.oldPath, event.newPath);
-    }
-    catch (err) {
-      this.notification.showError(`Failed to rename '${event.oldPath}'!`);
-      console.error(err);
-      return;
-    }
-
-    this.dir = event.newPath;
     this._dirRenamed$.next(event);
+    await event.completed;
+    this.dir = event.newPath;
     this.refresh();
+  }
+
+  private deleteDir(): void {
+    if (!confirm(`Are you sure you want to delete ${this.dir}?`)) return;
+    this._dirDeleted$.next(this.dir);
   }
 }

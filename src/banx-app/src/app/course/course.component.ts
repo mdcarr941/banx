@@ -152,6 +152,7 @@ export class CourseComponent implements OnInit, OnDestroy {
 
   private async dirRenamed(repo: Repository, event: DirRenamed): Promise<void> {
     try {
+      await mv(event.oldPath, event.newPath);
       await repo.remove(event.oldPath);
       await repo.add(event.newPath);
     }
@@ -162,7 +163,8 @@ export class CourseComponent implements OnInit, OnDestroy {
       repo.refreshed$.next();
       return;
     }
-    
+
     this.notification.showSuccess(`Renamed '${event.oldPath}' to '${event.newPath}'.`);
+    event.resolve();
   }
 }
