@@ -9,6 +9,7 @@ import { takeUntil } from 'rxjs/operators';
       <button class="btn btn-link" (click)="toggle()">
         {{itemName}}
       </button>
+      <ng-content select="[afterItemName]"></ng-content>
       <ul [class.collapse]="collapsed">
         <ng-content></ng-content>
       </ul>

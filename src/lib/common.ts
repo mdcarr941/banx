@@ -119,6 +119,29 @@ export function dirname(path: string): string {
     else return '.';
 }
 
+// Remove the components of the path `head` from `path`.
+// An error is thrown if any component of `head` is missing
+// from `path`.
+export function stripHead(path: string, head: string): string {
+    if (typeof path !== 'string') return null;
+    if (typeof head !== 'string') return path;
+    const pathFields = path.split(sep);
+    const headFields = head.split(sep);
+    for (let k = 0; k < headFields.length; k += 1) {
+        if (headFields[k] !== pathFields[k]) {
+            throw new Error(`The path '${path}' does not start with '${head}'.`);
+        }
+    }
+    return pathFields.slice(headFields.length).join(sep);
+}
+
+export function isAbsolute(path: string): boolean {
+    if (typeof path !== 'string') {
+        throw new Error('isAbsolute was called with a non-string argument. Got: ' + typeof path);
+    }
+    return path.startsWith(sep)
+}
+
 const startRgx = /%+\s*\\tagged{([^}]+)}\s*{/;
 const endRgx = /%\s*}/;
 const lineSepRgx = /\n|\r\n|\r/;

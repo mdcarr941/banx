@@ -1,3 +1,7 @@
 .direntry {
     cursor: pointer;
 }
+
+.btn-slim {
+    padding: 3px;
+}

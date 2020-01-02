@@ -1,6 +1,6 @@
 const common = require('../bin/common');
 
-fdescribe('common module', function() {
+describe('common module', function() {
     it('should be able to join url segments', function() {
         expect(common.urlJoin('/', '/banx/', 'app', 'courses/'))
             .toBe('/banx/app/courses/');
@@ -70,5 +70,53 @@ fdescribe('common module', function() {
         expect(common.dirname('../red')).toBe('..');
 
         expect(common.dirname('///a///b//')).toBe('///a');
+    });
+
+    it('should have a working stripHead function', function() {
+        let caught;
+
+        expect(common.stripHead('/a/b/c', '/a/b')).toBe('c');
+
+        caught = false;
+        try {
+            common.stripHead('/a/b/c', 'a/b')
+        }
+        catch (err) {
+            caught = true;
+        }
+        expect(caught).toBe(true);
+
+        expect(common.stripHead('a/b/c', 'a')).toBe('b/c');
+
+        expect(common.stripHead('//a///b/////c', '//a')).toBe('//b/////c');
+
+        expect(common.stripHead('/a', '')).toBe('a');
+
+        expect(common.stripHead('', '')).toBe('');
+
+        expect(common.stripHead(null, '')).toBe(null);
+
+        expect(common.stripHead('stuff', null)).toBe('stuff');
+
+        expect(common.stripHead('red', 'red')).toBe('');
+    });
+
+    it('should have a working isAbsolute function', function() {
+        let caught;
+
+        expect(common.isAbsolute('/a')).toBe(true);
+        
+        expect(common.isAbsolute('a')).toBe(false);
+
+        caught = false;
+        try {
+            expect(common.isAbsolute(null));
+        }
+        catch {
+            caught = true;
+        }
+        expect(caught).toBe(true);
+
+        expect(common.isAbsolute('../a/b/')).toBe(false);
     });
 });

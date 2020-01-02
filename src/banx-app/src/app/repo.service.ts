@@ -11,13 +11,14 @@ import {
   push as gitPush,
   add as gitAdd,
   status as gitStatus,
+  remove as gitRemove,
   PushResponse
 } from 'isomorphic-git';
 import { RemoteUserService } from './remote-user.service';
 
 import { BaseService } from './base.service';
 import { IRepository } from '../../../lib/schema';
-import { forEach, urlJoin } from '../../../lib/common';
+import { forEach, urlJoin, stripHead, isAbsolute } from '../../../lib/common';
 
 const fs = (function() {
   const _fs = new FS('banxFS');
@@ -84,6 +85,42 @@ export function rm(path: string): Promise<void> {
   return fs.unlink(path);
 }
 
+async function _walk(
+  root: string,
+  relPath: string,
+  fileCallback: (relPath: string) => Promise<void>,
+  dirFilter: (relPath: string) => Promise<boolean>
+): Promise<void> {
+  const absolutePath = relPath ? urlJoin(root, relPath) : root
+  const stats = await lsStats(absolutePath);
+  const promises = [];
+  for (let name in stats) {
+    const filepath = relPath ? urlJoin(relPath, name) : name;
+    if (stats[name].isDirectory()) {
+      if (await dirFilter(filepath)) {
+        promises.push(_walk(root, filepath, fileCallback, dirFilter));
+      }
+    }
+    else {
+      const promise = fileCallback(filepath);
+      if (promise) promises.push(promise);
+    }
+  }
+  await Promise.all(promises);
+}
+
+export function walk(
+  root: string,
+  fileCallback: (relPath: string) => Promise<void>,
+  dirFilter?: (relPath: string) => Promise<boolean>
+): Promise<void> {
+  return _walk(root, null, fileCallback, dirFilter ? dirFilter : async () => true);
+}
+
+async function filterGitDir(relPath: string): Promise<boolean> {
+  return '.git' !== relPath
+}
+
 export class Repository implements IRepository {
   public readonly _id: string = null;
   public name: string = null;
@@ -112,6 +149,41 @@ export class Repository implements IRepository {
 
   public absolutePath(subpath: string): string {
     return urlJoin(this.dir, subpath);
+  }
+
+  private static readonly deletedRgx = /\*?deleted/;
+
+  public resetWorkingTree(): Promise<void> {
+    return walk(
+      this.dir,
+      async relPath => {
+        const status = await gitStatus({
+          dir: this.dir,
+          filepath: relPath
+        });
+        const match = Repository.deletedRgx.exec(status);
+        if (match) {
+          await rm(this.absolutePath(relPath));
+        }
+      },
+      filterGitDir
+    );
+  }
+
+  public async remove(filepath: string): Promise<void> {
+    if (isAbsolute(filepath)) filepath = stripHead(filepath, this.dir);
+    await gitRemove({
+      dir: this.dir,
+      filepath
+    });
+  }
+
+  public async add(filepath: string): Promise<void> {
+    if (isAbsolute(filepath)) filepath = stripHead(filepath, this.dir);
+    await gitAdd({
+      dir: this.dir,
+      filepath
+    });
   }
 }
 
@@ -167,6 +239,7 @@ export class RepoService extends BaseService {
           return;
         }
       }
+      await repo.resetWorkingTree();
     }
     else {
       await repo.mkdir();
@@ -181,29 +254,23 @@ export class RepoService extends BaseService {
   }
 
   private async addFilesTo(repo: Repository, relativePath?: string): Promise<void> {
-    const absolutePath = relativePath ? urlJoin(repo.dir, relativePath) : repo.dir
-    const stats = await lsStats(absolutePath);
-    const promises = [];
-    for (let name in stats) {
-      if (!relativePath && '.git' === name) continue;
-      const filepath = relativePath ? urlJoin(relativePath, name) : name
-      if (stats[name].isDirectory()) {
-        promises.push(this.addFilesTo(repo, filepath));
-      }
-      else {
+    return walk(
+      repo.dir,
+      async filepath => {
         const status = await gitStatus({
           dir: repo.dir,
           filepath
         });
         if ('*modified' === status || '*added' === status) {
-          promises.push(gitAdd({
+          return gitAdd({
             dir: repo.dir,
             filepath
-          }));
+          });
         }
-      }
-    }
-    await Promise.all(promises);
+        else return null;
+      },
+      filterGitDir
+    );
   }
 
   public async commit(repo: Repository, message?: string): Promise<void> {

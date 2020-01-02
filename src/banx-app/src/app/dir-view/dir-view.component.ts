@@ -1,10 +1,11 @@
 import { Component, OnInit, Input, EventEmitter, Output, OnDestroy } from '@angular/core';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { Stat } from '@isomorphic-git/lightning-fs';
-
-import { lsStats, ls, touch, mkdir, isdir } from '../repo.service';
-import { urlJoin, basename } from '../../../../lib/common';
 import { takeUntil, filter } from 'rxjs/operators';
+
+import { lsStats, ls, touch, mkdir, isdir, mv } from '../repo.service';
+import { urlJoin, basename, dirname } from '../../../../lib/common';
+import { NotificationService } from '../notification.service';
 
 class DirTree {
   public subdirs: string[] = [];
@@ -26,6 +27,16 @@ class DirTree {
   }
 }
 
+export class DirRenamed {
+  public readonly newPath: string;
+  constructor(
+    public readonly oldPath: string,
+    public readonly newName: string
+  ) {
+    this.newPath = urlJoin(dirname(oldPath), newName);
+  }
+}
+
 @Component({
   selector: 'app-dir-view',
   templateUrl: './dir-view.component.html',
@@ -37,6 +48,12 @@ export class DirViewComponent implements OnInit, OnDestroy {
   private readonly _fileSelected$ = new EventEmitter<string>();
   private readonly tree$ = new BehaviorSubject<DirTree>(null);
   private readonly _collapse$ = new EventEmitter<void>();
+  private readonly showRenameModal$ = new EventEmitter<void>();
+  private readonly hideRenameModal$ = new EventEmitter<void>();
+  private readonly _dirRenamed$ = new EventEmitter<DirRenamed>();
+
+  private collapsed: boolean = true;
+  private newName: string;
 
   @Input() public dir: string = '/';
   @Input() public refresh$: Observable<void>;
@@ -45,8 +62,10 @@ export class DirViewComponent implements OnInit, OnDestroy {
     = this._fileSelected$;
   @Output() public readonly toggled$: Observable<boolean>
     = this._toggled$;
+  @Output() public readonly dirRenamed$: Observable<DirRenamed>
+    = this._dirRenamed$;
 
-  constructor() { }
+  constructor(private readonly notification: NotificationService) { }
 
   public ngOnInit() {
     if (this.refresh$) {
@@ -67,6 +86,12 @@ export class DirViewComponent implements OnInit, OnDestroy {
       filter(collapsed => !collapsed)
     )
     .subscribe(() => this.refresh());
+
+    this._toggled$.pipe(takeUntil(this.destroyed$))
+    .subscribe(collapsed => this.collapsed = collapsed);
+
+    this.showRenameModal$.pipe(takeUntil(this.destroyed$))
+    .subscribe(() => this.newName = basename(this.dir));
   }
 
   public ngOnDestroy() {
@@ -126,5 +151,22 @@ export class DirViewComponent implements OnInit, OnDestroy {
 
   private basename(path: string): string {
     return basename(path);
+  }
+
+  private async renameDir(): Promise<void> {
+    this.hideRenameModal$.next();
+    const event = new DirRenamed(this.dir, this.newName);
+    try {
+      await mv(event.oldPath, event.newPath);
+    }
+    catch (err) {
+      this.notification.showError(`Failed to rename '${event.oldPath}'!`);
+      console.error(err);
+      return;
+    }
+
+    this.dir = event.newPath;
+    this._dirRenamed$.next(event);
+    this.refresh();
   }
 }

@@ -7,7 +7,8 @@
           [dir]="repo.dir" [refresh$]="repo.refreshed$"
           [collapse$]="collapseAllExcept$"
           (fileSelected$)="selectedFile$.next($event)"
-          (toggled$)="toggleRepo(repo, $event)">
+          (toggled$)="toggleRepo(repo, $event)"
+          (dirRenamed$)="dirRenamed(repo, $event)">
         </app-dir-view>
       </ul>
     </div>
@@ -15,7 +16,7 @@
 
   <div class="col-8">
     <div class="container-fluid">
-      <div *ngIf="selectedRepo" class="row">
+      <div *ngIf="selectedRepo$ | async as selectedRepo" class="row">
         <h3 class="col">{{selectedRepo.name}}</h3>
         <div class="col d-flex flex-row-reverse">
           <button class="btn btn-primary" (click)="saveToServer()">
@@ -50,10 +51,16 @@
 
 <app-modal [title]="'Rename'" [show$]="showRenameModal$"
   [hide$]="hideRenameModal$">
-  <ng-container body>
-    <label>New Name:</label>
-    <input type="text" [(ngModel)]="newName">
-  </ng-container>
+  <div class="container-fluid" body>
+    <div class="row">
+      <div class="col-3">
+        <label>New Name:</label>
+      </div>
+      <div class="col-9">
+        <input type="text" [(ngModel)]="newName">
+      </div>
+    </div>
+  </div>
   <ng-container footer>
     <button class="btn btn-primary" (click)="rename()">Rename</button>
   </ng-container>

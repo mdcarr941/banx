@@ -1,14 +1,25 @@
 <app-collapsible [itemName]="basename(dir)" [collapse$]="_collapse$"
   (toggled)="_toggled$.next($event)">
+  <div class="d-inline" [class.invisible]="collapsed" afterItemName>
+    <button class="btn btn-link btn-slim" (click)="newFile()"
+      data-toggle="tooltip" title="New File">
+      +<img src="public/open-iconic/svg/file.svg">
+    </button>
+    <button class="btn btn-link btn-slim" (click)="newDir()"
+      data-toggle="tooltip" title="New Directory">
+      +<img src="public/open-iconic/svg/folder.svg">
+    </button>
+    <button class="btn btn-link btn-slim" (click)="showRenameModal$.next()"
+      data-toggle="tooltip" title="Rename Directory">
+      <img src="public/open-iconic/svg/pencil.svg">
+    </button>
+  </div>
   <div class="container-fluid" *ngIf="tree$ | async as tree">
-    <li>
-      <button class="btn btn-link" (click)="newFile()">+File</button>
-      <button class="btn btn-link" (click)="newDir()">+Dir</button>
-    </li>
     <app-dir-view *ngFor="let subdir of tree.subdirs"
       [collapse$]="collapse$"
       [dir]="fullPath(subdir)" [refresh$]="refresh$"
-      (fileSelected$)="_fileSelected$.next($event)">
+      (fileSelected$)="_fileSelected$.next($event)"
+      (dirRenamed$)="_dirRenamed$.next($event)">
     </app-dir-view>
     <li class="row direntry" *ngFor="let file of tree.files"
       (click)="selectFile(file)">
@@ -16,3 +27,20 @@
     </li>
   </div>
 </app-collapsible>
+
+<app-modal [title]="'Rename Directory'" [show$]="showRenameModal$"
+  [hide$]=hideRenameModal$>
+  <div class="container-fluid" body>
+    <div class="row">
+      <div class="col-3">
+        <label>New Name:</label>
+      </div>
+      <div class="col-9">
+        <input type="text" [(ngModel)]="newName" />
+      </div>
+    </div>
+  </div>
+  <ng-container footer>
+    <button class="btn btn-primary" (click)="renameDir()">Rename</button>
+  </ng-container>
+</app-modal>
