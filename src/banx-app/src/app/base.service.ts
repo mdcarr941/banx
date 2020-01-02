@@ -17,10 +17,12 @@ export abstract class BaseService {
     constructor() {
         const pathname = window.location.pathname;
         const match = BaseService.prefixRgx.exec(pathname);
-        if (!match) {
-            throw new Error(`Failed to extract the app prefix from '${pathname}'`);
+        if (match) {
+            this.prefix = match[1];
         }
-        this.prefix = match[1];   
+        else {
+            this.prefix = '/';
+        }
     }
 
     protected getUrl(end?: string) {

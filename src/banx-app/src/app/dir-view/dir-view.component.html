@@ -1,4 +1,4 @@
-<app-collapsible [itemName]="dir" [collapse$]="_collapse$"
+<app-collapsible [itemName]="basename(dir)" [collapse$]="_collapse$"
   (toggled)="_toggled$.next($event)">
   <div class="container-fluid" *ngIf="tree$ | async as tree">
     <li>

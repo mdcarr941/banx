@@ -34,10 +34,10 @@
             <button class="btn btn-primary" (click)="saveEdits()">Save</button>
           </div>
           <div class="col">
-            <button class="btn btn-secondary" (click)="rename()">Rename</button>
+            <button class="btn btn-secondary" (click)="showRenameModal()">Rename</button>
           </div>
           <div class="col">
-            <button class="btn btn-danger">Delete</button>
+            <button class="btn btn-danger" (click)="deleteSelectedFile()">Delete</button>
           </div>
         </div>
       </ng-container>
@@ -47,3 +47,14 @@
     </div>
   </div>
 </div>
+
+<app-modal [title]="'Rename'" [show$]="showRenameModal$"
+  [hide$]="hideRenameModal$">
+  <ng-container body>
+    <label>New Name:</label>
+    <input type="text" [(ngModel)]="newName">
+  </ng-container>
+  <ng-container footer>
+    <button class="btn btn-primary" (click)="rename()">Rename</button>
+  </ng-container>
+</app-modal>

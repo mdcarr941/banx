@@ -3,7 +3,7 @@ import { Observable, BehaviorSubject } from 'rxjs';
 import { Stat } from '@isomorphic-git/lightning-fs';
 
 import { lsStats, ls, touch, mkdir, isdir } from '../repo.service';
-import { urlJoin } from '../../../../lib/common';
+import { urlJoin, basename } from '../../../../lib/common';
 import { takeUntil, filter } from 'rxjs/operators';
 
 class DirTree {
@@ -38,7 +38,7 @@ export class DirViewComponent implements OnInit, OnDestroy {
   private readonly tree$ = new BehaviorSubject<DirTree>(null);
   private readonly _collapse$ = new EventEmitter<void>();
 
-  @Input() public dir: string;
+  @Input() public dir: string = '/';
   @Input() public refresh$: Observable<void>;
   @Input() public collapse$: Observable<string>;
   @Output() public readonly fileSelected$: Observable<string>
@@ -122,5 +122,9 @@ export class DirViewComponent implements OnInit, OnDestroy {
 
   private selectFile(filename: string): void {
     this._fileSelected$.next(this.fullPath(filename));
+  }
+
+  private basename(path: string): string {
+    return basename(path);
   }
 }

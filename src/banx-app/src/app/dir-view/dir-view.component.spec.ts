@@ -1,6 +1,7 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { DirViewComponent } from './dir-view.component';
+import { CollapsibleComponent } from '../collapsible.component';
 
 describe('DirViewComponent', () => {
   let component: DirViewComponent;
@@ -8,7 +9,10 @@ describe('DirViewComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ DirViewComponent ]
+      declarations: [
+        DirViewComponent,
+        CollapsibleComponent
+      ]
     })
     .compileComponents();
   }));

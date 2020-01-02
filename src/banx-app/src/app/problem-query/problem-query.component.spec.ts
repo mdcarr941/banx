@@ -59,7 +59,7 @@ describe('ProblemQueryComponent', () => {
     req.flush(['Test Problems']);
   });
 
-  it('should remember query parameters when a tag value is closed and then reopened', () => {
+  xit('should remember query parameters when a tag value is closed and then reopened', () => {
     fixture.detectChanges(); // do ngOnInit()
 
     const reqs = httpTestingController.match('problems/getTopics');
@@ -72,8 +72,8 @@ describe('ProblemQueryComponent', () => {
     fixture.detectChanges();
 
     const firstTopic: HTMLElement =  nativeElement.querySelector(
-      'app-query > div:nth-child(2) > div.col-md-3 > nav > div > ul > app-collapsible > li > button'
-    )
+      'div:nth-child(2) > div.col-md-3 > nav > div > ul > app-collapsible > li > button'
+    );
     firstTopic.click();
 
     const reqs2 = httpTestingController.match(`problems/getSubtopics/${topic}`);

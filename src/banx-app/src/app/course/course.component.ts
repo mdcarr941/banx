@@ -2,8 +2,10 @@ import { Component, EventEmitter, OnInit, OnDestroy } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { takeUntil, filter } from 'rxjs/operators';
 
-import { RepoService, Repository, cat, echo } from '../repo.service';
+import { RepoService, Repository, cat, echo, mv, rm } from '../repo.service';
 import { NotificationService } from '../notification.service';
+import { dirname, basename } from '../../../../lib/common';
+import { rmdir } from 'fs';
 
 @Component({
   selector: 'app-course',
@@ -19,9 +21,12 @@ export class CourseComponent implements OnInit, OnDestroy {
     language: 'latex'
   });
   private readonly collapseAllExcept$ = new EventEmitter<string>();
+  private readonly showRenameModal$ = new EventEmitter<void>();
+  private readonly hideRenameModal$ = new EventEmitter<void>();
 
   private editorText: string;
   private selectedRepo: Repository;
+  private newName: string;
 
   constructor(
     private readonly repoService: RepoService,
@@ -80,8 +85,18 @@ export class CourseComponent implements OnInit, OnDestroy {
     }
   }
 
-  private async rename(): Promise<void> {
+  private showRenameModal(): void {
+    this.newName = basename(this.selectedFile$.value);
+    this.showRenameModal$.next();
+  }
 
+  private async rename(): Promise<void> {
+    const oldPath = this.selectedFile$.value
+    const newPath = dirname(oldPath) + '/' + this.newName;
+    await mv(oldPath, newPath);
+    this.selectedFile$.next(newPath);
+    this.selectedRepo.refreshed$.next();
+    this.hideRenameModal$.next();
   }
 
   private async saveToServer(): Promise<void> {
@@ -95,5 +110,22 @@ export class CourseComponent implements OnInit, OnDestroy {
       return;
     }
     this.notification.showSuccess(`Finished saving ${this.selectedRepo.name}.`);
+  }
+
+  private async deleteSelectedFile(): Promise<void> {
+    const filepath = this.selectedFile$.value;
+    if (!confirm(`Are you sure you want to delete '${filepath}'?`)) return;
+
+    this.notification.showLoading(`Deleting '${filepath}'...`);
+    try {
+      await rm(filepath);
+    }
+    catch (err) {
+      this.notification.showError(`Failed to delete '${filepath}'!`);
+      console.error(err);
+    }
+    this.notification.showSuccess(`Finished deleting '${filepath}'.`);
+
+    this.selectedRepo.refreshed$.next();
   }
 }

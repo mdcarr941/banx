@@ -72,7 +72,7 @@ function trimPattern(text: string, pattern: string): string {
 
 const sep = '/';
 
-export function urlJoin(...args: string[]) {
+export function urlJoin(...args: string[]): string {
     const lastIndex = args.length - 1;
     return args
         .filter(segment => typeof segment === 'string')
@@ -82,7 +82,41 @@ export function urlJoin(...args: string[]) {
             else return trimPattern(arg, sep)
         })
         .filter(segmentFilter)
-        .join('/');
+        .join(sep);
+}
+
+export function basename(path: string): string {
+    if (typeof path !== 'string') return null;
+    if ('' === path) return '';
+    const fields = path.split(sep).filter(s => s.length > 0);
+    if (fields.length > 0) return fields[fields.length - 1];
+    else return sep;
+}
+
+function removeTrailingSeps(path: string): string {
+    let index = path.length - 1;
+    while (index >= 0 && path.charAt(index) === sep) {
+        index -= 1;
+    }
+    return path.slice(0, index + 1);
+}
+
+export function dirname(path: string): string {
+    if (typeof path !== 'string') return null;
+    let start: number, end: number = path.length, field: string;
+    do {
+        start = path.lastIndexOf(sep, end - 1);
+        field = path.slice(start + 1, end);
+        end = start;
+    } while (start >= 0 && field.length === 0)
+
+    if (start >= 0) {
+        const sliced = path.slice(0, end);
+        if (sliced.length > 0) return removeTrailingSeps(sliced);
+    }
+
+    if (path.startsWith(sep)) return sep;
+    else return '.';
 }
 
 const startRgx = /%+\s*\\tagged{([^}]+)}\s*{/;

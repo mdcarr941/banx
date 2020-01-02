@@ -80,6 +80,10 @@ export function isdir(path: string): Promise<boolean> {
     .catch(() => false);
 }
 
+export function rm(path: string): Promise<void> {
+  return fs.unlink(path);
+}
+
 export class Repository implements IRepository {
   public readonly _id: string = null;
   public name: string = null;
@@ -104,6 +108,10 @@ export class Repository implements IRepository {
       `Cannot initialize the repository named '${this.name}' because '${this.dir}' already exists.`
     );
     await fs.mkdir(this.dir);
+  }
+
+  public absolutePath(subpath: string): string {
+    return urlJoin(this.dir, subpath);
   }
 }
 
@@ -177,6 +185,7 @@ export class RepoService extends BaseService {
     const stats = await lsStats(absolutePath);
     const promises = [];
     for (let name in stats) {
+      if (!relativePath && '.git' === name) continue;
       const filepath = relativePath ? urlJoin(relativePath, name) : name
       if (stats[name].isDirectory()) {
         promises.push(this.addFilesTo(repo, filepath));
@@ -198,9 +207,7 @@ export class RepoService extends BaseService {
   }
 
   public async commit(repo: Repository, message?: string): Promise<void> {
-    console.log('adding files')
     await this.addFilesTo(repo);
-    console.log('finished adding files')
     await gitCommit({
       dir: repo.dir,
       message: message ? message : '',
