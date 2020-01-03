@@ -6,6 +6,7 @@ import { HttpClientTestingModule, HttpTestingController } from '@angular/common/
 import { ProblemQueryComponent } from './problem-query.component';
 import { QueryComponent } from '../query/query.component';
 import { CollapsibleComponent } from '../collapsible.component';
+import { SimpleCollapsibleComponent } from '../simple-collapsible.component';
 import { ProblemListComponent } from '../problem-list/problem-list.component';
 import { ProblemComponent } from '../problem/problem.component';
 import { ModalComponent } from '../modal/modal.component';
@@ -27,6 +28,7 @@ describe('ProblemQueryComponent', () => {
         ProblemQueryComponent,
         QueryComponent,
         CollapsibleComponent,
+        SimpleCollapsibleComponent,
         ProblemListComponent,
         ProblemComponent,
         ModalComponent

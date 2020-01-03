@@ -5,7 +5,6 @@
       <ul *ngIf="repos$ | async as repos">
         <app-dir-view class="row" *ngFor="let repo of repos"
           [dir]="repo.dir"
-          [refresh$]="repo.refreshed$"
           [collapse$]="collapseAllExcept$"
           [repo]="repo"
           (fileSelected$)="selectedFile$.next($event)"
@@ -21,29 +20,37 @@
       <div *ngIf="selectedRepo$ | async as selectedRepo" class="row">
         <h3 class="col">{{selectedRepo.name}}</h3>
         <div class="col d-flex flex-row-reverse">
-          <button class="btn btn-danger" (click)="resetFromServer()">
-            Reset
+          <button class="btn btn-danger" (click)="pull()">
+            Pull
           </button>
-          <button class="btn btn-primary" (click)="saveToServer()">
-            Save
+          <button class="btn btn-primary" (click)="commit()">
+            Commit
           </button>
         </div>
       </div>
       <ng-container *ngIf="selectedFile$ | async as selectedFile; else noFile">
         <div class="row">{{selectedFile}}:</div>
         <div class="row">
-          <angular-monaco-editor class="editor" [options]="editorOptions" [(ngModel)]="editorText">
+          <angular-monaco-editor class="editor"
+            [options]="editorOptions"
+            [(ngModel)]="editorText">
           </angular-monaco-editor>
         </div>
         <div class="row">
           <div class="col">
-            <button class="btn btn-primary" (click)="saveEdits()">Save</button>
+            <button class="btn btn-primary" (click)="saveEdits()">
+              Save
+            </button>
           </div>
           <div class="col">
-            <button class="btn btn-secondary" (click)="showRenameModal()">Rename</button>
+            <button class="btn btn-secondary" (click)="showRenameModal()">
+              Rename
+            </button>
           </div>
           <div class="col">
-            <button class="btn btn-danger" (click)="deleteSelectedFile()">Delete</button>
+            <button class="btn btn-danger" (click)="deleteSelectedFile()">
+              Delete
+            </button>
           </div>
         </div>
       </ng-container>
@@ -54,7 +61,8 @@
   </div>
 </div>
 
-<app-modal [title]="'Rename'" [show$]="showRenameModal$"
+<app-modal [title]="'Rename'"
+  [show$]="showRenameModal$"
   [hide$]="hideRenameModal$">
   <div class="container-fluid" body>
     <div class="row">

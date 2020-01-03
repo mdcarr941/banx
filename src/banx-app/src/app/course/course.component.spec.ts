@@ -1,11 +1,12 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientModule } from '@angular/common/http';
+import { FormsModule } from '@angular/forms';
+import { AngularMonacoEditorModule } from 'angular-monaco-editor';
 
 import { CourseComponent } from './course.component';
 import { DirViewComponent } from '../dir-view/dir-view.component';
-import { AngularMonacoEditorModule } from 'angular-monaco-editor';
-import { FormsModule } from '@angular/forms';
 import { CollapsibleComponent } from '../collapsible.component';
-import { HttpClientModule } from '@angular/common/http';
+import { ModalComponent } from '../modal/modal.component';
 
 describe('CourseComponent', () => {
   let component: CourseComponent;
@@ -21,7 +22,8 @@ describe('CourseComponent', () => {
       declarations: [
         CourseComponent,
         DirViewComponent,
-        CollapsibleComponent
+        CollapsibleComponent,
+        ModalComponent
       ]
     })
     .compileComponents();

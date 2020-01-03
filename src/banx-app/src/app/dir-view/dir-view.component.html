@@ -27,7 +27,6 @@
     <app-dir-view *ngFor="let subdir of tree.subdirs"
       [collapse$]="collapse$"
       [dir]="fullPath(subdir)"
-      [refresh$]="refresh$"
       [allowDelete]="true"
       [repo]="repo"
       (fileSelected$)="_fileSelected$.next($event)"

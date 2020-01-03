@@ -20,14 +20,16 @@ import { BaseService } from './base.service';
 import { IRepository } from '../../../lib/schema';
 import { forEach, urlJoin, stripHead, isAbsolute } from '../../../lib/common';
 
+// TODO: remove the following assignment. It was added during debugging.
+(window as any).git = Object.freeze({
+  status: gitStatus
+});
+
 const fs = (function() {
   const _fs = new FS('banxFS');
   gitPlugins.set('fs', _fs);
   return _fs.promises;
 })();
-
-// TODO: Remove the following line. (it was used for debugging)
-(window as any).fs = fs;
 
 function copyIfExists(from: any, to: any): void {
   forEach(from, (key, val) => {
@@ -35,6 +37,7 @@ function copyIfExists(from: any, to: any): void {
   });
 }
 
+// The encoding to use for all files.
 const stringEncoding = 'utf8';
 
 export function exists(path: string): Promise<boolean> {
@@ -85,40 +88,81 @@ export function rm(path: string): Promise<void> {
   return fs.unlink(path);
 }
 
-async function _walk(
-  root: string,
-  relPath: string,
-  fileCallback: (relPath: string) => Promise<void>,
-  dirFilter: (relPath: string) => Promise<boolean>
-): Promise<void> {
-  const absolutePath = relPath ? urlJoin(root, relPath) : root
-  const stats = await lsStats(absolutePath);
+export function rmdir(path: string): Promise<void> {
+  return fs.rmdir(path);
+}
+
+async function _walk({
+  path,
+  fileCallback,
+  dirFilter,
+  afterAll
+}: {
+  path: string,
+  fileCallback: (abspath: string) => Promise<void>,
+  dirFilter: (abspath: string) => Promise<boolean>,
+  afterAll: (abspath: string) => Promise<void>
+}): Promise<void> {
+  const stats = await lsStats(path);
   const promises = [];
   for (let name in stats) {
-    const filepath = relPath ? urlJoin(relPath, name) : name;
-    if (stats[name].isDirectory()) {
-      if (await dirFilter(filepath)) {
-        promises.push(_walk(root, filepath, fileCallback, dirFilter));
-      }
+    const subpath = urlJoin(path, name);
+    if (stats[name].isDirectory() && await dirFilter(subpath)) {
+      promises.push(_walk({ path: subpath, fileCallback, dirFilter, afterAll }));
     }
     else {
-      const promise = fileCallback(filepath);
+      const promise = fileCallback(subpath);
       if (promise) promises.push(promise);
     }
   }
   await Promise.all(promises);
+  await afterAll(path);
 }
 
-export function walk(
-  root: string,
-  fileCallback: (relPath: string) => Promise<void>,
-  dirFilter?: (relPath: string) => Promise<boolean>
-): Promise<void> {
-  return _walk(root, null, fileCallback, dirFilter ? dirFilter : async () => true);
+export function walk({
+  path,
+  fileCallback,
+  dirFilter = async () => true,
+  afterAll = async () => { return; }
+}: {
+  path: string,
+  fileCallback: (abspath: string) => Promise<void>,
+  dirFilter?: (abspath: string) => Promise<boolean>,
+  afterAll?: (abspath: string) => Promise<void>
+}): Promise<void> {
+  return _walk({ path, fileCallback, dirFilter, afterAll });
 }
 
-async function filterGitDir(relPath: string): Promise<boolean> {
-  return '.git' !== relPath
+export async function rmAll(path: string): Promise<void> {
+  await walk({
+    path,
+    fileCallback: abspath => fs.unlink(abspath),
+    dirFilter: async () => true,
+    afterAll: abspath => fs.rmdir(abspath)
+  });
+}
+
+class HaltWalk extends Error {
+  constructor() {
+    super(HaltWalk.name);
+    this.name = HaltWalk.name;
+  }
+}
+
+export async function isEmpty(path: string): Promise<boolean> {
+  try {
+    await walk({
+      path,
+      fileCallback: async () => { throw new HaltWalk(); }
+    });
+    return true;
+  }
+  catch (err) {
+    if (err.name === HaltWalk.name) {
+      return false;
+    }
+    else throw err;
+  }
 }
 
 export class Repository implements IRepository {
@@ -129,7 +173,7 @@ export class Repository implements IRepository {
   // Calculated fields.
   public readonly dir: string;
   public readonly serverDir: string;
-  public readonly refreshed$ = new EventEmitter<void>();
+  public readonly refresh$ = new EventEmitter<void>();
 
   constructor(obj: IRepository) {
     if (!obj) return;
@@ -140,60 +184,80 @@ export class Repository implements IRepository {
     this.serverDir = this._id.slice(0, 2) + '/' + this._id;
   }
 
-  public async mkdir(): Promise<void> {
-    if (await exists(this.dir)) throw new Error(
-      `Cannot initialize the repository named '${this.name}' because '${this.dir}' already exists.`
-    );
-    await fs.mkdir(this.dir);
-  }
-
   public absolutePath(subpath: string): string {
-    return urlJoin(this.dir, subpath);
+    if (isAbsolute(subpath)) return subpath;
+    else return urlJoin(this.dir, subpath);
   }
 
-  private static readonly deletedRgx = /\*?deleted/;
-
-  public resetWorkingTree(): Promise<void> {
-    return walk(
-      this.dir,
-      async relPath => {
-        const status = await gitStatus({
-          dir: this.dir,
-          filepath: relPath
-        });
-        const match = Repository.deletedRgx.exec(status);
-        if (match) {
-          await rm(this.absolutePath(relPath));
-        }
-      },
-      filterGitDir
-    );
-  }
-
-  private adjustPath(path: string): string {
+  public relativePath(path: string): string {
     if (isAbsolute(path)) return stripHead(path, this.dir);
     else return path;
+  }
+
+  public async mkdir(path?: string): Promise<void> {
+    path = path ? path : this.dir;
+    await fs.mkdir(this.absolutePath(path));
+    this.refresh$.next();
+  }
+
+  public static isModifiedOrAdded(status: string): boolean {
+    return '*added' === status || 'added' === status
+      || '*modified' === status || 'modified' === status;
   }
 
   public async remove(filepath: string): Promise<void> {
     await gitRemove({
       dir: this.dir,
-      filepath: this.adjustPath(filepath) 
+      filepath: this.relativePath(filepath) 
     });
+    this.refresh$.next();
   }
 
   public async add(filepath: string): Promise<void> {
     await gitAdd({
       dir: this.dir,
-      filepath: this.adjustPath(filepath) 
+      filepath: this.relativePath(filepath) 
+    });
+    this.refresh$.next();
+  }
+
+  public async status(path: string): Promise<string> {
+    const filepath = this.relativePath(path);
+    const abspath = this.absolutePath(filepath);
+    if (await isdir(abspath)) {
+      throw new Error(`Can\'t get the git status of a directory. abspath = '${abspath}'`);
+    }
+    return gitStatus({
+      dir: this.dir,
+      filepath
     });
   }
 
-  public status(filepath: string): Promise<string> {
-    return gitStatus({
+  public async echoTo(filepath: string, text: string, truncate?: boolean): Promise<void> {
+    await echo(this.absolutePath(filepath), text, truncate);
+    this.refresh$.next();
+  }
+
+  public async mv(oldPath: string, newPath: string): Promise<void> {
+    await mv(this.absolutePath(oldPath), this.absolutePath(newPath));
+    await gitRemove({
       dir: this.dir,
-      filepath: this.adjustPath(filepath)
+      filepath: this.relativePath(oldPath)
     });
+    await gitAdd({
+      dir: this.dir,
+      filepath: this.relativePath(newPath)
+    });
+    this.refresh$.next();
+  }
+
+  public async touch(path: string): Promise<void> {
+    await touch(this.absolutePath(path));
+    await gitAdd({
+      dir: this.dir,
+      filepath: this.relativePath(path)
+    });
+    this.refresh$.next();
   }
 }
 
@@ -233,7 +297,34 @@ export class RepoService extends BaseService {
     .pipe(map(irepo => irepo ? new Repository(irepo) : null));
   }
 
-  public async updateFromServer(repo: Repository): Promise<void> {
+  private static syncIndexAndWorkingTree(repo: Repository): Promise<void> {
+    return walk({
+      path: repo.dir,
+      fileCallback: async abspath => {
+        const status = await repo.status(abspath);
+        if ('*undeleted' === status) {
+          return rm(abspath);
+        }
+        else if (Repository.isModifiedOrAdded(status)) {
+          return gitAdd({
+            dir: repo.dir,
+            filepath: repo.relativePath(abspath)
+          });
+        }
+      },
+      dirFilter: async abspath => {
+        if ('.git' === repo.relativePath(abspath)) return false;
+        else return true;
+      },
+      afterAll: async abspath => {
+        if ('*undeleted' === await repo.status(abspath)) {
+          await rmAll(abspath);
+        }
+      }
+    });
+  }
+
+  public async pull(repo: Repository): Promise<void> {
     if (await exists(repo.dir)) {
       try {
         await gitPull({
@@ -249,7 +340,7 @@ export class RepoService extends BaseService {
           return;
         }
       }
-      await repo.resetWorkingTree();
+      await RepoService.syncIndexAndWorkingTree(repo);
     }
     else {
       await repo.mkdir();
@@ -260,37 +351,15 @@ export class RepoService extends BaseService {
         singleBranch: true
       });
     }
-    repo.refreshed$.next();
-  }
-
-  private async addFilesTo(repo: Repository, relativePath?: string): Promise<void> {
-    return walk(
-      repo.dir,
-      async filepath => {
-        const status = await gitStatus({
-          dir: repo.dir,
-          filepath
-        });
-        if ('*modified' === status || '*added' === status) {
-          return gitAdd({
-            dir: repo.dir,
-            filepath
-          });
-        }
-        else if ('deleted' === status) {
-          return rm(repo.absolutePath(filepath));
-        }
-        else return null;
-      },
-      filterGitDir
-    );
+    repo.refresh$.next();
   }
 
   public async commit(repo: Repository, message?: string): Promise<void> {
-    await this.addFilesTo(repo);
+    await RepoService.syncIndexAndWorkingTree(repo);
+    console.log('sync completed');
     await gitCommit({
       dir: repo.dir,
-      message: message ? message : '',
+      message: message ? message : 'Commited from the banx application.',
       author: {
         name: this.userService.remoteUser.glid,
         email: this.userService.remoteUser.email()
@@ -300,7 +369,7 @@ export class RepoService extends BaseService {
       dir: repo.dir
     });
     if (response.ok && response.ok.length > 0 && response.ok[0] === 'unpack') {
-      repo.refreshed$.next();
+      repo.refresh$.next();
       return;
     }
     else {

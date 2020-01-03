@@ -3,7 +3,7 @@ import { Observable, BehaviorSubject } from 'rxjs';
 import { Stat } from '@isomorphic-git/lightning-fs';
 import { takeUntil, filter } from 'rxjs/operators';
 
-import { lsStats, ls, touch, mkdir, isdir, Repository } from '../repo.service';
+import { lsStats, ls, isdir, Repository } from '../repo.service';
 import { urlJoin, basename, dirname } from '../../../../lib/common';
 import { NotificationService } from '../notification.service';
 
@@ -74,8 +74,7 @@ class DirInfo {
       case 'added':
       case '*added':
         return GitStatus.added;
-      case 'deleted':
-      case '*deleted':
+      case '*undeleted':
         return GitStatus.deleted;
       default:
         return GitStatus.unchanged;
@@ -166,7 +165,6 @@ export class DirViewComponent implements OnInit, OnDestroy {
   private newName: string;
 
   @Input() public dir: string = '/';
-  @Input() public refresh$: Observable<void>;
   @Input() public collapse$: Observable<string>;
   @Input() public allowDelete: boolean = false;
   @Input() public repo: Repository;
@@ -182,8 +180,8 @@ export class DirViewComponent implements OnInit, OnDestroy {
   constructor(private readonly notification: NotificationService) { }
 
   public ngOnInit() {
-    if (this.refresh$) {
-      this.refresh$.pipe(takeUntil(this.destroyed$))
+    if (this.repo) {
+      this.repo.refresh$.pipe(takeUntil(this.destroyed$))
         .subscribe(() => this.refresh());
     }
 
@@ -240,8 +238,7 @@ export class DirViewComponent implements OnInit, OnDestroy {
       'NewFile',
       await ls(this.dir)
     );
-    await touch(this.fullPath(filename));
-    await this.refresh();
+    await this.repo.touch(this.fullPath(filename));
   }
 
   private async newDir(): Promise<void> {
@@ -249,8 +246,7 @@ export class DirViewComponent implements OnInit, OnDestroy {
       'NewDir',
       await ls(this.dir)
     );
-    await mkdir(this.fullPath(dirname));
-    await this.refresh();
+    await this.repo.mkdir(this.fullPath(dirname));
   }
 
   private selectFile(filename: string): void {

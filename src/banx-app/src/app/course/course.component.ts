@@ -2,7 +2,7 @@ import { Component, EventEmitter, OnInit, OnDestroy } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { takeUntil, filter } from 'rxjs/operators';
 
-import { RepoService, Repository, cat, echo, mv, rm } from '../repo.service';
+import { RepoService, Repository, cat } from '../repo.service';
 import { NotificationService } from '../notification.service';
 import { dirname, basename } from '../../../../lib/common';
 import { DirRenamed } from '../dir-view/dir-view.component';
@@ -55,7 +55,7 @@ export class CourseComponent implements OnInit, OnDestroy {
     this.destroyed$.next();
   }
 
-  private async toggleRepo(repo: Repository, collapsed: boolean): Promise<void> {
+  private toggleRepo(repo: Repository, collapsed: boolean): void {
     if (collapsed) {
       if (repo === this.selectedRepo$.value) {
         // If the selectedRepo has been collapsed then it should be
@@ -71,11 +71,11 @@ export class CourseComponent implements OnInit, OnDestroy {
     }
   }
 
-  private async resetFromServer(): Promise<void> {
+  private async pull(): Promise<void> {
     const repo = this.selectedRepo$.value;
     this.notification.showLoading(`Updating ${repo.name} from the server...`);
     try {
-      await this.repoService.updateFromServer(repo);
+      await this.repoService.pull(repo);
     }
     catch (err) {
       this.notification.showError(`Failed to update ${repo.name}!`);
@@ -85,18 +85,30 @@ export class CourseComponent implements OnInit, OnDestroy {
     this.notification.showSuccess(`Finished updating ${repo.name}`);
   }
 
+  private async commit(): Promise<void> {
+    this.notification.showLoading(`Saving ${this.selectedRepo$.value.name} to the server...`);
+    try {
+      await this.repoService.commit(this.selectedRepo$.value);
+    }
+    catch (err) {
+      this.notification.showError(`Failed to save ${this.selectedRepo$.value.name}!`);
+      console.error(err);
+      return;
+    }
+    this.notification.showSuccess(`Finished saving ${this.selectedRepo$.value.name}.`);
+  }
+
   private async saveEdits(): Promise<void> {
     const filepath = this.selectedFile$.value;
-    if (!filepath) {
-      // The way the template is structured this should never happen.
-      // This is here just in case.
-      this.notification.showError('Can\'t save, no file has been selected.');
+    if (filepath) {
+      this.notification.showLoading('Saving changes...');
+      await this.selectedRepo$.value.echoTo(filepath, this.editorText, true);
+      this.notification.showSuccess('Saved changes.');
     }
     else {
-      this.notification.showLoading('Saving changes...');
-      await echo(filepath, this.editorText, true);
-      this.notification.showSuccess('Saved changes.');
-      this.selectedRepo$.value.refreshed$.next();
+      // The way the template is structured this should never happen.
+      // But, I would like to be alerted in the case that it does.
+      this.notification.showError('Can\'t save, no file has been selected.');
     }
   }
 
@@ -110,8 +122,7 @@ export class CourseComponent implements OnInit, OnDestroy {
     const oldPath = this.selectedFile$.value
     const newPath = dirname(oldPath) + '/' + this.newName;
     try {
-      await mv(oldPath, newPath);
-      await this.selectedRepo$.value.remove(oldPath);
+      await this.selectedRepo$.value.mv(oldPath, newPath);
     }
     catch (err) {
       this.notification.showError(`failed to rename '${oldPath}'.`);
@@ -119,21 +130,6 @@ export class CourseComponent implements OnInit, OnDestroy {
       return;
     }
     this.selectedFile$.next(newPath);
-    this.selectedRepo$.value.refreshed$.next();
-  }
-
-  private async saveToServer(): Promise<void> {
-    this.notification.showLoading(`Saving ${this.selectedRepo$.value.name} to the server...`);
-    try {
-      await this.repoService.commit(this.selectedRepo$.value);
-    }
-    catch (err) {
-      this.notification.showError(`Failed to save ${this.selectedRepo$.value.name}!`);
-      console.error(err);
-      return;
-    }
-    this.notification.showSuccess(`Finished saving ${this.selectedRepo$.value.name}.`);
-    this.selectedRepo$.value.refreshed$.next();
   }
 
   private async deleteSelectedFile(): Promise<void> {
@@ -150,24 +146,19 @@ export class CourseComponent implements OnInit, OnDestroy {
       return;
     }
     this.notification.showSuccess(`Finished deleting '${filepath}'.`);
-
-    this.selectedRepo$.value.refreshed$.next();
+    console.log(`file status is now ${await this.selectedRepo$.value.status(filepath)}`);
   }
 
   private async dirRenamed(repo: Repository, event: DirRenamed): Promise<void> {
     try {
-      await mv(event.oldPath, event.newPath);
-      await repo.remove(event.oldPath);
-      await repo.add(event.newPath);
+      await repo.mv(event.oldPath, event.newPath);
     }
     catch (err) {
+      event.reject(err);
       this.notification.showError(`Failed to rename '${event.oldPath}'!`);
       console.error(err);
-      await mv(event.newPath, event.oldPath);
-      repo.refreshed$.next();
       return;
     }
-
     this.notification.showSuccess(`Renamed '${event.oldPath}' to '${event.newPath}'.`);
     event.resolve();
   }
