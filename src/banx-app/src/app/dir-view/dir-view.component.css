@@ -5,3 +5,15 @@
 .btn-slim {
     padding: 3px;
 }
+
+.modified {
+    color: blue
+}
+
+.added {
+    color: green
+}
+
+.deleted {
+    color: red
+}

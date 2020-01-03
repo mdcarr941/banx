@@ -3,15 +3,31 @@ import { Observable, BehaviorSubject } from 'rxjs';
 import { Stat } from '@isomorphic-git/lightning-fs';
 import { takeUntil, filter } from 'rxjs/operators';
 
-import { lsStats, ls, touch, mkdir, isdir, mv } from '../repo.service';
+import { lsStats, ls, touch, mkdir, isdir, Repository } from '../repo.service';
 import { urlJoin, basename, dirname } from '../../../../lib/common';
 import { NotificationService } from '../notification.service';
 
-class DirTree {
-  public subdirs: string[] = [];
-  public files: string[] = [];
+enum GitStatus {
+  unchanged,
+  modified,
+  added,
+  deleted
+}
 
-  constructor(stats: {[name: string]: Stat}) {
+class DirInfo {
+  public readonly path: string;
+  public readonly subdirs: string[] = [];
+  public readonly files: string[] = [];
+  public readonly fileStatuses: {[name: string]: GitStatus};
+  public readonly displayNames: {[name: string]: string};
+  public readonly isModified: {[name: string]: boolean};
+  public readonly isAdded: {[name: string]: boolean};
+  public readonly isDeleted: {[name: string]: boolean};
+
+  constructor(
+    stats: {[name: string]: Stat},
+    fileStatuses: {[name: string]: GitStatus}
+  ) {
     for (let name in stats) {
       if (name.startsWith('.')) continue;
 
@@ -20,10 +36,86 @@ class DirTree {
       }
       else this.files.push(name);
     }
+    this.subdirs.sort();
+    this.files.sort();
+
+    this.fileStatuses = Object.freeze(fileStatuses);
+
+    const displayNames = {};
+    for (let name in fileStatuses) {
+      displayNames[name] = DirInfo.displayName(name, fileStatuses[name]);
+    }
+    this.displayNames = Object.freeze(displayNames);
+
+    const isModified = {};
+    for (let name in fileStatuses) {
+      isModified[name] = fileStatuses[name] === GitStatus.modified;
+    }
+    this.isModified = Object.freeze(isModified);
+
+    const isAdded = {};
+    for (let name in fileStatuses) {
+      isAdded[name] = fileStatuses[name] === GitStatus.added;
+    }
+    this.isAdded = Object.freeze(isAdded);
+
+    const isDeleted = {};
+    for (let name in fileStatuses) {
+      isDeleted[name] = fileStatuses[name] === GitStatus.deleted;
+    }
+    this.isDeleted = Object.freeze(isDeleted);
   }
 
-  public static async from(path: string) {
-    return new DirTree(await lsStats(path));
+  public static fileStatus(status: string): GitStatus {
+    switch (status) {
+      case 'modified':
+      case '*modified':
+        return GitStatus.modified;
+      case 'added':
+      case '*added':
+        return GitStatus.added;
+      case 'deleted':
+      case '*deleted':
+        return GitStatus.deleted;
+      default:
+        return GitStatus.unchanged;
+    }
+  }
+
+  public static modifierCharacter(status: GitStatus): string {
+    switch (status) {
+      case GitStatus.unchanged: return '';
+      case GitStatus.modified: return '*';
+      case GitStatus.added: return '+';
+      case GitStatus.deleted: return '-';
+      default: throw new Error(`Unknown FileStatus: ${status}`);
+    }
+  }
+
+  public static displayName(name: string, status: GitStatus): string {
+    return this.modifierCharacter(status) + name;
+  }
+
+  public static async from(repo: Repository, path: string): Promise<DirInfo> {
+    const stats = await lsStats(path);
+
+    const promises: {name: string, promise: Promise<string>}[] = []; 
+    for (let name in stats) {
+      if (stats[name].isFile()) {
+        promises.push({
+          name,
+          promise: repo.status(urlJoin(path, name))
+        });
+      }
+    }
+    const outputs = await Promise.all(promises.map(x => x.promise));
+
+    const fileStauses: {[name: string]: GitStatus} = {};
+    for (let k = 0; k < outputs.length; k += 1) {
+      fileStauses[promises[k].name] = this.fileStatus(outputs[k]);
+    }
+
+    return new DirInfo(stats, fileStauses);
   }
 }
 
@@ -63,7 +155,7 @@ export class DirViewComponent implements OnInit, OnDestroy {
   private readonly _toggle$ = new EventEmitter<void>();
   private readonly _toggled$ = new EventEmitter<boolean>();
   private readonly _fileSelected$ = new EventEmitter<string>();
-  private readonly tree$ = new BehaviorSubject<DirTree>(null);
+  private readonly tree$ = new BehaviorSubject<DirInfo>(null);
   private readonly _collapse$ = new EventEmitter<void>();
   private readonly showRenameModal$ = new EventEmitter<void>();
   private readonly hideRenameModal$ = new EventEmitter<void>();
@@ -77,6 +169,7 @@ export class DirViewComponent implements OnInit, OnDestroy {
   @Input() public refresh$: Observable<void>;
   @Input() public collapse$: Observable<string>;
   @Input() public allowDelete: boolean = false;
+  @Input() public repo: Repository;
   @Output() public readonly fileSelected$: Observable<string>
     = this._fileSelected$;
   @Output() public readonly toggled$: Observable<boolean>
@@ -121,7 +214,7 @@ export class DirViewComponent implements OnInit, OnDestroy {
 
   private async refresh(): Promise<void> {
     if (await isdir(this.dir)) {
-      this.tree$.next(await DirTree.from(this.dir));
+      this.tree$.next(await DirInfo.from(this.repo, this.dir));
     }
     else {
       console.debug(`DirViewComponent.refresh: '${this.dir}' is not a directory`);

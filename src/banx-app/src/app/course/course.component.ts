@@ -62,14 +62,17 @@ export class CourseComponent implements OnInit, OnDestroy {
         // deselected.
         this.selectedRepo$.next(null);
       }
-      return;
-    };
+    }
+    else {
+      this.selectedRepo$.next(repo);
+      // Collapse each DirViewComponent except the one
+      // for repo.dir.
+      this.collapseAllExcept$.next(repo.dir);
+    }
+  }
 
-    this.selectedRepo$.next(repo);
-    // Collapse each DirViewComponent except the one
-    // for repo.dir.
-    this.collapseAllExcept$.next(repo.dir);
-
+  private async resetFromServer(): Promise<void> {
+    const repo = this.selectedRepo$.value;
     this.notification.showLoading(`Updating ${repo.name} from the server...`);
     try {
       await this.repoService.updateFromServer(repo);
@@ -93,6 +96,7 @@ export class CourseComponent implements OnInit, OnDestroy {
       this.notification.showLoading('Saving changes...');
       await echo(filepath, this.editorText, true);
       this.notification.showSuccess('Saved changes.');
+      this.selectedRepo$.value.refreshed$.next();
     }
   }
 
@@ -129,6 +133,7 @@ export class CourseComponent implements OnInit, OnDestroy {
       return;
     }
     this.notification.showSuccess(`Finished saving ${this.selectedRepo$.value.name}.`);
+    this.selectedRepo$.value.refreshed$.next();
   }
 
   private async deleteSelectedFile(): Promise<void> {
@@ -137,7 +142,6 @@ export class CourseComponent implements OnInit, OnDestroy {
 
     this.notification.showLoading(`Deleting '${filepath}'...`);
     try {
-      await rm(filepath);
       await this.selectedRepo$.value.remove(filepath);
     }
     catch (err) {

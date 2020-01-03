@@ -1,7 +1,7 @@
 <app-collapsible [toggle$]="_toggle$" [collapse$]="_collapse$"
   (toggled)="_toggled$.next($event)">
   <ng-container itemContent>
-    <button class="btn btn-link" (click)="_toggle$.next()">
+    <button class="btn btn-link btn-slim" (click)="_toggle$.next()">
       {{basename(dir)}}
     </button>
     <div class="d-inline" [class.invisible]="collapsed" afterItemName>
@@ -29,13 +29,18 @@
       [dir]="fullPath(subdir)"
       [refresh$]="refresh$"
       [allowDelete]="true"
+      [repo]="repo"
       (fileSelected$)="_fileSelected$.next($event)"
       (dirRenamed$)="_dirRenamed$.next($event)"
       (dirDeleted$)="_dirDeleted$.next($event)">
     </app-dir-view>
-    <li class="row direntry" *ngFor="let file of tree.files"
+    <li class="row direntry"
+      *ngFor="let file of tree.files"
+      [class.modified]="tree.isModified[file]"
+      [class.added]="tree.isAdded[file]"
+      [class.deleted]="tree.isDeleted[file]"
       (click)="selectFile(file)">
-      {{file}}
+      {{tree.displayNames[file]}}
     </li>
   </div>
 </app-collapsible>

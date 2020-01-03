@@ -170,19 +170,29 @@ export class Repository implements IRepository {
     );
   }
 
+  private adjustPath(path: string): string {
+    if (isAbsolute(path)) return stripHead(path, this.dir);
+    else return path;
+  }
+
   public async remove(filepath: string): Promise<void> {
-    if (isAbsolute(filepath)) filepath = stripHead(filepath, this.dir);
     await gitRemove({
       dir: this.dir,
-      filepath
+      filepath: this.adjustPath(filepath) 
     });
   }
 
   public async add(filepath: string): Promise<void> {
-    if (isAbsolute(filepath)) filepath = stripHead(filepath, this.dir);
     await gitAdd({
       dir: this.dir,
-      filepath
+      filepath: this.adjustPath(filepath) 
+    });
+  }
+
+  public status(filepath: string): Promise<string> {
+    return gitStatus({
+      dir: this.dir,
+      filepath: this.adjustPath(filepath)
     });
   }
 }
@@ -267,6 +277,9 @@ export class RepoService extends BaseService {
             filepath
           });
         }
+        else if ('deleted' === status) {
+          return rm(repo.absolutePath(filepath));
+        }
         else return null;
       },
       filterGitDir
@@ -287,6 +300,7 @@ export class RepoService extends BaseService {
       dir: repo.dir
     });
     if (response.ok && response.ok.length > 0 && response.ok[0] === 'unpack') {
+      repo.refreshed$.next();
       return;
     }
     else {
