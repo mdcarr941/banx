@@ -20,16 +20,17 @@ import { BaseService } from './base.service';
 import { IRepository } from '../../../lib/schema';
 import { forEach, urlJoin, stripHead, isAbsolute } from '../../../lib/common';
 
-// TODO: remove the following assignment. It was added during debugging.
-(window as any).git = Object.freeze({
-  status: gitStatus
-});
-
 const fs = (function() {
   const _fs = new FS('banxFS');
   gitPlugins.set('fs', _fs);
   return _fs.promises;
 })();
+
+// TODO: remove the following assignments.
+(window as any).git = Object.freeze({
+  status: gitStatus
+});
+(window as any).fs = fs;
 
 function copyIfExists(from: any, to: any): void {
   forEach(from, (key, val) => {
@@ -84,6 +85,12 @@ export function isdir(path: string): Promise<boolean> {
     .catch(() => false);
 }
 
+export function isfile(path: string): Promise<boolean> {
+  return fs.stat(path)
+    .then(stat => stat.isFile())
+    .catch(() => false);
+}
+
 export function rm(path: string): Promise<void> {
   return fs.unlink(path);
 }
@@ -107,8 +114,10 @@ async function _walk({
   const promises = [];
   for (let name in stats) {
     const subpath = urlJoin(path, name);
-    if (stats[name].isDirectory() && await dirFilter(subpath)) {
-      promises.push(_walk({ path: subpath, fileCallback, dirFilter, afterAll }));
+    if (stats[name].isDirectory()) {
+      if (await dirFilter(subpath)) {
+        promises.push(_walk({ path: subpath, fileCallback, dirFilter, afterAll }));
+      }
     }
     else {
       const promise = fileCallback(subpath);
@@ -225,7 +234,7 @@ export class Repository implements IRepository {
     const filepath = this.relativePath(path);
     const abspath = this.absolutePath(filepath);
     if (await isdir(abspath)) {
-      throw new Error(`Can\'t get the git status of a directory. abspath = '${abspath}'`);
+      throw new Error(`Can\'t get the git status of a directory (abspath = '${abspath}').`);
     }
     return gitStatus({
       dir: this.dir,
@@ -238,8 +247,14 @@ export class Repository implements IRepository {
     this.refresh$.next();
   }
 
-  public async mv(oldPath: string, newPath: string): Promise<void> {
-    await mv(this.absolutePath(oldPath), this.absolutePath(newPath));
+  private async _mvFile(oldPath: string, newPath: string, doRefresh: boolean): Promise<void> {
+    oldPath = this.absolutePath(oldPath);
+    newPath = this.absolutePath(newPath);
+    if (!await isfile(oldPath)) {
+      throw new Error(`_mvFile was called on a non-file: '${oldPath}'`);
+    }
+
+    await mv(oldPath, newPath);
     await gitRemove({
       dir: this.dir,
       filepath: this.relativePath(oldPath)
@@ -248,7 +263,11 @@ export class Repository implements IRepository {
       dir: this.dir,
       filepath: this.relativePath(newPath)
     });
-    this.refresh$.next();
+    if (doRefresh) this.refresh$.next();
+  }
+
+  public mvFile(oldPath: string, newPath: string): Promise<void> {
+    return this._mvFile(oldPath, newPath, true);
   }
 
   public async touch(path: string): Promise<void> {
@@ -256,6 +275,59 @@ export class Repository implements IRepository {
     await gitAdd({
       dir: this.dir,
       filepath: this.relativePath(path)
+    });
+    this.refresh$.next();
+  }
+
+  private async _rm(path: string, doRefresh: boolean): Promise<void> {
+    path = this.absolutePath(path);
+    if (!await isfile(path)) {
+      throw new Error(`_rm was called on a non-file: '${path}'`);
+    }
+
+    await gitRemove({
+      dir: this.dir,
+      filepath: this.relativePath(path)
+    });
+    await rm(path);
+    if (doRefresh) this.refresh$.next();
+  }
+
+  public rm(path: string): Promise<void> {
+    return this._rm(path, true);
+  }
+
+  public async mvDir(oldPath: string, newPath: string): Promise<void> {
+    oldPath = this.absolutePath(oldPath);
+    newPath = this.absolutePath(newPath);
+    if (!await isdir(oldPath)) {
+      throw new Error(`mvDir was called on a non-directory: '${oldPath}'`);
+    }
+    
+    const translatePath = abspath => urlJoin(newPath, stripHead(abspath, oldPath));
+    await this.mkdir(newPath);
+    await walk({
+      path: oldPath,
+      fileCallback: async abspath => {
+        return this._mvFile(abspath, translatePath(abspath), false);
+      },
+      dirFilter: async abspath => {
+        await this.mkdir(translatePath(abspath));
+        return true;
+      },
+      afterAll: async abspath => {
+        return rmdir(abspath);
+      }
+    });
+    this.refresh$.next();
+  }
+
+  public async rmAll(path: string): Promise<void> {
+    await walk({
+      path,
+      fileCallback: abspath => this._rm(abspath, false),
+      dirFilter: async () => true,
+      afterAll: abspath => rmdir(abspath)
     });
     this.refresh$.next();
   }
@@ -315,11 +387,6 @@ export class RepoService extends BaseService {
       dirFilter: async abspath => {
         if ('.git' === repo.relativePath(abspath)) return false;
         else return true;
-      },
-      afterAll: async abspath => {
-        if ('*undeleted' === await repo.status(abspath)) {
-          await rmAll(abspath);
-        }
       }
     });
   }

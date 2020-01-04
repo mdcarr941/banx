@@ -8,11 +8,10 @@ src/public/bootstrap
 src/public/jquery
 src/public/popper.js
 src/public/mathjax
-build.sh
-npm-debug.log
 src/public/monaco
 src/public/open-iconic
+build.sh
+npm-debug.log
 repositories/
 banx.clas.ufl.edu.conf
 src/.vscode/
-manualStream.js

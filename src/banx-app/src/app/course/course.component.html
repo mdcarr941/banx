@@ -9,7 +9,8 @@
           [repo]="repo"
           (fileSelected$)="selectedFile$.next($event)"
           (toggled$)="toggleRepo(repo, $event)"
-          (dirRenamed$)="dirRenamed(repo, $event)">
+          (dirRenamed$)="dirRenamed(repo, $event)"
+          (dirDeleted$)="dirDeleted(repo, $event)">
         </app-dir-view>
       </ul>
     </div>
@@ -75,6 +76,6 @@
     </div>
   </div>
   <ng-container footer>
-    <button class="btn btn-primary" (click)="rename()">Rename</button>
+    <button class="btn btn-primary" (click)="renameFile()">Rename</button>
   </ng-container>
 </app-modal>

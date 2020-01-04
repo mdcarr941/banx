@@ -117,12 +117,12 @@ export class CourseComponent implements OnInit, OnDestroy {
     this.showRenameModal$.next();
   }
 
-  private async rename(): Promise<void> {
+  private async renameFile(): Promise<void> {
     this.hideRenameModal$.next();
     const oldPath = this.selectedFile$.value
     const newPath = dirname(oldPath) + '/' + this.newName;
     try {
-      await this.selectedRepo$.value.mv(oldPath, newPath);
+      await this.selectedRepo$.value.mvFile(oldPath, newPath);
     }
     catch (err) {
       this.notification.showError(`failed to rename '${oldPath}'.`);
@@ -150,16 +150,14 @@ export class CourseComponent implements OnInit, OnDestroy {
   }
 
   private async dirRenamed(repo: Repository, event: DirRenamed): Promise<void> {
-    try {
-      await repo.mv(event.oldPath, event.newPath);
+    if (repo.dir === event.oldPath) {
+      throw new Error('renameRepo is not implemented!');
     }
-    catch (err) {
-      event.reject(err);
-      this.notification.showError(`Failed to rename '${event.oldPath}'!`);
-      console.error(err);
-      return;
+  }
+
+  private async dirDeleted(repo: Repository, abspath: string): Promise<void> {
+    if (repo.dir === abspath) {
+      throw new Error('repository deletion is not implemented!');
     }
-    this.notification.showSuccess(`Renamed '${event.oldPath}' to '${event.newPath}'.`);
-    event.resolve();
   }
 }
