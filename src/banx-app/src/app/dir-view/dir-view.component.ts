@@ -3,7 +3,7 @@ import { Observable, BehaviorSubject } from 'rxjs';
 import { Stat } from '@isomorphic-git/lightning-fs';
 import { takeUntil, filter } from 'rxjs/operators';
 
-import { lsStats, ls, isdir, Repository, rmdir, mv } from '../repo.service';
+import { lsStats, ls, isdir, Repository } from '../repo.service';
 import { urlJoin, basename, dirname } from '../../../../lib/common';
 import { NotificationService } from '../notification.service';
 
@@ -118,13 +118,39 @@ class DirInfo {
   }
 }
 
-export class DirRenamed {
+export class PromiseObject {
+  private _resolve: () => void;
+  private _reject: (err: Error) => void;
+
+  public readonly completed: Promise<void>
+    = new Promise((resolve, reject) => {
+      this._resolve = resolve;
+      this._reject = reject;
+    });
+
+  public resolve(): void {
+    this._resolve();
+  }
+
+  public reject(err: Error): void {
+    this._reject(err);
+  }
+}
+
+export class DirRenamed extends PromiseObject {
   public readonly newPath: string;
   constructor(
     public readonly oldPath: string,
     public readonly newName: string
   ) {
+    super();
     this.newPath = urlJoin(dirname(oldPath), newName);
+  }
+}
+
+export class DirDeleted extends PromiseObject {
+  constructor(public readonly abspath: string) {
+    super();
   }
 }
 
@@ -143,14 +169,13 @@ export class DirViewComponent implements OnInit, OnDestroy {
   private readonly showRenameModal$ = new EventEmitter<void>();
   private readonly hideRenameModal$ = new EventEmitter<void>();
   private readonly _dirRenamed$ = new EventEmitter<DirRenamed>();
-  private readonly _dirDeleted$ = new EventEmitter<string>();
+  private readonly _dirDeleted$ = new EventEmitter<DirDeleted>();
 
   private collapsed: boolean = true;
   private newName: string;
 
   @Input() public dir: string = '/';
   @Input() public collapse$: Observable<string>;
-  @Input() public allowDelete: boolean = false;
   @Input() public repo: Repository;
   @Output() public readonly fileSelected$: Observable<string>
     = this._fileSelected$;
@@ -158,15 +183,17 @@ export class DirViewComponent implements OnInit, OnDestroy {
     = this._toggled$;
   @Output() public readonly dirRenamed$: Observable<DirRenamed>
     = this._dirRenamed$;
-  @Output() public readonly dirDeleted$: Observable<string>
+  @Output() public readonly dirDeleted$: Observable<DirDeleted>
     = this._dirDeleted$;
 
   constructor(private readonly notification: NotificationService) { }
 
   public ngOnInit() {
     if (this.repo) {
-      this.repo.refresh$.pipe(takeUntil(this.destroyed$))
-        .subscribe(() => this.refresh());
+      this.repo.refresh$.pipe(
+        takeUntil(this.destroyed$)
+      )
+      .subscribe(() => this.refresh());
     }
 
     if (this.collapse$) {
@@ -188,12 +215,6 @@ export class DirViewComponent implements OnInit, OnDestroy {
 
     this.showRenameModal$.pipe(takeUntil(this.destroyed$))
     .subscribe(() => this.newName = basename(this.dir));
-
-    this._dirRenamed$.pipe(takeUntil(this.destroyed$))
-    .subscribe(() => this.refresh());
-
-    this._dirDeleted$.pipe(takeUntil(this.destroyed$))
-    .subscribe(() => this.refresh());
   }
 
   public ngOnDestroy() {
@@ -250,28 +271,41 @@ export class DirViewComponent implements OnInit, OnDestroy {
   private async renameDir(): Promise<void> {
     this.hideRenameModal$.next();
     const event = new DirRenamed(this.dir, this.newName);
+    this._dirRenamed$.next(event);
     try {
-      await this.repo.mvDir(event.oldPath, event.newPath);
+      await event.completed;
     }
     catch (err) {
-      this.notification.showError(`Failed to rename '${event.oldPath}' to '${event.newPath}'.`);
-      console.error(err);
       return;
     }
     this.dir = event.newPath;
-    this._dirRenamed$.next(event);
+    this.refresh();
   }
 
   private async deleteDir(): Promise<void> {
     if (!confirm(`Are you sure you want to delete '${this.dir}'?`)) return;
+    this._dirDeleted$.next(new DirDeleted(this.dir));
+  }
+
+  private async subRenamed(event: DirRenamed): Promise<void> {
+    this._dirRenamed$.next(event);
     try {
-      await this.repo.rmAll(this.dir);
+      await event.completed;
     }
     catch (err) {
-      this.notification.showError(`Failed to delete '${this.dir}'!`);
-      console.error(err);
       return;
     }
-    this._dirDeleted$.next(this.dir);
+    this.refresh();
+  }
+
+  private async subDeleted(event: DirDeleted): Promise<void> {
+    this._dirDeleted$.next(event);
+    try {
+      await event.completed;
+    }
+    catch (err) {
+      return;
+    }
+    this.refresh();
   }
 }

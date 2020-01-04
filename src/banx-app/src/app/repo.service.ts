@@ -82,7 +82,7 @@ export async function echo(path: string, text: string, truncate?: boolean): Prom
 export function isdir(path: string): Promise<boolean> {
   return fs.stat(path)
     .then(stat => stat.isDirectory())
-    .catch(() => false);
+    .catch(err => false);
 }
 
 export function isfile(path: string): Promise<boolean> {
@@ -203,10 +203,17 @@ export class Repository implements IRepository {
     else return path;
   }
 
-  public async mkdir(path?: string): Promise<void> {
-    path = path ? path : this.dir;
+  private async _mkdir(path: string, doRefresh: boolean): Promise<void> {
     await fs.mkdir(this.absolutePath(path));
-    this.refresh$.next();
+    if (doRefresh) this.refresh$.next();
+  }
+
+  public mkdir(path?: string): Promise<void> {
+    return this._mkdir(path ? path : this.dir, true);
+  }
+
+  public static isUndeleted(status: string): boolean {
+    return '*undeleted' === status;
   }
 
   public static isModifiedOrAdded(status: string): boolean {
@@ -263,6 +270,7 @@ export class Repository implements IRepository {
       dir: this.dir,
       filepath: this.relativePath(newPath)
     });
+
     if (doRefresh) this.refresh$.next();
   }
 
@@ -297,7 +305,9 @@ export class Repository implements IRepository {
     return this._rm(path, true);
   }
 
-  public async mvDir(oldPath: string, newPath: string): Promise<void> {
+  public async mvDir(oldPath: string, newPath: string, doRefresh?: boolean): Promise<void> {
+    if (undefined === doRefresh) doRefresh = true;
+
     oldPath = this.absolutePath(oldPath);
     newPath = this.absolutePath(newPath);
     if (!await isdir(oldPath)) {
@@ -305,21 +315,21 @@ export class Repository implements IRepository {
     }
     
     const translatePath = abspath => urlJoin(newPath, stripHead(abspath, oldPath));
-    await this.mkdir(newPath);
+    await this._mkdir(newPath, false);
     await walk({
       path: oldPath,
       fileCallback: async abspath => {
         return this._mvFile(abspath, translatePath(abspath), false);
       },
       dirFilter: async abspath => {
-        await this.mkdir(translatePath(abspath));
+        await this._mkdir(translatePath(abspath), false);
         return true;
       },
       afterAll: async abspath => {
         return rmdir(abspath);
       }
     });
-    this.refresh$.next();
+    if (doRefresh) this.refresh$.next();
   }
 
   public async rmAll(path: string): Promise<void> {
@@ -362,7 +372,7 @@ export class RepoService extends BaseService {
   public get(name: string): Observable<Repository> {
     return this.http.get<IRepository>(this.getUrl('/db/' + name))
     .pipe(map(irepo => irepo ? new Repository(irepo) : null));
-  }
+  }NewDir
 
   public upsert(repo: Repository): Observable<Repository> {
     return this.http.put<IRepository>(this.getUrl('/db'), repo)
@@ -374,7 +384,7 @@ export class RepoService extends BaseService {
       path: repo.dir,
       fileCallback: async abspath => {
         const status = await repo.status(abspath);
-        if ('*undeleted' === status) {
+        if (Repository.isUndeleted(status)) {
           return rm(abspath);
         }
         else if (Repository.isModifiedOrAdded(status)) {
@@ -423,7 +433,6 @@ export class RepoService extends BaseService {
 
   public async commit(repo: Repository, message?: string): Promise<void> {
     await RepoService.syncIndexAndWorkingTree(repo);
-    console.log('sync completed');
     await gitCommit({
       dir: repo.dir,
       message: message ? message : 'Commited from the banx application.',

@@ -5,7 +5,7 @@ import { takeUntil, filter } from 'rxjs/operators';
 import { RepoService, Repository, cat } from '../repo.service';
 import { NotificationService } from '../notification.service';
 import { dirname, basename } from '../../../../lib/common';
-import { DirRenamed } from '../dir-view/dir-view.component';
+import { DirRenamed, DirDeleted } from '../dir-view/dir-view.component';
 
 @Component({
   selector: 'app-course',
@@ -151,13 +151,35 @@ export class CourseComponent implements OnInit, OnDestroy {
 
   private async dirRenamed(repo: Repository, event: DirRenamed): Promise<void> {
     if (repo.dir === event.oldPath) {
-      throw new Error('renameRepo is not implemented!');
+      throw new Error('repository renaming is not implemented!');
+    }
+    else {
+      try {
+        await repo.mvDir(event.oldPath, event.newPath, false);
+        event.resolve();
+      }
+      catch (err) {
+        event.reject(err);
+        this.notification.showError(`Failed to rename '${event.oldPath}' to '${event.newPath}'.`);
+        console.error(err);
+      }
     }
   }
 
-  private async dirDeleted(repo: Repository, abspath: string): Promise<void> {
-    if (repo.dir === abspath) {
+  private async dirDeleted(repo: Repository, event: DirDeleted): Promise<void> {
+    if (repo.dir === event.abspath) {
       throw new Error('repository deletion is not implemented!');
+    }
+    else {
+      try {
+        await repo.rmAll(event.abspath);
+        event.resolve();
+      }
+      catch (err) {
+        event.reject(err);
+        this.notification.showError(`Failed to delete '${event.abspath}'!`);
+        console.error(err);
+      }
     }
   }
 }

@@ -17,7 +17,7 @@
         data-toggle="tooltip" title="Rename Directory">
         <img src="public/open-iconic/svg/pencil.svg">
       </button>
-      <button *ngIf="allowDelete" class="btn btn-link btn-slim" (click)="deleteDir()"
+      <button class="btn btn-link btn-slim" (click)="deleteDir()"
         data-toggle="tootip" title="Delete Directory">
         <img src="public/open-iconic/svg/trash.svg">
       </button>
@@ -27,11 +27,10 @@
     <app-dir-view *ngFor="let subdir of tree.subdirs"
       [collapse$]="collapse$"
       [dir]="fullPath(subdir)"
-      [allowDelete]="true"
       [repo]="repo"
       (fileSelected$)="_fileSelected$.next($event)"
-      (dirRenamed$)="_dirRenamed$.next($event)"
-      (dirDeleted$)="_dirDeleted$.next($event)">
+      (dirRenamed$)="subRenamed($event)"
+      (dirDeleted$)="subDeleted($event)">
     </app-dir-view>
     <li class="row direntry"
       *ngFor="let file of tree.files"
