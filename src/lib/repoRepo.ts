@@ -30,24 +30,16 @@ export class Repository implements IRepository {
     public name: string;
     public readonly userIds: string[];
 
-    private _path: string = null;
-    public get path(): string {
-        if (null === this._path) {
-            if (null === this._id) {
-                throw new Error(
-                    "An attempt was made to access the path of a repository before it has been assign a database ID."
-                );
-            }
-            this._path = path.join(config.repoDir, this.dir());
-        }
-        return this._path;
-    }
+    public readonly path: string;
 
     constructor(obj: IRepository) {
         if (typeof obj._id === 'string') this._id = ObjectID.createFromHexString(obj._id);
         else if (obj._id) this._id = obj._id;
         this.name = obj.name;
         this.userIds = obj.userIds || [];
+
+        if (this._id) this.path = path.join(config.repoDir, this.dir());
+        else this.path = null;
     }
 
     public dir(): string {
@@ -115,21 +107,27 @@ export class RepoRepo {
     }
 
     public get(name: string): Promise<Repository> {
-        return this.repoCollection.findOne({name: name})
-        .then(irepo => new Repository(irepo));
+        return this.repoCollection.findOne({name})
+        .then(irepo => irepo ? new Repository(irepo) : null);
     }
 
     public getByIdStr(idStr: string): Promise<Repository> {
         return this.repoCollection.findOne({_id: ObjectId.createFromHexString(idStr)})
-        .then(irepo => new Repository(irepo));
+        .then(irepo => irepo ? new Repository(irepo) : null);
     }
 
     public async del(name: string): Promise<boolean> {
         const result = await this.repoCollection.findOneAndDelete({name: name});
         if (result.ok !== 1) return false;
-        const repo = new Repository(result.value);
-        await repo.rm();
-        return true;
+        
+        if (result.value) {
+            const repo = new Repository(result.value);
+            await repo.rm();
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
     public list(namePrefix?: string, caseInsensitive?: boolean): Cursor<string> {

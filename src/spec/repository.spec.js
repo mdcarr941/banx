@@ -18,15 +18,8 @@ describe('Repository', function() {
         expect(repo).toBeTruthy();
     });
 
-    it('should be an error to access the path of a repo which is not in the DB', async function() {
-        const sub = 'mkdirTest';
-        let caught = false;
-        try {
-            await repo.path;
-        }
-        catch (Error) {
-            caught = true;
-        }
-        expect(caught).toBe(true);
+    it('should have a null path if it isn\'t in the DB', function() {
+        const testRepo = new Repository({name: 'TestRepo5452'});
+        expect(testRepo.path).toBe(null);
     });
 });

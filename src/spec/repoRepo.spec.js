@@ -216,4 +216,21 @@ describe('RepoRepo', function() {
             .then(([v0, v1]) => v0 || v1)
         ).toBe(false);
     });
+
+    it('should return null when a non-existant repository is requested', async function() {
+        const repoName = await testHelpers.nonExistantRepoName();
+        const repoRepo = await getGlobalRepoRepo();
+        expect(await repoRepo.get(repoName)).toBe(null);
+    });
+
+    it('should return null when a non-existant repository is requested by id', async function() {
+        const repoId = await testHelpers.nonExistantRepoId();
+        const repoRepo = await getGlobalRepoRepo();
+        expect(await repoRepo.getByIdStr(repoId)).toBe(null);
+    });
+
+    it('should not be an error to delete a non-existant repository', async function() {
+        const repoName = await testHelpers.nonExistantRepoName();
+        expect(await repoRepo.del(repoName)).toBe(false);
+    });
 });

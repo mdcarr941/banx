@@ -224,15 +224,10 @@ describe('git router', function() {
         try {
             const dir = await testHelpers.getTempDir();
             try {
-                const server = http.createServer(app);
-
-                server.listen(config.port);
-                await new Promise(resolve => {
-                    server.on('listening', () => resolve());
-                });
+                const server = await testHelpers.startServer(app);
                 try {
                     const headers = { 'ufshib_eppn': testUserId };
-                    const url = `http://localhost:${config.port}/git/repos/${repo.dir()}`;
+                    const url = testHelpers.repoUrl(repo);
                     await git.clone({
                         dir,
                         url,
@@ -284,10 +279,7 @@ describe('git router', function() {
                     }
                 }
                 finally {
-                    await new Promise((resolve, reject) => server.close(err => {
-                        if (err) reject(err);
-                        else resolve();
-                    }));
+                    await testHelpers.stopServer(server);
                 }
             }
             finally {
@@ -300,4 +292,43 @@ describe('git router', function() {
         }
         expect(await testHelpers.pathExists(repo.path)).toBe(false);
     });
+
+    it('should respond appropriately when a repository does not exist.', async function() {
+        const repoId = await testHelpers.nonExistantRepoId();
+        const repo = new Repository({_id: repoId});
+
+        const url = `/git/repos/${repo.dir()}/info/refs?service=git-upload-pack`;
+        await request(app)
+            .get(url)
+            .set('ufshib_eppn', testUserId)
+            .send()
+            .expect(404);
+    });
+
+    it('should be able to delete repositories.', async function() {
+        const name = await testHelpers.nonExistantRepoName();
+        const repoRepo = await getGlobalRepoRepo();
+
+        await request(app)
+            .put('/git/db')
+            .set('ufshib_eppn', testUserId)
+            .send(new Repository({name}))
+            .expect(200);
+        try {
+            const repo = await repoRepo.get(name);
+            expect(repo).toBeTruthy();
+            expect(repo instanceof Repository).toBe(true);
+
+            await request(app)
+                .delete(`/git/db/${name}`)
+                .set('ufshib_eppn', testUserId)
+                .send()
+                .expect(200);
+            
+            expect(await repoRepo.get(name)).toBe(null);
+        }
+        finally {
+            await repoRepo.del(name);
+        }
+    })
 });
