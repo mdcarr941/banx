@@ -116,10 +116,13 @@ export class RepoRepo {
         .then(irepo => irepo ? new Repository(irepo) : null);
     }
 
+    // A return value of true indicates the given repository was in the
+    // database and has been removed. A value of false indicates that
+    // the given name was not in the database to begin with.
     public async del(name: string): Promise<boolean> {
         const result = await this.repoCollection.findOneAndDelete({name: name});
         if (result.ok !== 1) return false;
-        
+
         if (result.value) {
             const repo = new Repository(result.value);
             await repo.rm();

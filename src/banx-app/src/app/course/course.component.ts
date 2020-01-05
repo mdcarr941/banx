@@ -168,7 +168,18 @@ export class CourseComponent implements OnInit, OnDestroy {
 
   private async dirDeleted(repo: Repository, event: DirDeleted): Promise<void> {
     if (repo.dir === event.abspath) {
-      throw new Error('repository deletion is not implemented!');
+      this.notification.showLoading(`Deleting ${repo.name}...`);
+      try {
+        await this.repoService.delete(this.selectedRepo$.value);
+        event.resolve();
+      }
+      catch (err) {
+        event.reject(err);
+        this.notification.showError(`Failed to delete ${repo.name}!`);
+        console.error(err);
+        return;
+      }
+      this.notification.showSuccess(`Finished deleting ${repo.name}.`);
     }
     else {
       try {

@@ -452,4 +452,18 @@ export class RepoService extends BaseService {
       throw new PushError('The push response did not indicate success.', response);
     }
   }
+
+  public async delete(repo: Repository): Promise<boolean> {
+    const wasPresent: boolean = await new Promise((resolve, reject) => {
+      this.http.delete<boolean>(this.getUrl(urlJoin('db', repo.name)))
+        .subscribe(
+          wasPresent => resolve(wasPresent),
+          err => reject(err)
+        );
+    });
+    if (await exists(repo.dir)) {
+      await rmAll(repo.dir);
+    }
+    return wasPresent;
+  }
 }
