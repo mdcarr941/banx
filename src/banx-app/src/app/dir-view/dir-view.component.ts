@@ -3,16 +3,9 @@ import { Observable, BehaviorSubject } from 'rxjs';
 import { Stat } from '@isomorphic-git/lightning-fs';
 import { takeUntil, filter } from 'rxjs/operators';
 
-import { lsStats, ls, isdir, Repository } from '../repo.service';
+import { lsStats, ls, isdir, Repository, GitStatus } from '../repo.service';
 import { urlJoin, basename, dirname } from '../../../../lib/common';
 import { NotificationService } from '../notification.service';
-
-enum GitStatus {
-  unchanged,
-  modified,
-  added,
-  deleted
-}
 
 class DirInfo {
   public readonly path: string;

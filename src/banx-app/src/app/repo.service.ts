@@ -174,6 +174,13 @@ export async function isEmpty(path: string): Promise<boolean> {
   }
 }
 
+export enum GitStatus {
+  unchanged,
+  modified,
+  added,
+  deleted
+}
+
 export class Repository implements IRepository {
   public readonly _id: string = null;
   public name: string = null;
@@ -184,13 +191,44 @@ export class Repository implements IRepository {
   public readonly serverDir: string;
   public readonly refresh$ = new EventEmitter<void>();
 
+  private _gitStatus: GitStatus;
+  public get gitStatus(): GitStatus {
+    return this._gitStatus;
+  }
+
   constructor(obj: IRepository) {
     if (!obj) return;
     copyIfExists(obj, this);
     this.userIds = this.userIds || [];
 
     this.dir = urlJoin('/', this.name);
-    this.serverDir = this._id.slice(0, 2) + '/' + this._id;
+    if (this._id) {
+      this.serverDir = this._id.slice(0, 2) + '/' + this._id;
+    }
+    else {
+      this.serverDir = null;
+    }
+  }
+
+  public static async addLocalRepos(repos: Repository[]): Promise<Repository[]> {
+    const stats = await lsStats('/');
+    //const localRepos: Repository[] = [];
+    for (let name in stats) {
+      if (stats[name].isDirectory()) {
+        const repo = new Repository({name});
+        if (repos.findIndex(r => r.name === name) < 0) {
+          repo._gitStatus = GitStatus.deleted;
+          repos.push(repo);
+        }
+        //localRepos.push(repo);
+      }
+    }
+    // TODO: Merge repos and localRepos in sub-quadratic time and assign them
+    //       the correct status as you do so.
+    // const byName = (left, right) => left.name <= right.name ? -1 : 1;
+    // repos.sort(byName);
+    // localRepos.sort(byName);
+    return repos;
   }
 
   public absolutePath(subpath: string): string {
@@ -415,6 +453,9 @@ export class RepoService extends BaseService {
           // on the master branch. This is the case if the
           // repository is empty.
           return;
+        }
+        else {
+          throw err;
         }
       }
       await RepoService.syncIndexAndWorkingTree(repo);

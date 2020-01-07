@@ -2,7 +2,7 @@ import { Component, EventEmitter, OnInit, OnDestroy } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { takeUntil, filter } from 'rxjs/operators';
 
-import { RepoService, Repository, cat } from '../repo.service';
+import { RepoService, Repository, cat, lsStats, GitStatus } from '../repo.service';
 import { NotificationService } from '../notification.service';
 import { dirname, basename } from '../../../../lib/common';
 import { DirRenamed, DirDeleted } from '../dir-view/dir-view.component';
@@ -14,7 +14,7 @@ import { DirRenamed, DirDeleted } from '../dir-view/dir-view.component';
 })
 export class CourseComponent implements OnInit, OnDestroy {
   private readonly destroyed$ = new EventEmitter<void>();
-  private readonly repos$ = new EventEmitter<Repository[]>();
+  private readonly repos$ = new BehaviorSubject<Repository[]>(null);
   private readonly selectedRepo$ = new BehaviorSubject<Repository>(null);
   private readonly selectedFile$ = new BehaviorSubject<string>(null);
   private readonly editorOptions = Object.freeze({
@@ -24,9 +24,13 @@ export class CourseComponent implements OnInit, OnDestroy {
   private readonly collapseAllExcept$ = new EventEmitter<string>();
   private readonly showRenameModal$ = new EventEmitter<void>();
   private readonly hideRenameModal$ = new EventEmitter<void>();
+  private readonly serverRepos$ = new BehaviorSubject<Repository[]>(null);
+  private readonly showNewCourseModal$ = new EventEmitter<void>();
+  private readonly hideNewCourseModal$ = new EventEmitter<void>();
 
   private editorText: string;
   private newName: string;
+  private newCourseName: string;
 
   constructor(
     private readonly repoService: RepoService,
@@ -34,7 +38,13 @@ export class CourseComponent implements OnInit, OnDestroy {
   ) {}
 
   public ngOnInit() {
-    this.repoService.list().subscribe(repos => this.repos$.next(repos));
+    this.serverRepos$.pipe(
+      takeUntil(this.destroyed$),
+      filter(repos => !!repos)
+    )
+    .subscribe(async repos => {
+      this.repos$.next(await Repository.addLocalRepos(repos));
+    });
 
     this.selectedFile$
     .pipe(
@@ -49,10 +59,16 @@ export class CourseComponent implements OnInit, OnDestroy {
     // should be cleared.
     this.selectedRepo$.pipe(takeUntil(this.destroyed$))
       .subscribe(() => this.selectedFile$.next(null));
+
+    this.refreshRepos();
   }
 
   public ngOnDestroy() {
     this.destroyed$.next();
+  }
+
+  private refreshRepos(): void {
+    this.repoService.list().subscribe(this.serverRepos$);
   }
 
   private toggleRepo(repo: Repository, collapsed: boolean): void {
@@ -171,6 +187,10 @@ export class CourseComponent implements OnInit, OnDestroy {
       this.notification.showLoading(`Deleting ${repo.name}...`);
       try {
         await this.repoService.delete(this.selectedRepo$.value);
+        this.repos$.next(this.repos$.value
+          .filter(r => r._id !== this.selectedRepo$.value._id)
+        );
+        this.selectedRepo$.next(null);
         event.resolve();
       }
       catch (err) {
@@ -191,6 +211,33 @@ export class CourseComponent implements OnInit, OnDestroy {
         this.notification.showError(`Failed to delete '${event.abspath}'!`);
         console.error(err);
       }
+    }
+  }
+
+  private newCourse(): void {
+    this.hideNewCourseModal$.next();
+    const name = this.newCourseName;
+    this.newCourseName = null;
+    this.notification.showLoading(`Creating a new course named ${name}...`);
+    this.repoService.upsert(new Repository({name})).subscribe(
+      repo => {
+        this.repos$.value.push(repo);
+        this.repos$.next(this.repos$.value);
+        this.notification.showSuccess(`Finished creating ${name}.`);
+      },
+      err => {
+        this.notification.showError(`Failed to create ${name}!`);
+        console.error(err);
+      }
+    );
+  }
+
+  private displayName(repo: Repository): string {
+    switch (repo.gitStatus) {
+      case GitStatus.added: return '+' + repo.name;
+      case GitStatus.deleted: return '-' + repo.name;
+      case GitStatus.modified: return '*' + repo.name;
+      default: return repo.name;
     }
   }
 }
