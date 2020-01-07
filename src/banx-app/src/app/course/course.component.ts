@@ -2,7 +2,7 @@ import { Component, EventEmitter, OnInit, OnDestroy } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { takeUntil, filter } from 'rxjs/operators';
 
-import { RepoService, Repository, cat, lsStats, GitStatus } from '../repo.service';
+import { RepoService, Repository, cat, lsStats, GitStatus, mv } from '../repo.service';
 import { NotificationService } from '../notification.service';
 import { dirname, basename } from '../../../../lib/common';
 import { DirRenamed, DirDeleted } from '../dir-view/dir-view.component';
@@ -167,7 +167,23 @@ export class CourseComponent implements OnInit, OnDestroy {
 
   private async dirRenamed(repo: Repository, event: DirRenamed): Promise<void> {
     if (repo.dir === event.oldPath) {
-      throw new Error('repository renaming is not implemented!');
+      const oldName = basename(event.oldPath);
+      const newName = basename(event.newPath);
+      this.notification.showLoading(`Renaming '${oldName}' to '${newName}'...`);
+      repo.name = newName;
+      this.repoService.upsert(repo).subscribe(
+        async () => {
+          this.notification.showSuccess(`Finished renaming '${oldName}' to '${newName}'.`);
+          await mv(event.oldPath, event.newPath);
+          const repos = this.repos$.value.filter(r => r.name !== oldName);
+          repos.push(repo);
+          this.repos$.next(repos);
+        },
+        err => {
+          this.notification.showError(`Failed to rename '${oldName}'!`);
+          console.error(err);
+        }
+      );
     }
     else {
       try {

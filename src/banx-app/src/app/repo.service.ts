@@ -379,6 +379,14 @@ export class Repository implements IRepository {
     });
     this.refresh$.next();
   }
+
+  public toJSON(): Object {
+    return {
+      _id: this._id,
+      name: this.name,
+      userIds: this.userIds
+    };
+  }
 }
 
 export class PushError extends Error {
