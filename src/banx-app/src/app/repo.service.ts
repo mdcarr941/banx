@@ -187,7 +187,6 @@ export class Repository implements IRepository {
   public readonly userIds: string[] = null;
 
   // Calculated fields.
-  public readonly dir: string;
   public readonly serverDir: string;
   public readonly refresh$ = new EventEmitter<void>();
 
@@ -196,12 +195,15 @@ export class Repository implements IRepository {
     return this._gitStatus;
   }
 
+  public get dir(): string {
+    return urlJoin('/', this.name);
+  }
+
   constructor(obj: IRepository) {
     if (!obj) return;
     copyIfExists(obj, this);
     this.userIds = this.userIds || [];
 
-    this.dir = urlJoin('/', this.name);
     if (this._id) {
       this.serverDir = this._id.slice(0, 2) + '/' + this._id;
     }

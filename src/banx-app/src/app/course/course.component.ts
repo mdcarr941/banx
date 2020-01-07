@@ -162,7 +162,6 @@ export class CourseComponent implements OnInit, OnDestroy {
       return;
     }
     this.notification.showSuccess(`Finished deleting '${filepath}'.`);
-    console.log(`file status is now ${await this.selectedRepo$.value.status(filepath)}`);
   }
 
   private async dirRenamed(repo: Repository, event: DirRenamed): Promise<void> {
@@ -175,11 +174,10 @@ export class CourseComponent implements OnInit, OnDestroy {
         async () => {
           this.notification.showSuccess(`Finished renaming '${oldName}' to '${newName}'.`);
           await mv(event.oldPath, event.newPath);
-          const repos = this.repos$.value.filter(r => r.name !== oldName);
-          repos.push(repo);
-          this.repos$.next(repos);
+          event.resolve();
         },
         err => {
+          event.reject(err);
           this.notification.showError(`Failed to rename '${oldName}'!`);
           console.error(err);
         }

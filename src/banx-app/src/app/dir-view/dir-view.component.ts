@@ -91,7 +91,7 @@ class DirInfo {
   public static async from(repo: Repository, path: string): Promise<DirInfo> {
     const stats = await lsStats(path);
 
-    const promises: {name: string, promise: Promise<string>}[] = []; 
+    const promises: {name: string, promise: Promise<string>}[] = [];
     for (let name in stats) {
       if (stats[name].isFile()) {
         promises.push({
