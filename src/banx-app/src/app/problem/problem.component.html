@@ -5,6 +5,11 @@
       <div class="col-4">
         <ng-content></ng-content>
       </div>
+      <div class="col-4">
+        <button class="btn btn-secondary" (click)="showAddToFileModal$.next()">
+          Add to file
+        </button>
+      </div>
       <div class="col-2" *ngIf="remoteUserService.remoteUser.canEdit()">
         <button class="btn btn-primary" (click)="showEditor()">Edit</button>
       </div>
@@ -61,5 +66,25 @@
   </ng-container>
   <ng-container footer>
     <button class="btn btn-danger" (click)="deleteProblem()">Confirm</button>
+  </ng-container>
+</app-modal>
+
+<app-modal [title]="'Add to File'"
+  [show$]="showAddToFileModal$"
+  [hide$]="hideAddToFileModal$">
+  <div class="container-fluid" body>
+    <div class="row">
+      <div class="col-3">
+        <label>File Path:</label>
+      </div>
+      <div class="col-9">
+        <input type="text" [(ngModel)]="filePath" />
+      </div>
+    </div>
+  </div>
+  <ng-container footer>
+    <button class="btn btn-primary" (click)="addToFile()">
+      Add to File
+    </button>
   </ng-container>
 </app-modal>

@@ -9,6 +9,7 @@ import { Problem } from '../../../../lib/schema';
 import { parseTagString } from '../../../../lib/common';
 import { ModalComponent } from '../modal/modal.component';
 import { useMathJax } from '../app.component';
+import { echo } from '../repo.service';
 
 @Component({
   selector: 'app-problem',
@@ -21,12 +22,16 @@ export class ProblemComponent implements OnInit {
   // should be removed from which every component it is in.
   @Output() deleteMe = new EventEmitter<void>();
 
-  private editMode$ = new EventEmitter<boolean>();
-
+  private readonly editMode$ = new EventEmitter<boolean>();
   private readonly editorOptions = Object.freeze({
     language: 'LaTeX',
     minimap: { enabled: false }
   });
+  private readonly showAddToFileModal$ = new EventEmitter<void>();
+  private readonly hideAddToFileModal$ = new EventEmitter<void>();
+
+  // The path to the file that this problem should be appended to. 
+  private filePath: string;
 
   constructor(
     private problemsService: ProblemsService,
@@ -123,5 +128,17 @@ export class ProblemComponent implements OnInit {
         console.error(err);
       }
     );
+  }
+
+  private async addToFile(): Promise<void> {
+    this.hideAddToFileModal$.next();
+    try {
+      await echo(this.filePath, '\n\n' + this.problem.toString());
+      this.notifications.showSuccess(`Added problem to '${this.filePath}'.`);
+    }
+    catch (err) {
+      this.notifications.showError(`Failed to add problem to '${this.filePath}'!`);
+      console.error(err);
+    }
   }
 }

@@ -75,8 +75,9 @@ export function cat(path: string): Promise<string> {
 }
 
 export async function echo(path: string, text: string, truncate?: boolean): Promise<void> {
-  if (truncate) await fs.unlink(path);
-  return fs.writeFile(path, text, {encoding: stringEncoding});
+  if (truncate) return fs.writeFile(path, text, {encoding: stringEncoding});
+  const contents = await fs.readFile(path, {encoding: stringEncoding});
+  return fs.writeFile(path, contents + text, {encoding: stringEncoding});
 }
 
 export function isdir(path: string): Promise<boolean> {
