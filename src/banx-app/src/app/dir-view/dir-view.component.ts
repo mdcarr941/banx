@@ -88,8 +88,15 @@ class DirInfo {
     return this.modifierCharacter(status) + name;
   }
 
-  public static async from(repo: Repository, path: string): Promise<DirInfo> {
+  public static async from(path: string, repo?: Repository): Promise<DirInfo> {
     const stats = await lsStats(path);
+    if (!repo) {
+      const fileStatuses = {};
+      for (let name in stats) {
+        fileStatuses[name] = GitStatus.unchanged;
+      }
+      return new DirInfo(stats, fileStatuses);
+    }
 
     const promises: {name: string, promise: Promise<string>}[] = [];
     for (let name in stats) {
@@ -170,6 +177,7 @@ export class DirViewComponent implements OnInit, OnDestroy {
   @Input() public dir: string = '/';
   @Input() public collapse$: Observable<string>;
   @Input() public repo: Repository;
+  @Input() public allowEdits = true;
   @Output() public readonly fileSelected$: Observable<string>
     = this._fileSelected$;
   @Output() public readonly toggled$: Observable<boolean>
@@ -216,7 +224,7 @@ export class DirViewComponent implements OnInit, OnDestroy {
 
   private async refresh(): Promise<void> {
     if (await isdir(this.dir)) {
-      this.tree$.next(await DirInfo.from(this.repo, this.dir));
+      this.tree$.next(await DirInfo.from(this.dir, this.repo));
     }
     else {
       console.debug(`DirViewComponent.refresh: '${this.dir}' is not a directory`);

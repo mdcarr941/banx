@@ -24,6 +24,7 @@ import { UploadProblemsComponent } from './upload-problems/upload-problems.compo
 import { AuthorProblemsComponent } from './author-problems/author-problems.component';
 import { CourseComponent } from './course/course.component';
 import { DirViewComponent } from './dir-view/dir-view.component';
+import { FileBrowserComponent } from './file-browser/file-browser.component';
 
 const routes: Routes = [
   { path: '', redirectTo: '/problemquery', pathMatch: 'full'},
@@ -56,7 +57,8 @@ const routes: Routes = [
     UploadProblemsComponent,
     AuthorProblemsComponent,
     CourseComponent,
-    DirViewComponent
+    DirViewComponent,
+    FileBrowserComponent
   ],
   imports: [
     RouterModule.forRoot(routes),

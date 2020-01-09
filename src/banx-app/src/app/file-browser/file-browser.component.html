@@ -1,0 +1,22 @@
+<app-modal [title]="'File Browser'"
+  [show$]="show$"
+  [hide$]="_hide$">
+  <app-dir-view [dir]="'/'"
+    [allowEdits]="false"
+    [collapse$]="_hide$"
+    (fileSelected$)="selectFile($event)"
+    body>
+  </app-dir-view>
+  <ng-container footer>
+    <span class="font-weight-bold">File: </span>
+    <span *ngIf="selectedFile; else noFile">
+      {{selectedFile}}
+    </span>
+    <ng-template #noFile>
+      <span>(No file selected)</span>
+    </ng-template>
+    <button class="btn btn-primary" (click)="select()">
+      Select
+    </button>
+  </ng-container>
+</app-modal>

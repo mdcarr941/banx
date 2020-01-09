@@ -72,15 +72,12 @@
 <app-modal [title]="'Add to File'"
   [show$]="showAddToFileModal$"
   [hide$]="hideAddToFileModal$">
-  <div class="container-fluid" body>
-    <div class="row">
-      <div class="col-3">
-        <label>File Path:</label>
-      </div>
-      <div class="col-9">
-        <input type="text" [(ngModel)]="filePath" />
-      </div>
-    </div>
+  <div body>
+    <label class="pad-right">File Path: </label>
+    <input type="text" [(ngModel)]="selectedFile" />
+    <button class="btn btn-link" (click)="showFileBrowser$.next()">
+      Browse
+    </button>
   </div>
   <ng-container footer>
     <button class="btn btn-primary" (click)="addToFile()">
@@ -88,3 +85,8 @@
     </button>
   </ng-container>
 </app-modal>
+
+<app-file-browser [show$]="showFileBrowser$"
+  [hide$]="hideFileBrowser$"
+  (fileSelected$)="selectFile($event)">
+</app-file-browser>

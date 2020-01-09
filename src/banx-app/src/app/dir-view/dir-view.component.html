@@ -4,7 +4,10 @@
     <button class="btn btn-link btn-slim" (click)="_toggle$.next()">
       {{basename(dir)}}
     </button>
-    <div class="d-inline" [class.invisible]="collapsed" afterItemName>
+    <div *ngIf="allowEdits"
+      class="d-inline"
+      [class.invisible]="collapsed"
+      afterItemName>
       <button class="btn btn-link btn-slim" (click)="newFile()"
         data-toggle="tooltip" title="New File">
         +<img src="public/open-iconic/svg/file.svg">
@@ -28,6 +31,7 @@
       [collapse$]="collapse$"
       [dir]="fullPath(subdir)"
       [repo]="repo"
+      [allowEdits]="allowEdits"
       (fileSelected$)="_fileSelected$.next($event)"
       (dirRenamed$)="subRenamed($event)"
       (dirDeleted$)="subDeleted($event)">

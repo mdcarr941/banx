@@ -29,9 +29,11 @@ export class ProblemComponent implements OnInit {
   });
   private readonly showAddToFileModal$ = new EventEmitter<void>();
   private readonly hideAddToFileModal$ = new EventEmitter<void>();
+  private readonly showFileBrowser$ = new EventEmitter<void>();
+  private readonly hideFileBrowser$ = new EventEmitter<void>();
 
   // The path to the file that this problem should be appended to. 
-  private filePath: string;
+  private selectedFile: string;
 
   constructor(
     private problemsService: ProblemsService,
@@ -132,13 +134,19 @@ export class ProblemComponent implements OnInit {
 
   private async addToFile(): Promise<void> {
     this.hideAddToFileModal$.next();
+    const selectedFile = this.selectedFile;
+    this.selectedFile = null;
     try {
-      await echo(this.filePath, '\n\n' + this.problem.toString());
-      this.notifications.showSuccess(`Added problem to '${this.filePath}'.`);
+      await echo(selectedFile, '\n\n' + this.problem.toString());
+      this.notifications.showSuccess(`Added problem to '${selectedFile}'.`);
     }
     catch (err) {
-      this.notifications.showError(`Failed to add problem to '${this.filePath}'!`);
+      this.notifications.showError(`Failed to add problem to '${selectedFile}'!`);
       console.error(err);
     }
+  }
+
+  private selectFile(path: string): void {
+    this.selectedFile = path;
   }
 }

@@ -1,3 +1,7 @@
 .customMonacoEditor {
     height: 30em;
 }
+
+.pad-right {
+    padding-right: 1em;
+}
