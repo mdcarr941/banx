@@ -2,7 +2,7 @@ import { Component, EventEmitter, OnInit, OnDestroy } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { takeUntil, filter } from 'rxjs/operators';
 
-import { RepoService, Repository, cat, lsStats, GitStatus, mv } from '../repo.service';
+import { RepoService, Repository, cat, lsStats, GitStatus, mv, CommitConflict } from '../repo.service';
 import { NotificationService } from '../notification.service';
 import { dirname, basename } from '../../../../lib/common';
 import { DirRenamed, DirDeleted } from '../dir-view/dir-view.component';
@@ -16,6 +16,7 @@ export class CourseComponent implements OnInit, OnDestroy {
   private readonly destroyed$ = new EventEmitter<void>();
   private readonly repos$ = new BehaviorSubject<Repository[]>(null);
   private readonly selectedRepo$ = new BehaviorSubject<Repository>(null);
+  private readonly repoSelected$ = new EventEmitter<void>();
   private readonly selectedFile$ = new BehaviorSubject<string>(null);
   private readonly editorOptions = Object.freeze({
     theme: 'vs-dark',
@@ -58,7 +59,41 @@ export class CourseComponent implements OnInit, OnDestroy {
     // Whenever a new repository is selected the selected file
     // should be cleared.
     this.selectedRepo$.pipe(takeUntil(this.destroyed$))
-      .subscribe(() => this.selectedFile$.next(null));
+    .subscribe(() => this.selectedFile$.next(null));
+
+    // We require an event emitter to fire every time a new repo
+    // is selected so the previous repository refresh handler can
+    // be properly unsubscribed (see repo.refresh$ in the subscription below).
+    this.selectedRepo$.pipe(
+      takeUntil(this.destroyed$),
+      filter(repo => !!repo)
+    )
+    .subscribe(() => this.repoSelected$.next());
+
+    this.selectedRepo$.pipe(
+      takeUntil(this.destroyed$),
+      filter(repo => !!repo)
+    )
+    .subscribe(async repo => {
+      this.notification.showLoading(`Fetching updates for ${repo.name}...`);
+      try {
+        await this.repoService.fetch(repo);
+      }
+      catch (err) {
+        this.notification.showError(`Failed to get updates for ${repo.name}!`);
+        console.error(err);
+        return;
+      }
+      this.notification.showSuccess(`Finished fetching updates for ${repo.name}.`);
+
+      repo.refresh$.pipe(takeUntil(this.repoSelected$))
+      .subscribe(async () => {
+        const selectedFile = this.selectedFile$.value;
+        if (selectedFile) {
+          this.editorText = await cat(selectedFile);
+        }
+      });
+    });
 
     this.refreshRepos();
   }
@@ -87,18 +122,18 @@ export class CourseComponent implements OnInit, OnDestroy {
     }
   }
 
-  private async pull(): Promise<void> {
+  private async checkout(): Promise<void> {
     const repo = this.selectedRepo$.value;
-    this.notification.showLoading(`Updating ${repo.name} from the server...`);
+    this.notification.showLoading(`Checking out the latest version of ${repo.name}...`);
     try {
-      await this.repoService.pull(repo);
+      await this.repoService.checkout(repo);
     }
     catch (err) {
-      this.notification.showError(`Failed to update ${repo.name}!`);
+      this.notification.showError(`Failed to checkout ${repo.name}!`);
       console.error(err);
       return;
     }
-    this.notification.showSuccess(`Finished updating ${repo.name}`);
+    this.notification.showSuccess(`Finished checking out ${repo.name}.`);
   }
 
   private async commit(): Promise<void> {
@@ -107,9 +142,15 @@ export class CourseComponent implements OnInit, OnDestroy {
       await this.repoService.commit(this.selectedRepo$.value);
     }
     catch (err) {
-      this.notification.showError(`Failed to save ${this.selectedRepo$.value.name}!`);
-      console.error(err);
-      return;
+      if (err.name === CommitConflict.name) {
+        this.notification.showError(err.message);
+        return;
+      }
+      else {
+        this.notification.showError(`Failed to save ${this.selectedRepo$.value.name}!`);
+        console.error(err);
+        return;
+      }
     }
     this.notification.showSuccess(`Finished saving ${this.selectedRepo$.value.name}.`);
   }

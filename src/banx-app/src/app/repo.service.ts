@@ -12,7 +12,13 @@ import {
   add as gitAdd,
   status as gitStatus,
   remove as gitRemove,
-  PushResponse
+  fetch as gitFetch,
+  merge as gitMerge,
+  checkout as gitCheckout,
+  expandRef,
+  PushResponse,
+  FetchResponse,
+  resolveRef
 } from 'isomorphic-git';
 import { RemoteUserService } from './remote-user.service';
 
@@ -213,24 +219,35 @@ export class Repository implements IRepository {
     }
   }
 
+  public async isModified(): Promise<boolean> {
+    const local = await resolveRef({dir: this.dir, ref: 'master'});
+    const remote = await resolveRef({dir: this.dir, ref: 'origin/master'});
+    return local !== remote;
+  }
+
+  public async setStatusIfModified(): Promise<void> {
+    if (await this.isModified()) {
+      this._gitStatus = GitStatus.modified;
+    }
+  }
+
+  public async setStatusIfUnmodified(): Promise<void> {
+    if (!(await this.isModified())) {
+      this._gitStatus = GitStatus.unchanged;
+    }
+  }
+
   public static async addLocalRepos(repos: Repository[]): Promise<Repository[]> {
     const stats = await lsStats('/');
-    //const localRepos: Repository[] = [];
     for (let name in stats) {
       if (stats[name].isDirectory()) {
-        const repo = new Repository({name});
         if (repos.findIndex(r => r.name === name) < 0) {
+          const repo = new Repository({name});
           repo._gitStatus = GitStatus.deleted;
           repos.push(repo);
         }
-        //localRepos.push(repo);
       }
     }
-    // TODO: Merge repos and localRepos in sub-quadratic time and assign them
-    //       the correct status as you do so.
-    // const byName = (left, right) => left.name <= right.name ? -1 : 1;
-    // repos.sort(byName);
-    // localRepos.sort(byName);
     return repos;
   }
 
@@ -398,6 +415,13 @@ export class PushError extends Error {
   }
 }
 
+export class CommitConflict extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = CommitConflict.name;
+  }
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -450,13 +474,10 @@ export class RepoService extends BaseService {
     });
   }
 
-  public async pull(repo: Repository): Promise<void> {
+  public async fetch(repo: Repository): Promise<void> {
     if (await exists(repo.dir)) {
       try {
-        await gitPull({
-          dir: repo.dir,
-          ref: 'master'
-        });
+        await gitFetch({dir: repo.dir});
       }
       catch (err) {
         if (err.name === 'ExpandRefError') {
@@ -469,7 +490,7 @@ export class RepoService extends BaseService {
           throw err;
         }
       }
-      await RepoService.syncIndexAndWorkingTree(repo);
+      repo.setStatusIfModified();
     }
     else {
       await repo.mkdir();
@@ -484,6 +505,13 @@ export class RepoService extends BaseService {
   }
 
   public async commit(repo: Repository, message?: string): Promise<void> {
+    await this.fetch(repo);
+    // TODO: Properly handle commit conflicts.
+    if (repo.gitStatus !== GitStatus.unchanged) {
+      throw new CommitConflict(
+        `The repository ${repo.name} has been modified. You must checkout these modification before commiting your changes.`
+      );
+    }
     await RepoService.syncIndexAndWorkingTree(repo);
     await gitCommit({
       dir: repo.dir,
@@ -503,6 +531,20 @@ export class RepoService extends BaseService {
     else {
       throw new PushError('The push response did not indicate success.', response);
     }
+  }
+
+  public async checkout(repo: Repository): Promise<void> {
+    await gitMerge({
+      dir: repo.dir,
+      theirs: 'origin/master',
+      ours: 'master'
+    });
+    await gitCheckout({
+      dir: repo.dir,
+      ref: 'master'
+    });
+    await repo.setStatusIfUnmodified();
+    repo.refresh$.next();
   }
 
   public async delete(repo: Repository): Promise<boolean> {
