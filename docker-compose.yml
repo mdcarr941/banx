@@ -9,7 +9,7 @@ services:
   mongo:
     image: mongo:4.1.11-bionic
     ports:
-      - "127.0.0.1:27017:27017"
+      - "127.0.0.1:27018:27017"
     networks:
       - webnet
     volumes:
@@ -18,7 +18,7 @@ services:
       placement:
         constraints: [node.role == manager]
   web:
-    image: mdcarr941/banx:latest
+    image: docker.carrfound.org/matt/banx:latest
     ports:
       - "127.0.0.1:3001:3001"
     networks:
@@ -30,5 +30,5 @@ services:
       restart_policy:
         condition: on-failure
     environment:
-       MONGO_URI: "mongodb://mongo:27017/banx"
+       MONGO_URI: "mongodb://mongo:27018/banx"
        BANX_PREFIX: "/banx"
