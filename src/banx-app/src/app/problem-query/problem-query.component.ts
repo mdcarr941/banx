@@ -18,8 +18,8 @@ interface QueryNode {
   styleUrls: ['./problem-query.component.css']
 })
 export class ProblemQueryComponent implements OnInit {
-  private readonly problems$ = new BehaviorSubject<Problem[]>(null);
-  private readonly topics$ = new EventEmitter<string[]>();
+  public readonly problems$ = new BehaviorSubject<Problem[]>(null);
+  public readonly topics$ = new EventEmitter<string[]>();
   private subtopicCache: {[topic: string]: Observable<string[]>} = {};
   private tagCache: {[topic: string]: {[subtopic: string]: Observable<KeyValPair[]>} } = {};
   // This class uses queryRoot to keep track of
@@ -72,7 +72,7 @@ export class ProblemQueryComponent implements OnInit {
   }
 
   // Disable the query button if there is no (topic, subtopic) pair selected.
-  private queryButtonDisabled(): boolean {
+  public queryButtonDisabled(): boolean {
     for (let topic in this.queryRoot) {
       if (!this.queryRoot[topic].selected) continue;
       const topicEntries = this.queryRoot[topic].entries;
@@ -107,7 +107,7 @@ export class ProblemQueryComponent implements OnInit {
     return output;
   }
 
-  private getProblems(): void {
+  public getProblems(): void {
     this.notificationService.showLoading('Getting problems.');
     this.problems.findKeyValue(this.compileQuery())
       .subscribe(problems => {
@@ -119,7 +119,7 @@ export class ProblemQueryComponent implements OnInit {
       });
   }
 
-  private removeProblem(problem: Problem) {
+  public removeProblem(problem: Problem) {
     this.problems$.next(this.problems$.value.filter(p => p.idStr !== problem.idStr));
     this.problems.getTopics().subscribe(topics => {
       this.queryRoot = {};

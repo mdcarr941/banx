@@ -16,6 +16,6 @@ import { CollapsibleComponent } from './collapsible.component';
     </app-collapsible>`
 })
 export class SimpleCollapsibleComponent extends CollapsibleComponent {
-    protected readonly _toggle$ = new EventEmitter<void>();
+    public readonly _toggle$ = new EventEmitter<void>();
     @Input() public itemName: string;
 }

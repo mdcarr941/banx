@@ -10,9 +10,9 @@ import { takeUntil } from 'rxjs/operators';
 export class FileBrowserComponent implements OnInit, OnDestroy {
   private readonly destroyed$ = new EventEmitter<void>();
   private readonly _fileSelected$ = new EventEmitter<string>();
-  private readonly _hide$ = new EventEmitter<void>();
+  public readonly _hide$ = new EventEmitter<void>();
 
-  private selectedFile: string;
+  public selectedFile: string;
 
   @Input() public readonly show$: Observable<void>;
   @Input() public readonly hide$: Observable<void>;
@@ -30,11 +30,11 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
     this.destroyed$.next();
   }
 
-  private selectFile(path: string): void {
+  public selectFile(path: string): void {
     this.selectedFile = path;
   }
 
-  private select(): void {
+  public select(): void {
     this._hide$.next();
     this._fileSelected$.next(this.selectedFile);
   }

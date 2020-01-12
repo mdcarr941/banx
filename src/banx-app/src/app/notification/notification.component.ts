@@ -15,7 +15,8 @@ export class NotificationComponent implements OnInit, OnDestroy {
   private static readonly purgeNum = NotificationComponent.maxNotifications / 4;
   private static readonly NotificationTimeout = 3000;
 
-  private readonly notifications$ = new BehaviorSubject<Notification[]>([]);
+  public readonly notifications$ = new BehaviorSubject<Notification[]>([]);
+  public readonly displayedNotification$ = new EventEmitter<Notification>();
 
   constructor(private notificationService: NotificationService) { }
 
@@ -25,7 +26,7 @@ export class NotificationComponent implements OnInit, OnDestroy {
 
   @ViewChild('notificationsModal') notificationsModal: ModalComponent;
 
-  private showModal(): void {
+  public showModal(): void {
     this.notificationsModal.show();
   }
 
@@ -49,8 +50,6 @@ export class NotificationComponent implements OnInit, OnDestroy {
     }
     this.notifications$.next(notifications);
   }
-
-  private displayedNotification$ = new EventEmitter<Notification>();
 
   ngOnInit() {
     $('.notification-icon').hide();

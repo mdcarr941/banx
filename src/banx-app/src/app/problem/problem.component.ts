@@ -27,13 +27,14 @@ export class ProblemComponent implements OnInit {
     language: 'LaTeX',
     minimap: { enabled: false }
   });
-  private readonly showAddToFileModal$ = new EventEmitter<void>();
-  private readonly hideAddToFileModal$ = new EventEmitter<void>();
-  private readonly showFileBrowser$ = new EventEmitter<void>();
-  private readonly hideFileBrowser$ = new EventEmitter<void>();
+  public readonly showAddToFileModal$ = new EventEmitter<void>();
+  public readonly hideAddToFileModal$ = new EventEmitter<void>();
+  public readonly showFileBrowser$ = new EventEmitter<void>();
+  public readonly hideFileBrowser$ = new EventEmitter<void>();
 
   // The path to the file that this problem should be appended to. 
-  private selectedFile: string;
+  public selectedFile: string;
+  public problem$: BehaviorSubject<Problem>;
 
   constructor(
     private problemsService: ProblemsService,
@@ -48,7 +49,6 @@ export class ProblemComponent implements OnInit {
     });
   }
 
-  private problem$: BehaviorSubject<Problem>;
 
   ngOnInit() {
     this.problem$ = new BehaviorSubject(this.problem);
@@ -116,7 +116,7 @@ export class ProblemComponent implements OnInit {
     this.confirmModal.show();
   }
 
-  private deleteProblem() {
+  public deleteProblem() {
     const idStr = this.problem$.value.idStr;
     this.notifications.showLoading(`Deleting problem with id ${idStr}`);
     this.problemsService.delete(idStr)
@@ -132,7 +132,7 @@ export class ProblemComponent implements OnInit {
     );
   }
 
-  private async addToFile(): Promise<void> {
+  public async addToFile(): Promise<void> {
     this.hideAddToFileModal$.next();
     const selectedFile = this.selectedFile;
     this.selectedFile = null;
@@ -146,7 +146,7 @@ export class ProblemComponent implements OnInit {
     }
   }
 
-  private selectFile(path: string): void {
+  public selectFile(path: string): void {
     this.selectedFile = path;
   }
 }

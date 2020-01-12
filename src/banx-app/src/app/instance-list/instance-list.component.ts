@@ -11,16 +11,16 @@ import { NotificationService } from '../notification.service';
 })
 export class InstanceListComponent {
   constructor(
-    private api: ProblemsService,
-    private instanceService: InstanceService,
-    private notifications: NotificationService
+    private readonly api: ProblemsService,
+    public readonly  instanceService: InstanceService,
+    private readonly notifications: NotificationService
   ) {}
 
-  private clearSelection() {
+  public clearSelection() {
     this.instanceService.instances$.next([]);
   }
 
-  private submit() {
+  public submit() {
     if (this.instanceService.instances$.value.length <= 0) {
       alert('Select at least one instance before submitting.');
       return;
@@ -33,12 +33,12 @@ export class InstanceListComponent {
     );
   }
 
-  private onSubmissionSuccess(response: any) {
+  public onSubmissionSuccess(response: any) {
     this.notifications.showSuccess('Problems submitted.');
     this.clearSelection();
   }
 
-  private onSubmissionFailure(err: HttpErrorResponse) {
+  public onSubmissionFailure(err: HttpErrorResponse) {
     this.notifications.showError('Submission failed.');
     console.error(err);
   }

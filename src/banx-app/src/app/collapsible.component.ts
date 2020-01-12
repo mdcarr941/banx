@@ -13,8 +13,8 @@ import { takeUntil } from 'rxjs/operators';
     </li>`  
 })
 export class CollapsibleComponent implements OnInit, OnDestroy {
-  protected collapsed: boolean = true;
-  protected readonly _toggled = new EventEmitter<boolean>();
+  public collapsed: boolean = true;
+  public readonly _toggled = new EventEmitter<boolean>();
   protected readonly destroyed$ = new EventEmitter<void>();
 
   @Input() toggle$: Observable<void>;

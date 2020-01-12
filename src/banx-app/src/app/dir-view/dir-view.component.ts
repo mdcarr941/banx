@@ -161,18 +161,18 @@ export class DirDeleted extends PromiseObject {
 })
 export class DirViewComponent implements OnInit, OnDestroy {
   private readonly destroyed$ = new EventEmitter<void>();
-  private readonly _toggle$ = new EventEmitter<void>();
-  private readonly _toggled$ = new EventEmitter<boolean>();
+  public readonly _toggle$ = new EventEmitter<void>();
+  public readonly _toggled$ = new EventEmitter<boolean>();
   private readonly _fileSelected$ = new EventEmitter<string>();
-  private readonly tree$ = new BehaviorSubject<DirInfo>(null);
-  private readonly _collapse$ = new EventEmitter<void>();
-  private readonly showRenameModal$ = new EventEmitter<void>();
-  private readonly hideRenameModal$ = new EventEmitter<void>();
+  public readonly tree$ = new BehaviorSubject<DirInfo>(null);
+  public readonly _collapse$ = new EventEmitter<void>();
+  public readonly showRenameModal$ = new EventEmitter<void>();
+  public readonly hideRenameModal$ = new EventEmitter<void>();
   private readonly _dirRenamed$ = new EventEmitter<DirRenamed>();
   private readonly _dirDeleted$ = new EventEmitter<DirDeleted>();
 
   private collapsed: boolean = true;
-  private newName: string;
+  public newName: string;
 
   @Input() public dir: string = '/';
   @Input() public collapse$: Observable<string>;
@@ -265,11 +265,11 @@ export class DirViewComponent implements OnInit, OnDestroy {
     this._fileSelected$.next(this.fullPath(filename));
   }
 
-  private basename(path: string): string {
+  public basename(path: string): string {
     return basename(path);
   }
 
-  private async renameDir(): Promise<void> {
+  public async renameDir(): Promise<void> {
     this.hideRenameModal$.next();
     const event = new DirRenamed(this.dir, this.newName);
     this._dirRenamed$.next(event);

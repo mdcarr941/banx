@@ -15,7 +15,7 @@ export class TagQueryComponent {
   @ViewChild('tagsInput') private tagsInput;
   @ViewChild('queryComponent') queryComponent: QueryComponent;
 
-  private problems$ = new EventEmitter<Problem[]>();
+  public problems$ = new EventEmitter<Problem[]>();
 
   private static readonly whiteSpaceRgx = /[\s]+/;
 
@@ -24,7 +24,7 @@ export class TagQueryComponent {
     private notifcations: NotificationService
   ) { }
 
-  private searchTags() {
+  public searchTags() {
     const queryInput: string = this.tagsInput.nativeElement.value;
     if (queryInput.length == 0) return;
 
@@ -40,7 +40,7 @@ export class TagQueryComponent {
       });
   }
 
-  private onKeyUp(event: any) {
+  public onKeyUp(event: any) {
     if (event.keyCode === enterKeyCode) this.searchTags();
   }
 }

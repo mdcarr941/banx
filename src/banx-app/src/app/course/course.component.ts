@@ -14,24 +14,24 @@ import { DirRenamed, DirDeleted } from '../dir-view/dir-view.component';
 })
 export class CourseComponent implements OnInit, OnDestroy {
   private readonly destroyed$ = new EventEmitter<void>();
-  private readonly repos$ = new BehaviorSubject<Repository[]>(null);
-  private readonly selectedRepo$ = new BehaviorSubject<Repository>(null);
+  public readonly repos$ = new BehaviorSubject<Repository[]>(null);
+  public readonly selectedRepo$ = new BehaviorSubject<Repository>(null);
   private readonly repoSelected$ = new EventEmitter<void>();
-  private readonly selectedFile$ = new BehaviorSubject<string>(null);
+  public readonly selectedFile$ = new BehaviorSubject<string>(null);
   private readonly editorOptions = Object.freeze({
     theme: 'vs-dark',
     language: 'latex'
   });
   private readonly collapseAllExcept$ = new EventEmitter<string>();
-  private readonly showRenameModal$ = new EventEmitter<void>();
-  private readonly hideRenameModal$ = new EventEmitter<void>();
+  public readonly showRenameModal$ = new EventEmitter<void>();
+  public readonly hideRenameModal$ = new EventEmitter<void>();
   private readonly serverRepos$ = new BehaviorSubject<Repository[]>(null);
-  private readonly showNewCourseModal$ = new EventEmitter<void>();
-  private readonly hideNewCourseModal$ = new EventEmitter<void>();
+  public readonly showNewCourseModal$ = new EventEmitter<void>();
+  public readonly hideNewCourseModal$ = new EventEmitter<void>();
 
   private editorText: string;
-  private newName: string;
-  private newCourseName: string;
+  public newName: string;
+  public newCourseName: string;
 
   constructor(
     private readonly repoService: RepoService,
@@ -174,7 +174,7 @@ export class CourseComponent implements OnInit, OnDestroy {
     this.showRenameModal$.next();
   }
 
-  private async renameFile(): Promise<void> {
+  public async renameFile(): Promise<void> {
     this.hideRenameModal$.next();
     const oldPath = this.selectedFile$.value
     const newPath = dirname(oldPath) + '/' + this.newName;
@@ -269,7 +269,7 @@ export class CourseComponent implements OnInit, OnDestroy {
     }
   }
 
-  private newCourse(): void {
+  public newCourse(): void {
     this.hideNewCourseModal$.next();
     const name = this.newCourseName;
     this.newCourseName = null;

@@ -11,13 +11,13 @@ import { problemStringParser } from '../../../../lib/common';
 })
 export class UploadProblemsComponent {
   constructor(
-    private problemsService: ProblemsService,
-    private notificationService: NotificationService
+    private readonly problemsService: ProblemsService,
+    private readonly notificationService: NotificationService
   ) { }
 
   @ViewChild('fileInput') private fileInput;
 
-  private uploadFiles() {
+  public uploadFiles() {
     const files: FileList = (<any>this.fileInput.nativeElement).files;
     for (let k = 0, numFiles = files.length; k < numFiles; ++k) {
       const reader = new FileReader();

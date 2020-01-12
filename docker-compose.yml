@@ -23,6 +23,10 @@ services:
       - "127.0.0.1:3001:3001"
     networks:
       - webnet
+    volumes:
+      - type: bind
+        source: "/home/banx/repositories"
+        target: "/repositories"
     depends_on:
       - mongo
     deploy:
@@ -30,5 +34,6 @@ services:
       restart_policy:
         condition: on-failure
     environment:
-       MONGO_URI: "mongodb://mongo:27018/banx"
+       MONGO_URI: "mongodb://mongo:27017/banx"
        BANX_PREFIX: "/banx"
+       REPO_DIR: "/repositories"

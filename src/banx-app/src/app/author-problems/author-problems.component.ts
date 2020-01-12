@@ -11,9 +11,11 @@ import { parseTagString } from '../../../../lib/common';
   styleUrls: ['./author-problems.component.css']
 })
 export class AuthorProblemsComponent {
-  private problem = new Problem();
+  public problem = new Problem();
 
-  private readonly editorOptions = Object.freeze({
+  public tagsString: string = "";
+
+  public readonly editorOptions = Object.freeze({
     language: 'LaTeX',
     minimap: { enabled: false }
   });
@@ -23,9 +25,7 @@ export class AuthorProblemsComponent {
     private notificationService: NotificationService
   ) { }
 
-  private tagsString: string = "";
-
-  private submitProblem() {
+  public submitProblem() {
     if (!this.problem.content || this.problem.content.length <= 0) {
       this.notificationService.showError('Please add content to the problem before submitting it.');
       return;

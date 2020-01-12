@@ -11,14 +11,14 @@ import { NotificationService } from '../notification.service';
   styleUrls: ['./sage-shell.component.css']
 })
 export class SageShellComponent {
-  private code: string;
+  public code: string;
 
   constructor(
     private sageShellService: SageShellService,
     private notifications: NotificationService
   ) { }
 
-  private readonly editorOptions = Object.freeze({
+  public readonly editorOptions = Object.freeze({
     theme: 'vs',
     language: 'python',
   });
@@ -42,7 +42,7 @@ export class SageShellComponent {
     }
   }
 
-  private execute() {
+  public execute() {
     if (0 == this.code.length) return;
 
     this.notifications.showLoading('Executing your code.');

@@ -4,7 +4,8 @@ WORKDIR /banx
 EXPOSE 3001
 ENV PORT=3001 SAGE_LOCAL="/usr/share/sagemath" SAGE_ROOT=""
 COPY ./www /banx/www
-COPY ./bin /banx/bin
+COPY ./bin/*.js /banx/bin/
+COPY ./bin/routes/*.js /banx/bin/routes/
 COPY ./node_modules /banx/node_modules
 COPY ./public /banx/public
 COPY ./views /banx/views

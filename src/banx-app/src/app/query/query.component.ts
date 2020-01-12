@@ -24,7 +24,7 @@ export class QueryComponent implements OnInit, OnDestroy {
   private readonly destroyed$ = new EventEmitter<null>();
 
   constructor(
-    private instanceService: InstanceService
+    public readonly instanceService: InstanceService
   ) { }
 
   ngOnInit() {

@@ -30,9 +30,9 @@ useMathJax(mathJax => {
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  private remoteUser: BanxUser;
+  public remoteUser: BanxUser;
 
-  constructor(private remoteUserService: RemoteUserService) {
+  constructor(private readonly remoteUserService: RemoteUserService) {
     this.remoteUser = remoteUserService.remoteUser;
   }
 }
