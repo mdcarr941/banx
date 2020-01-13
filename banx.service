@@ -6,3 +6,7 @@ After=network.target
 Type=simple
 ExecStart=/bin/docker-compose up
 WorkingDirectory=/home/banx/banx
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
