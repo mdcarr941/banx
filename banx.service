@@ -1,0 +1,8 @@
+[Unit]
+Description=banx web application
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/bin/docker-compose up
+WorkingDirectory=/home/banx/banx
