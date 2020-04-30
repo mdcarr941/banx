@@ -29,7 +29,7 @@
     "angular-monaco-editor": "^1.10.0",
     "core-js": "^2.6.10",
     "isomorphic-git": "^0.72.0",
-    "jquery": "^3.4.1",
+    "jquery": "^3.5.0",
     "path": "^0.12.7",
     "rxjs": "~6.3.3",
     "rxjs-compat": "^6.5.3",
