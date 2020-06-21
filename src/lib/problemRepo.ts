@@ -20,6 +20,10 @@ export class ProblemRepo {
         .then(p => p ? new Problem(p) : null);
     }
 
+    public getProblemByStr(idStr: string) {
+        return this.getProblem(ObjectID.createFromHexString(idStr));
+    }
+
     public upsertProblem(problem: Problem): Promise<Problem> {
         return this.collection
         .findOneAndReplace({_id: problem._id}, problem, {upsert: true, returnOriginal: false})
@@ -146,6 +150,21 @@ export class ProblemRepo {
             {key: 'Topic', value: topic},
             {key: 'Sub', value: subtopic}
         ]));
+    }
+
+    public findDuplicates(): Promise<Array<[Problem, Problem[]]>> {
+        return this.collection.find()
+        .map(
+            iprob => this.collection
+            .find({
+                _id: {$ne: iprob._id},
+                content: iprob.content
+            })
+            .toArray()
+            .then(dups => <[Problem, Problem[]]>[new Problem(iprob), dups.map(x => new Problem(x))])
+        )
+        .toArray()
+        .then(promises => Promise.all(promises))
     }
 }
 

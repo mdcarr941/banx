@@ -4,6 +4,7 @@ import * as program from 'commander';
 import * as readline from 'readline';
 import * as os from 'os';
 const repl = require('repl');
+import * as child_process from 'child_process';
 
 import { getGlobalProblemRepo } from './problemRepo';
 import { UnknownUserError, getGlobalUserRepo } from './userRepo';
@@ -12,8 +13,15 @@ import { Problem, BanxUser, UserRole, UserRoleInverse } from './schema';
 import { makePairs, printError } from './common';
 import { GlobalSageServer } from './sageServer';
 import { getGlobalRepoRepo, Repository } from './repoRepo';
+import config from './config';
 
 const bufferLimit = 1000;
+
+async function getProblem(idStr: string): Promise<void> {
+    const repo = await getGlobalProblemRepo();
+    const prob = await repo.getProblemByStr(idStr);
+    console.log(prob.toString());
+}
 
 async function insertProblem(files: string[]): Promise<void> {
     const repo = await getGlobalProblemRepo();
@@ -266,6 +274,41 @@ async function deleteRepo(name: string): Promise<void> {
     });
 }
 
+async function findDuplicates(): Promise<void> {
+    const problemRepo = await getGlobalProblemRepo();
+    let pairs;
+    try {
+        pairs = await problemRepo.findDuplicates();
+    }
+    catch (err) {
+        console.log('An error occured while finding duplicates.');
+        console.error(err);
+    }
+    for (let pair of pairs) {
+        for (let dup of pair[1]) {
+            console.log(pair[0]._id + ' is duplicated by ' + dup._id);
+        }
+    }
+}
+
+/**
+ * Backup the entire banx database to an archive file.
+ * @param archiveName The name of the archive file where the database will be saved.
+ */
+async function backup(archiveName: string): Promise<void> {
+    const sub = child_process.exec(
+        `mongodump --uri=${config.mongoUri} --archive=${archiveName}`
+    );
+    sub.stdout.pipe(process.stdout);
+    sub.stderr.pipe(process.stderr);
+    return new Promise((resolve, reject) => {
+        sub.on('exit', code => {
+            if (0 == code) resolve();
+            else reject(new Error(`mongodump exited with an abnormal status: ${code}`));
+        });
+    });
+}
+
 type IOptions = {[key: string]: any};
 
 interface IAction {
@@ -276,6 +319,11 @@ interface IAction {
 async function main(argv: string[]): Promise<void> {
     let action: IAction = { command: 'default', options: {} };
     program.version('0.0.1');
+    program.command('getProblem <idStr>')
+        .description('Print the problem with the given ID.')
+        .action((idStr: string) => {
+            action = { command: 'getProblem', options: {idStr: idStr} }
+        });
     program.command('find [tags...]')
         .description('Find all problems with each of the given tags.')
         .action((tags: string[]) => {
@@ -354,9 +402,22 @@ async function main(argv: string[]): Promise<void> {
         .action((name: string) => {
             action = { command: 'deleteRepo', options: {name: name} }
         });
+    program.command('findDuplicates')
+        .description('Find all of the problems in the database which have the same content, modulo whitespace.')
+        .action(() => {
+            action = { command: 'findDuplicates', options: {} }
+        });
+    program.command('backup <archiveName>')
+        .description('Backup the entire banx database to an archive file.')
+        .action((archiveName: string) => {
+            action = { command: 'backup', options: {archiveName: archiveName} }
+        })
     program.parse(argv);
 
     switch (action.command) {
+        case 'getProblem':
+            await getProblem(action.options.idStr);
+            break;
         case 'insert':
             await insertProblem(action.options.files);
             break;
@@ -401,6 +462,12 @@ async function main(argv: string[]): Promise<void> {
             break;
         case 'deleteRepo':
             await deleteRepo(action.options.name);
+            break;
+        case 'findDuplicates':
+            await findDuplicates();
+            break;
+        case 'backup':
+            await backup(action.options.archiveName);
             break;
         default:
             throw new Error('unknown command');
