@@ -197,7 +197,7 @@ export class Repository implements IRepository {
   public readonly serverDir: string;
   public readonly refresh$ = new EventEmitter<void>();
 
-  private _gitStatus: GitStatus;
+  private _gitStatus: GitStatus = GitStatus.unchanged;
   public get gitStatus(): GitStatus {
     return this._gitStatus;
   }
@@ -219,9 +219,20 @@ export class Repository implements IRepository {
     }
   }
 
+  private async tryResolveRef(ref: string): Promise<string> {
+    try {
+      return await resolveRef({dir: this.dir, ref})
+    }
+    catch (err) {
+      console.error(`An error occured while resolving ref '${ref}'.`);
+      console.error(err);
+      return null;
+    }
+  }
+
   public async isModified(): Promise<boolean> {
-    const local = await resolveRef({dir: this.dir, ref: 'master'});
-    const remote = await resolveRef({dir: this.dir, ref: 'origin/master'});
+    const local = await this.tryResolveRef('master');
+    const remote = await this.tryResolveRef('origin/master');
     return local !== remote;
   }
 

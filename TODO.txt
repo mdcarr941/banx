@@ -1,0 +1,11 @@
+Ability to copy courses 
+Bulk export from tag query
+Cut, Copy, Paste files and directories.
+Drag and drop files and directories.
+X Static and dynamic inclusions
+X Answer obfuscation using new command
+Remove duplicates maintenance script
+Problem counter to admin page
+X Ability to publish to different servers
+Banx username (what did I mean by this?)
+

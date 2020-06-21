@@ -91,7 +91,8 @@ export class SageServer {
     private listeners: Map<string, SageListener> = new Map();
 
     private spawnSub() {
-        this.sub = spawn('python2', [path.join(__dirname, this.serverPath)]);
+        //this.sub = spawn('python2', [path.join(__dirname, this.serverPath)]);
+        this.sub = spawn(path.join(__dirname, this.serverPath));
         process.on('exit', () => this.sub.kill());
 
         this.sub.on('error', err => console.error(`sageServer: error ${err}`));

@@ -10,7 +10,6 @@ src/public/popper.js
 src/public/mathjax
 src/public/monaco
 src/public/open-iconic
-build.sh
 npm-debug.log
 repositories/
 banx.clas.ufl.edu.conf

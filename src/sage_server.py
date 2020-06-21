@@ -1,11 +1,10 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 """
 This program loops over lines on stdin, parses them as JSON objects,
 then executes the code property of the resulting object.
 After excution is complete, it responds with the variables which were
 in scope when the code terminated, serialized as a JSON object.
 """
-from __future__ import print_function
 from sage.repl.preparse import preparse_file as sage_preparse_file
 import sage.all
 from multiprocessing import Process, Queue
@@ -14,7 +13,7 @@ import json
 import sys
 import fileinput
 import traceback
-import types
+#import types
 import signal
 
 Q_SIZE = 4096 # The number of lines in the message queue.
@@ -39,15 +38,13 @@ class JSONEncoderSaged(json.JSONEncoder):
         return super(JSONEncoderSaged, self).encode(self.filter(o))
 
     def is_basic_type(self, o):
-        return type(o) in [
-            types.StringType, types.UnicodeType, types.IntType, types.LongType,
-            types.FloatType, types.BooleanType, types.NoneType
-        ]
+        t = type(o)
+        return t is str or t is int or t is float or t is bool or t is None
     
     def filter(self, o):
-        if type(o) == types.ListType:
+        if type(o) is list:
             return self.filter_list(o)
-        elif type(o) == types.DictType:
+        elif type(o) is dict:
             return self.filter_dict(o)
         elif self.is_basic_type(o):
             return o
@@ -124,7 +121,7 @@ def filterBuiltins(base):
     rval = dict(base) # copy base
     builtins = rval['__builtins__']
     newBuiltins = {}
-    for key, value in builtins.iteritems():
+    for key in builtins:
         if not key in BLACKLISTED_BUILTINS:
             newBuiltins[key] = builtins[key]
     rval['__builtins__'] = newBuiltins
@@ -180,7 +177,7 @@ def unescape(s):
         try:
             chars.append(UNESCAPE_MAP[ s[index:index+2] ])
             index += 2
-        except KeyError, IndexError:
+        except (KeyError, IndexError):
             chars.append(s[index])
             index += 1
     return ''.join(chars)
