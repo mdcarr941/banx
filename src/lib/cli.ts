@@ -55,7 +55,24 @@ async function findProblem(tags: string[]) {
     console.log(`Found ${count} problem${count == 1 ? '' : 's'}.`);
 }
 
-async function deleteProblem(tags: string[]) {
+/**
+ * Ask a yes/no question on the console, returning a promise which resolves
+ * with true if the answer starts with y or Y and false otherwise.
+ * @param question The question to ask.
+ */
+function yesNoQuestion(question: string): Promise<boolean> {
+    const rl = readline.createInterface({
+        input: process.stdin, output: process.stdout
+    });
+    return new Promise(resolve => {
+        rl.question(question + ' (y/N) ', answer => {
+            rl.close();
+            resolve(answer.trim().toLocaleLowerCase().startsWith('y'));
+        });
+    });
+}
+
+async function deleteProblem(tags: string[]): Promise<void> {
     const repo = await getGlobalProblemRepo();
     const pairs = makePairs(tags);
     const problems: Problem[] = [];
@@ -68,24 +85,13 @@ async function deleteProblem(tags: string[]) {
         return;
     }
 
-    const rl = readline.createInterface({
-        input: process.stdin, output: process.stdout
-    });
-    return new Promise((resolve) => {
-        rl.question('Delete all of these problems? (y/N) ', answer => {
-            if (answer.trim().toLocaleLowerCase().startsWith('y')) {
-                console.log('Proceeding with delete.');
-                repo.deleteMany(problems.map(problem => problem._id)).then(() => {
-                    rl.close();
-                    resolve()
-                });
-            } else {
-                console.log('Aborting delete.');
-                rl.close();
-                resolve();
-            }
-        })
-    });
+    if (await yesNoQuestion('Delete all of these problems?')) {
+        console.log('Proceeding with delete.');
+        await repo.deleteMany(problems.map(problem => problem._id));
+    }
+    else {
+        console.log('Aborting delete.');
+    }
 }
 
 function sageShell(): Promise<void> {
@@ -251,27 +257,19 @@ async function listRepos(): Promise<void> {
 }
 
 async function deleteRepo(name: string): Promise<void> {
-    const repoRepo = await getGlobalRepoRepo();
-    const rl = readline.createInterface({
-        input: process.stdin, output: process.stdout
-    });
-    return new Promise((resolve) => {
-        rl.question(`Are you sure you want to delete '${name}'? (y/N) `, answer => {
-            if (answer.trim().toLocaleLowerCase().startsWith('y')) {
-                console.log('Proceeding with delete.');
-                repoRepo.del(name).then(success => {
-                    if (success) console.log('Delete completed successfully.')
-                    else console.log(`A course named '${name}' is not in the database.`)
-                    rl.close();
-                    resolve()
-                });
-            } else {
-                console.log('Aborting delete.');
-                rl.close();
-                resolve();
-            }
-        })
-    });
+    if (await yesNoQuestion(`Are you sure you want to delete '${name}'?`)) {
+        console.log('Proceeding with delete.');
+        const repoRepo = await getGlobalRepoRepo();
+        if (await repoRepo.del(name)) {
+            console.log('Delete completed successfully.');
+        }
+        else {
+            console.log(`A course named '${name}' is not in the database.`)
+        }
+    }
+    else {
+        console.log('Aborting delete.');
+    }
 }
 
 async function findDuplicates(): Promise<void> {
@@ -291,22 +289,50 @@ async function findDuplicates(): Promise<void> {
     }
 }
 
+async function deleteDuplicates(): Promise<void> {
+
+}
+
 /**
- * Backup the entire banx database to an archive file.
- * @param archiveName The name of the archive file where the database will be saved.
+ * Create a subprocess running a shell and execute `command` in it. If the subprocess
+ * exits with a non-zero code then `errHandler` is called with this value.
+ * @param command The shell command to execute in the subprocess.
+ * @param errHandler Called if the subprocess exits with a non-zero exit code.
  */
-async function backup(archiveName: string): Promise<void> {
-    const sub = child_process.exec(
-        `mongodump --uri=${config.mongoUri} --archive=${archiveName}`
-    );
+function execCommand(command: string, errHandler: (exitCode: number) => Error): Promise<void> {
+    const sub = child_process.exec(command);
     sub.stdout.pipe(process.stdout);
     sub.stderr.pipe(process.stderr);
     return new Promise((resolve, reject) => {
-        sub.on('exit', code => {
-            if (0 == code) resolve();
-            else reject(new Error(`mongodump exited with an abnormal status: ${code}`));
+        sub.on('exit', exitCode => {
+            if (0 == exitCode) resolve();
+            else reject(errHandler(exitCode));
         });
     });
+}
+
+/**
+ * Backup the entire banx database to an archive file. Note that you can change
+ * the database which is backed up by setting the MONGO_URI environment variable.
+ * @param archiveName The name of the archive file where the database will be saved.
+ */
+function backup(archiveName: string): Promise<void> {
+    return execCommand(
+        `mongodump --uri=${config.mongoUri} --archive=${archiveName}`,
+        exitCode => new Error(`mongodump exited with an abnormal status: ${exitCode}`)
+    );
+}
+
+/**
+ * Restore the given archive file to the database. Note that you can change the
+ * database where the archive is restored to using the MONGO_URI environment variable.
+ * @param archiveName The name (or path) of the archive file to restore.
+ */
+function restore(archiveName: string): Promise<void> {
+    return execCommand(
+        `mongorestore --uri=${config.mongoUri} --archive=${archiveName}`,
+        exitCode => new Error(`mongorestore exited with an abnormal status: ${exitCode}`)
+    );
 }
 
 type IOptions = {[key: string]: any};
@@ -400,18 +426,23 @@ async function main(argv: string[]): Promise<void> {
     program.command('deleteCourse <name>')
         .description('Delete a course from the database.')
         .action((name: string) => {
-            action = { command: 'deleteRepo', options: {name: name} }
+            action = { command: 'deleteRepo', options: {name: name} };
         });
     program.command('findDuplicates')
         .description('Find all of the problems in the database which have the same content, modulo whitespace.')
         .action(() => {
-            action = { command: 'findDuplicates', options: {} }
+            action = { command: 'findDuplicates', options: {} };
         });
     program.command('backup <archiveName>')
         .description('Backup the entire banx database to an archive file.')
         .action((archiveName: string) => {
-            action = { command: 'backup', options: {archiveName: archiveName} }
-        })
+            action = { command: 'backup', options: {archiveName: archiveName} };
+        });
+    program.command('restore <archiveName>')
+        .description('Restore an archive previously created with the backup command.')
+        .action((archiveName: string) => {
+            action = { command: 'restore', options: {archiveName: archiveName} };
+        });
     program.parse(argv);
 
     switch (action.command) {
@@ -468,6 +499,9 @@ async function main(argv: string[]): Promise<void> {
             break;
         case 'backup':
             await backup(action.options.archiveName);
+            break;
+        case 'restore':
+            await restore(action.options.archiveName);
             break;
         default:
             throw new Error('unknown command');
