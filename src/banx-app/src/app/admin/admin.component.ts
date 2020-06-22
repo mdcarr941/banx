@@ -1,10 +1,11 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 
 import { BanxUser, UserRole } from '../../../../lib/schema';
 import { ModalComponent } from '../modal/modal.component';
 import { UsersService } from '../users.service';
 import { NotificationService } from '../notification.service';
+import { ProblemsService } from '../problems.service';
 
 @Component({
   selector: 'app-admin',
@@ -14,14 +15,17 @@ import { NotificationService } from '../notification.service';
 export class AdminComponent implements OnInit {
   users$: BehaviorSubject<BanxUser[]> = new BehaviorSubject<BanxUser[]>([]);
   selectedUser: BanxUser;
+  public numProblems$ = new BehaviorSubject<number>(null);
 
   constructor(
     private users: UsersService,
-    private notifications: NotificationService
+    private notifications: NotificationService,
+    private problems: ProblemsService
   ) { }
 
   ngOnInit() {
     this.users.list().subscribe(this.users$);
+    this.problems.count().subscribe(this.numProblems$);
   }
 
   @ViewChild('userGlidInput') userGlidInput;

@@ -4,8 +4,8 @@
  * Module dependencies.
  */
 
-const app = require('./bin/app').app;
-const config = require('./bin/config').default;
+const app = require('./bin/lib/app').app;
+const config = require('./bin/lib/config').default;
 const debug = require('debug')('banx-web:server');
 const http = require('http');
 

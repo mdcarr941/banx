@@ -21,7 +21,7 @@
     "prod": "npm run build-all && npm run start",
     "test": "node spec/testRunner.js",
     "test-debug": "node --inspect-brk spec/testRunner.js",
-    "cli": "node ./bin/cli.js"
+    "cli": "node ./bin/lib/cli.js"
   },
   "author": "",
   "license": "ISC",

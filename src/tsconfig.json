@@ -7,7 +7,8 @@
         "preserveConstEnums": true,
         "sourceMap": true,
         "outDir": "./bin",
-        "baseUrl": "./lib"
+        "baseUrl": "./lib",
+        "resolveJsonModule": true
     },
     "include": [
         "lib/**/*.ts", "banx-app/src/app/problems.service.spec.ts", "banx-app/src/app/problems.service.ts"

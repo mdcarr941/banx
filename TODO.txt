@@ -4,8 +4,20 @@ Cut, Copy, Paste files and directories.
 Drag and drop files and directories.
 X Static and dynamic inclusions
 X Answer obfuscation using new command
-Remove duplicates maintenance script
-Problem counter to admin page
+X Remove duplicates maintenance script
+X Problem counter on admin page
 X Ability to publish to different servers
 Banx username (what did I mean by this?)
 
+Preview of rendered content while editing a tex file in a course:
+  If the user is editing a .tex file on the course tab, when ever they
+  click save (or press Ctrl-S) a preview of the content should be refreshed.
+  This could be done using Xloud.
+
+Integration with Ximera:
+  When the user commits changes to a course, these should be visible
+  to users who subsequently load the course.
+
+X Better command line interface:
+  The CLI is too terse with its output. There needs to be a more helpful
+  message displayed (a usage summary perhaps) when it doesn't recognize its input.

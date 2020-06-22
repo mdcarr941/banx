@@ -5,7 +5,7 @@ const btoa = require('btoa');
 
 type Timeout = any; // The nodejs Timeout type, which is opaque to me.
 
-export const serverPathDefault = '../sage_server.py';
+export const serverPathDefault = '../../sage_server.py';
 export const responseTimeoutMsDefault = 2500;
 
 export class LineStream extends Stream.Transform {

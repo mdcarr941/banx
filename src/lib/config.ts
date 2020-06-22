@@ -1,4 +1,5 @@
 import * as dotenv from 'dotenv';
+import * as packageJson from '../package.json';
 
 import { cleanPrefix } from './common';
 
@@ -35,7 +36,8 @@ const config = Object.freeze({
     /* Log request headers to the console. */
     'logHeaders': parseBoolString(process.env.LOG_HEADERS || 'false'),
     'repoDir': process.env.REPO_DIR || '../repositories',
-    'gitHttpBackend': process.env.GIT_HTTP_BACKEND || '/usr/lib/git-core/git-http-backend'
+    'gitHttpBackend': process.env.GIT_HTTP_BACKEND || '/usr/lib/git-core/git-http-backend',
+    'version': packageJson.version
 });
 
 export default config;

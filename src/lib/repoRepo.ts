@@ -1,12 +1,10 @@
-import { Collection, Cursor, ObjectId } from 'mongodb';
+import { Collection, Cursor, ObjectID } from 'mongodb';
 import * as git from 'isomorphic-git';
 import * as path from 'path';
 import * as fs from 'fs';
-import { ObjectID } from 'mongodb';
 
 import { IRepository } from './schema';
-import client, { DbClient } from './dbClient';
-import { NonExistantCollectionError } from './dbClient';
+import client, { DbClient, NonExistantCollectionError } from './dbClient';
 import config from './config';
 
 export async function rm(sub: string, isDirectory?: boolean): Promise<void> {
@@ -112,7 +110,7 @@ export class RepoRepo {
     }
 
     public getByIdStr(idStr: string): Promise<Repository> {
-        return this.repoCollection.findOne({_id: ObjectId.createFromHexString(idStr)})
+        return this.repoCollection.findOne({_id: ObjectID.createFromHexString(idStr)})
         .then(irepo => irepo ? new Repository(irepo) : null);
     }
 

@@ -71,4 +71,12 @@ export class ProblemsService extends BaseService {
   getTags(topic: string, subtopic: string): Observable<{key: string, values: string[]}> {
     return this.http.get<{key: string, values: string[]}>(this.getUrl(`/getTags/${topic}/${subtopic}`));
   }
+
+  /**
+   * Get the number of problems in the database.
+   */
+  count(): Observable<number> {
+    return this.http.get<number>(this.getUrl('/count'))
+      .pipe(map(response => response['count']));
+  }
 }

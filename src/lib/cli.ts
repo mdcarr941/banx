@@ -237,7 +237,7 @@ async function getTags(topic: string, subtopic: string): Promise<void> {
     console.log(`Found ${tags.length} tag${tags.length === 1 ? '' : 's'}.`);
 }
 
-async function initRepo(name: string, userIds: string[]): Promise<void> {
+async function initCourse(name: string, userIds: string[]): Promise<void> {
     const repoRepo = await getGlobalRepoRepo();
     const repo = new Repository({name: name, userIds: userIds});
     try {
@@ -250,13 +250,13 @@ async function initRepo(name: string, userIds: string[]): Promise<void> {
     }
 }
 
-async function listRepos(): Promise<void> {
+async function listCourses(): Promise<void> {
     const repoRepo = await getGlobalRepoRepo();
     console.log('Repositories in the database:');
     await repoRepo.list().forEach(name => console.log(name));
 }
 
-async function deleteRepo(name: string): Promise<void> {
+async function deleteCourse(name: string): Promise<void> {
     if (await yesNoQuestion(`Are you sure you want to delete '${name}'?`)) {
         console.log('Proceeding with delete.');
         const repoRepo = await getGlobalRepoRepo();
@@ -358,6 +358,15 @@ function restore(archiveName: string): Promise<void> {
     );
 }
 
+/**
+ * Output the number of problems in the database to the console.
+ */
+async function problemCount(): Promise<void> {
+    const repo = await getGlobalProblemRepo();
+    const numProbs = await repo.count();
+    console.log(`Number of problems in the database: ${numProbs}`);
+}
+
 type IOptions = {[key: string]: any};
 
 interface IAction {
@@ -367,7 +376,7 @@ interface IAction {
 
 async function main(argv: string[]): Promise<void> {
     let action: IAction = { command: 'default', options: {} };
-    program.version('0.0.1');
+    program.version(config.version);
     program.command('getProblem <idStr>')
         .description('Print the problem with the given ID.')
         .action((idStr: string) => {
@@ -392,6 +401,11 @@ async function main(argv: string[]): Promise<void> {
         .description('Delete problems with all of the given tags.')
         .action((tags: string[]) => {
             action = { command: 'delete', options: {tags: tags} };
+        });
+    program.command('problemCount')
+        .description('Count the number of problems in the database.')
+        .action(() => {
+            action = { command: 'problemCount', options: {} };
         });
     program.command('sageShell')
         .description('Launch a shell that will interpret sage commands.')
@@ -439,17 +453,17 @@ async function main(argv: string[]): Promise<void> {
     program.command('initCourse <name> [userIds...]')
         .description('Initilize a new course repository.')
         .action((name: string, userIds: string[]) => {
-            action = { command: 'initRepo', options: {name: name, userIds: userIds} };
+            action = { command: 'initCourse', options: {name: name, userIds: userIds} };
         });
     program.command('listCourses')
         .description('List all the courses in the database.')
         .action(() => {
-            action = { command: 'listRepos', options: {} };
+            action = { command: 'listCourses', options: {} };
         });
     program.command('deleteCourse <name>')
         .description('Delete a course from the database.')
         .action((name: string) => {
-            action = { command: 'deleteRepo', options: {name: name} };
+            action = { command: 'deleteCourse', options: {name: name} };
         });
     program.command('findDuplicates')
         .description('Find all of the problems in the database which have the same content, modulo whitespace.')
@@ -489,6 +503,9 @@ async function main(argv: string[]): Promise<void> {
         case 'delete':
             await deleteProblem(action.options.tags);
             break;
+        case 'problemCount':
+            await problemCount();
+            break;
         case 'sageShell':
             await sageShell();
             break;
@@ -513,14 +530,14 @@ async function main(argv: string[]): Promise<void> {
         case 'getTags':
             await getTags(action.options.topic, action.options.subtopic);
             break;
-        case 'initRepo':
-            await initRepo(action.options.name, action.options.userIds);
+        case 'initCourse':
+            await initCourse(action.options.name, action.options.userIds);
             break;
-        case 'listRepos':
-            await listRepos();
+        case 'listCourses':
+            await listCourses();
             break;
-        case 'deleteRepo':
-            await deleteRepo(action.options.name);
+        case 'deleteCourse':
+            await deleteCourse(action.options.name);
             break;
         case 'findDuplicates':
             await findDuplicates();
@@ -535,7 +552,8 @@ async function main(argv: string[]): Promise<void> {
             await restore(action.options.archiveName);
             break;
         default:
-            throw new Error('unknown command');
+            console.log('Unknown command.');
+            program.outputHelp();
     }
 }
 

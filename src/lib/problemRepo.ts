@@ -152,6 +152,15 @@ export class ProblemRepo {
         ]));
     }
 
+    /**
+     * Find all the problems in the database which have the exact same content.
+     * 
+     * A promise for an array is returned and each entry in the array is a pair of values:
+     *   [<duplicated problem>, <array of duplicates>]
+     * Of the set of problems which the same content, it is undefined which one will be
+     * the "duplicated problem" (i.e. which one will be the first entry in the pair).
+     * Note that tags are not checked when determining if one problem is a duplicate of another.
+     */
     public findDuplicates(): Promise<Array<[Problem, Problem[]]>> {
         return this.collection.find()
         .map(
@@ -165,6 +174,13 @@ export class ProblemRepo {
         )
         .toArray()
         .then(promises => Promise.all(promises))
+    }
+
+    /**
+     * Count the number of problems in the database.
+     */
+    public count(): Promise<number> {
+        return this.collection.countDocuments();
     }
 }
 

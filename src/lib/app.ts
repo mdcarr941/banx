@@ -18,7 +18,7 @@ import { logHeaders } from './middleware';
 export const app = express();
 
 // View engine setup.
-app.set('views', path.join(__dirname, '../views'));
+app.set('views', path.join(__dirname, '../../views'));
 app.set('view engine', 'pug');
 
 app.use(logger('dev'));
@@ -29,7 +29,7 @@ app.use(cookieParser());
 if (config.logHeaders) app.use(logHeaders);
 
 // Static file setup.
-const staticHandler = express.static(path.join(__dirname, '../public'))
+const staticHandler = express.static(path.join(__dirname, '../../public'))
 app.use('/public', staticHandler);
 app.use('/assets', staticHandler);
 

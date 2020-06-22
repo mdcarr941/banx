@@ -2,7 +2,7 @@ import * as express from 'express';
 import * as nodemailer from 'nodemailer';
 import { ObjectID } from 'mongodb';
 
-import { getGlobalProblemRepo } from '../problemRepo';
+import { getGlobalProblemRepo, ProblemRepo } from '../problemRepo';
 import { makePairs, printError as commonPrintError } from '../common';
 import { GlobalProblemGenerator } from '../problemGenerator';
 import { Problem, IProblem } from '../schema';
@@ -212,6 +212,18 @@ router.get('/getTags/:topic/:subtopic', (req, res, next) => {
     .then(tags => res.send(tags))
     .catch(err => {
         printError(err, `An error occured while getting the tags under topic "${topic}" and subtopic "${subtopic}".`);
+        next(err);
+    });
+});
+
+/**
+ * Return the number of problems in the database.
+ */
+router.get('/count', (req, res, next) => {
+    req.banxContext.problemRepo.count()
+    .then(count => res.send({count}))
+    .catch(err => {
+        printError(err, `An error occured while trying to count problems.`);
         next(err);
     });
 });
