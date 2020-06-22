@@ -272,6 +272,9 @@ async function deleteRepo(name: string): Promise<void> {
     }
 }
 
+/**
+ * Find all problems in the database which have the exact same content.
+ */
 async function findDuplicates(): Promise<void> {
     const problemRepo = await getGlobalProblemRepo();
     let pairs;
@@ -279,7 +282,7 @@ async function findDuplicates(): Promise<void> {
         pairs = await problemRepo.findDuplicates();
     }
     catch (err) {
-        console.log('An error occured while finding duplicates.');
+        console.log('An error occurred while finding duplicates.');
         console.error(err);
     }
     for (let pair of pairs) {
@@ -287,10 +290,30 @@ async function findDuplicates(): Promise<void> {
             console.log(pair[0]._id + ' is duplicated by ' + dup._id);
         }
     }
+    const numDups = pairs.map(pair => pair[1].length)
+        .reduce((accum, add) => accum + add, 0);
+    console.log(`Found ${numDups} duplicate problems.`);
 }
 
+/**
+ * Delete all problems which have the exact same content as some other problem.
+ */
 async function deleteDuplicates(): Promise<void> {
-
+    const problemRepo = await getGlobalProblemRepo();
+    const pairs = await problemRepo.findDuplicates();
+    const numDups = pairs.map(pair => pair[1].length)
+        .reduce((accum, add) => accum + add, 0);
+    if (await yesNoQuestion(`Are you sure you want to delete ${numDups} duplicates?`)) {
+        console.log('Proceeding with delete...');
+        const promises = [];
+        for (let pair of pairs) {
+            for (let dup of pair[1]) promises.push(problemRepo.deleteOne(dup._id));
+        }
+        await Promise.all(promises);
+    }
+    else {
+        console.log('Aborting delete.');
+    }
 }
 
 /**
@@ -433,6 +456,11 @@ async function main(argv: string[]): Promise<void> {
         .action(() => {
             action = { command: 'findDuplicates', options: {} };
         });
+    program.command('deleteDuplicates')
+        .description('Delete all of the duplicate problems in the database.')
+        .action(() => {
+            action = { command: 'deleteDuplicates', options: {} };
+        });
     program.command('backup <archiveName>')
         .description('Backup the entire banx database to an archive file.')
         .action((archiveName: string) => {
@@ -496,6 +524,9 @@ async function main(argv: string[]): Promise<void> {
             break;
         case 'findDuplicates':
             await findDuplicates();
+            break;
+        case 'deleteDuplicates':
+            await deleteDuplicates();
             break;
         case 'backup':
             await backup(action.options.archiveName);
