@@ -28,7 +28,7 @@
     "ajv-keywords": "^3.4.1",
     "angular-monaco-editor": "^1.10.0",
     "core-js": "^2.6.10",
-    "isomorphic-git": "^0.72.0",
+    "isomorphic-git": "^1.8.2",
     "jquery": "^3.4.1",
     "path": "^0.12.7",
     "rxjs": "~6.3.3",
